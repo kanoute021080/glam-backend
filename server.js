@@ -31,5 +31,12 @@ app.post("/chat", async (req, res) => {
 
 app.get("/", (req, res) => res.send("Hollywood Glam API running"));
 
+// Keep alive — pings itself every 14 minutes so free tier never sleeps
+setInterval(() => {
+  fetch("https://glam-backend-rxdf.onrender.com")
+    .then(() => console.log("Keep alive ping sent"))
+    .catch(() => console.log("Ping failed"));
+}, 14 * 60 * 1000);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
