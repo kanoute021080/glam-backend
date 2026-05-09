@@ -3,20 +3,22 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
-}));
-
+app.use(cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "Authorization"] }));
+app.options("*", cors());
 app.use(express.json());
+
+app.get("/", (req, res) => res.send("Hollywood Glam API running"));
 
 app.get("/test", (req, res) => {
   res.json({ status: "Backend is working!", timestamp: new Date().toISOString() });
 });
 
 app.post("/chat", async (req, res) => {
+  console.log("Received request:", JSON.stringify(req.body).substring(0, 100));
   const { messages, system } = req.body;
+  if (!messages || !system) {
+    return res.status(400).json({ error: "Missing messages or system", received: req.body });
+  }
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -33,19 +35,19 @@ app.post("/chat", async (req, res) => {
       })
     });
     const data = await response.json();
+    console.log("Anthropic response status:", response.status);
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: "API call failed" });
+    console.error("Error:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
-app.get("/", (req, res) => res.send("Hollywood Glam API running"));
-
-// Keep alive — pings itself every 14 minutes so free tier never sleeps
+// Keep alive
 setInterval(() => {
   fetch("https://glam-backend-rxdf.onrender.com")
     .then(() => console.log("Keep alive ping sent"))
-    .catch(() => console.log("Ping failed"));
+    .catch(() => {});
 }, 14 * 60 * 1000);
 
 const PORT = process.env.PORT || 3000;
