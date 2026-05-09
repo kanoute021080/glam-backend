@@ -1,54 +1,444 @@
-const express = require("express");
-const cors = require("cors");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Hollywood Glam Beauty</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#f5f5f3;min-height:100vh;max-width:100vw;overflow-x:hidden}
+.app{width:100%;max-width:430px;margin:0 auto;padding:12px 10px}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.av{width:34px;height:34px;border-radius:50%;background:#c2426e;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0}
+.hdr-name{font-size:14px;font-weight:600;color:#111}
+.hdr-sub{font-size:11px;color:#888}
+.badge-pr{font-size:10px;background:#c2426e;color:#fff;padding:3px 9px;border-radius:20px;font-weight:600}
+.nav{display:flex;gap:5px;margin-bottom:14px}
+.nav button{flex:1;padding:8px 2px;font-size:11px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;font-weight:500}
+.nav button.active{background:#111;color:#fff;border-color:#111}
+.card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stat{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-size:22px;font-weight:600;color:#111}
+.stat-lbl{font-size:11px;color:#888;margin-top:2px}
+.badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.badge.confirmed{background:#eafaf1;color:#0F6E56}
+.badge.pending{background:#FAEEDA;color:#633806}
+.badge.chat-new{background:#e8f4ff;color:#185FA5}
+.badge.no-dep{background:#fcebeb;color:#A32D2D}
+.btn-primary{padding:7px 14px;font-size:12px;font-weight:600;border-radius:8px;border:none;background:#111;color:#fff;cursor:pointer}
+.btn-secondary{padding:7px 14px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid #ddd;background:transparent;color:#666;cursor:pointer}
+.btn-danger{padding:7px 14px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid #fca5a5;background:transparent;color:#dc2626;cursor:pointer}
+.divider{border:none;border-top:1px solid #f0f0f0;margin:8px 0}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:9px 18px;border-radius:10px;font-size:13px;z-index:999;white-space:nowrap;display:none}
+.chat-hdr{background:#111;padding:10px 14px;display:flex;align-items:center;gap:8px;border-radius:12px 12px 0 0}
+.chat-av{width:28px;height:28px;border-radius:50%;background:#c2426e;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.chat-name{font-size:13px;font-weight:600;color:#f0f0ec}
+.chat-status{font-size:10px;color:#7dd9b8;display:flex;align-items:center;gap:4px}
+.online-dot{width:5px;height:5px;border-radius:50%;background:#22c98a;display:inline-block}
+.chat-body{height:280px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;background:#f5f5f3;border:1px solid #eee;border-top:none}
+.bubble-wrap{display:flex;flex-direction:column}
+.bubble-wrap.bot{align-items:flex-start}
+.bubble-wrap.user{align-items:flex-end}
+.bubble-label{font-size:10px;color:#aaa;margin-bottom:2px}
+.bubble{font-size:13px;line-height:1.6;padding:8px 12px;max-width:82%}
+.bubble.bot{background:#fff;color:#111;border:1px solid #eee;border-radius:4px 12px 12px 12px}
+.bubble.user{background:#111;color:#f0f0ec;border-radius:12px 4px 12px 12px}
+.quick-btns{display:flex;flex-wrap:wrap;gap:5px;padding:7px 10px;background:#f5f5f3;border:1px solid #eee;border-top:none}
+.qbtn{font-size:11px;padding:4px 9px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#444;cursor:pointer}
+.chat-input-row{display:flex;gap:8px;padding:9px 12px;background:#fff;border:1px solid #eee;border-top:none;border-radius:0 0 12px 12px;align-items:center}
+.chat-input{flex:1;font-size:13px;padding:7px 12px;border-radius:20px;border:1px solid #ddd;background:#f5f5f3;color:#111;outline:none}
+.send-btn{width:34px;height:34px;border-radius:50%;background:#111;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pay-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:12px 14px;margin-top:4px;max-width:88%}
+.pay-link{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;text-decoration:none;margin-bottom:5px}
+.reactions{display:flex;gap:4px;margin-top:6px}
+.reaction-btn{font-size:14px;padding:2px 5px;border-radius:20px;border:1px solid #eee;background:#fff;cursor:pointer}
+.reaction-btn.active{background:#f0f0f0}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="toast" id="toast"></div>
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="av">HG</div>
+      <div>
+        <div class="hdr-name">Hollywood Glam Beauty</div>
+        <div class="hdr-sub">Owner dashboard</div>
+      </div>
+    </div>
+    <span class="badge-pr">Premium</span>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="switchTab('home',this)">Home</button>
+    <button onclick="switchTab('bookings',this)" id="tab-bookings">Bookings</button>
+    <button onclick="switchTab('messages',this)" id="tab-messages">Messages</button>
+    <button onclick="switchTab('chat',this)">Chat</button>
+  </div>
+  <div id="home">
+    <div class="stat-grid" id="stats"></div>
+    <div id="approvals"></div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px">This week</div>
+      <div id="week-list"></div>
+    </div>
+  </div>
+  <div id="bookings" style="display:none"><div id="booking-list"></div></div>
+  <div id="messages" style="display:none">
+    <div id="inbox"></div>
+    <div id="thread" style="display:none"></div>
+  </div>
+  <div id="chat" style="display:none">
+    <div style="font-size:11px;color:#888;margin-bottom:8px;padding:7px 10px;background:#fff;border-radius:8px;border:1px solid #eee">Client-facing chat · bookings appear on dashboard instantly</div>
+    <div class="chat-hdr">
+      <div class="chat-av">HG</div>
+      <div>
+        <div class="chat-name">Hollywood Glam Beauty</div>
+        <div class="chat-status"><span class="online-dot"></span>AI receptionist · always open</div>
+      </div>
+    </div>
+    <div class="chat-body" id="chat-body"></div>
+    <div class="quick-btns">
+      <button class="qbtn" onclick="sendChat('Book appointment')">Book appointment</button>
+      <button class="qbtn" onclick="sendChat('What are your prices?')">Prices?</button>
+      <button class="qbtn" onclick="sendChat('Are you free Friday?')">Free Friday?</button>
+      <button class="qbtn" onclick="sendChat('How long for braids?')">Braids duration?</button>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button class="send-btn" onclick="sendChat()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="#f0f0ec"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
 
-const app = express();
+<script>
+const BACKEND = "https://glam-backend-rxdf.onrender.com";
+const PAY={cashapp:"$HollywoodGlamBeauty",venmo:"@HollywoodGlamBeauty",zelle:"glambeauty@email.com"};
+const fmt=h=>h<12?h+"am":h===12?"12pm":(h-12)+"pm";
 
-app.use(cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Content-Type", "Authorization"] }));
-app.options("*", cors());
-app.use(express.json());
+let bookings=[
+  {id:1,client:"Maria R.",service:"Silk press",day:"Tue",hour:9,status:"confirmed",amount:85,deposit:true},
+  {id:2,client:"Keisha M.",service:"Locs maintenance",day:"Wed",hour:11,status:"pending",amount:95,deposit:false},
+  {id:3,client:"Destiny L.",service:"Knotless braids",day:"Thu",hour:9,status:"confirmed",amount:180,deposit:true},
+  {id:4,client:"Priya S.",service:"Large knotless",day:"Sat",hour:14,status:"pending",amount:150,deposit:false},
+];
 
-app.get("/", (req, res) => res.send("Hollywood Glam API running"));
+let messages=[
+  {id:1,from:"Destiny L.",text:"Can I add color to my braids?",time:"9:14am",read:false},
+  {id:2,from:"New client",text:"Do you do feed-in braids?",time:"10:02am",read:false},
+];
 
-app.get("/test", (req, res) => {
-  res.json({ status: "Backend is working!", timestamp: new Date().toISOString() });
-});
+let threads={
+  1:[{from:"client",text:"Can I add color to my braids?",time:"9:14am",reaction:null}],
+  2:[{from:"client",text:"Do you do feed-in braids?",time:"10:02am",reaction:null}],
+};
 
-app.post("/chat", async (req, res) => {
-  console.log("Received request:", JSON.stringify(req.body).substring(0, 100));
-  const { messages, system } = req.body;
-  if (!messages || !system) {
-    return res.status(400).json({ error: "Missing messages or system", received: req.body });
+let chatHistory=[];
+let activeThread=null;
+let chatBusy=false;
+
+function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",3000);}
+
+function switchTab(name,btn){
+  ["home","bookings","messages","chat"].forEach(t=>document.getElementById(t).style.display="none");
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+  document.getElementById(name).style.display="block";
+  if(btn)btn.classList.add("active");
+  if(name==="home")renderHome();
+loadBookings();
+  if(name==="bookings")renderBookings();
+  if(name==="messages"){activeThread=null;renderInbox();}
+  if(name==="chat")renderChat();
+}
+
+function renderHome(){
+  const rev=bookings.reduce((s,b)=>s+b.amount,0);
+  const deps=bookings.filter(b=>b.deposit).length*35;
+  const conf=bookings.filter(b=>b.status==="confirmed").length;
+  const pend=bookings.filter(b=>b.status==="pending").length;
+  document.getElementById("stats").innerHTML=
+    [["Revenue","$"+rev],["Deposits","$"+deps],["Confirmed",conf],["Pending",pend]]
+    .map(([l,v])=>`<div class="stat"><div class="stat-val">${v}</div><div class="stat-lbl">${l}</div></div>`).join("");
+  const pending=bookings.filter(b=>b.status==="pending");
+  document.getElementById("approvals").innerHTML=pending.length?`
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px">Needs approval</div>
+      ${pending.map(b=>`
+        <div style="padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid #f0f0f0">
+          <div style="display:flex;gap:5px;align-items:center;margin-bottom:2px">
+            <span style="font-size:13px;font-weight:600;color:#111">${b.client}</span>
+            ${b.newFromChat?'<span class="badge chat-new">chat</span>':""}
+            ${!b.deposit?'<span class="badge no-dep">no deposit</span>':""}
+          </div>
+          <div style="font-size:12px;color:#888;margin-bottom:6px">${b.service} · ${b.day} ${fmt(b.hour)}</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn-primary" onclick="confirmB(${b.id})">Confirm</button>
+            <button class="btn-danger" onclick="cancelB(${b.id})">Decline</button>
+          </div>
+        </div>`).join("")}
+    </div>`:"";
+  document.getElementById("week-list").innerHTML=bookings.map(b=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f5f5">
+      <div>
+        <div style="font-size:13px;color:#111">${b.client}${b.newFromChat?' <span class="badge chat-new">chat</span>':""}</div>
+        <div style="font-size:11px;color:#888">${b.service} · ${b.day} ${fmt(b.hour)}</div>
+      </div>
+      <span class="badge ${b.status}">${b.status}</span>
+    </div>`).join("");
+  updateNavBadges();
+}
+
+function renderBookings(){
+  document.getElementById("booking-list").innerHTML=bookings.map(b=>`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="display:flex;gap:5px;align-items:center;margin-bottom:2px">
+            <span style="font-size:13px;font-weight:600;color:#111">${b.client}</span>
+            ${b.newFromChat?'<span class="badge chat-new">chat</span>':""}
+          </div>
+          <div style="font-size:12px;color:#888">${b.service} · ${b.day} ${fmt(b.hour)}</div>
+          <div style="font-size:11px;margin-top:2px;color:${b.deposit?"#0F6E56":"#dc2626"}">${b.deposit?"✓ Deposit received":"⏳ Deposit pending"}</div>
+        </div>
+        <span class="badge ${b.status}">${b.status}</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        ${b.status==="pending"?`<button class="btn-primary" onclick="confirmB(${b.id})">Confirm</button>`:""}
+        <button class="btn-danger" onclick="cancelB(${b.id})">${b.status==="pending"?"Decline":"Cancel"}</button>
+      </div>
+    </div>`).join("");
+}
+
+function confirmB(id){
+  fetch(BACKEND+"/bookings/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:"confirmed",deposit:true})});
+  bookings=bookings.map(b=>b.id===id?{...b,status:"confirmed",deposit:true,amount:b.amount||95}:b);
+  renderHome();renderBookings();showToast("Confirmed! Client notified.");
+}
+
+function cancelB(id){
+  const b=bookings.find(x=>x.id===id);
+  fetch(BACKEND+"/bookings/"+id,{method:"DELETE"});
+  bookings=bookings.filter(x=>x.id!==id);
+  if(b){
+    const mid=Date.now();
+    const note=`Hi ${b.client}, your ${b.service} on ${b.day} at ${fmt(b.hour)} was cancelled — deposit not received. Please rebook and send $35 to secure your slot.`;
+    messages.push({id:mid,from:b.client,text:"Booking cancelled — no deposit",time:"Now",read:true});
+    threads[mid]=[{from:"owner",text:note,time:"Now",reaction:null}];
   }
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 150,
-        system,
-        messages
-      })
+  renderHome();renderBookings();showToast("Cancelled. Client notified.");
+}
+
+function updateNavBadges(){
+  const pend=bookings.filter(b=>b.status==="pending").length;
+  const unrd=messages.filter(m=>!m.read).length;
+  document.getElementById("tab-bookings").textContent=pend?`Bookings (${pend})`:"Bookings";
+  document.getElementById("tab-messages").textContent=unrd?`Messages (${unrd})`:"Messages";
+}
+
+function renderInbox(){
+  document.getElementById("inbox").style.display="block";
+  document.getElementById("thread").style.display="none";
+  document.getElementById("inbox").innerHTML=messages.map(m=>`
+    <div class="card" style="cursor:pointer;border-left:${!m.read?"3px solid #c2426e":"1px solid #eee"}" onclick="openThread(${m.id})">
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:13px;font-weight:${m.read?400:600};color:#111">${m.from}</span>
+        <span style="font-size:11px;color:#aaa">${m.time}</span>
+      </div>
+      <div style="font-size:13px;color:#888;margin-top:3px">${m.text}</div>
+      <div style="font-size:11px;margin-top:5px;color:${!m.read?"#c2426e":"#aaa"};font-weight:${!m.read?600:400}">${!m.read?"New · tap to reply":"Tap to reply"}</div>
+    </div>`).join("");
+  updateNavBadges();
+}
+
+function openThread(id){
+  messages=messages.map(m=>m.id===id?{...m,read:true}:m);
+  activeThread=messages.find(m=>m.id===id)||{id,from:"Client",time:""};
+  document.getElementById("inbox").style.display="none";
+  document.getElementById("thread").style.display="block";
+  renderThread();
+  updateNavBadges();
+}
+
+function renderThread(){
+  const m=activeThread;
+  document.getElementById("thread").innerHTML=`
+    <button class="btn-secondary" style="margin-bottom:10px" onclick="renderInbox();document.getElementById('thread').style.display='none';document.getElementById('inbox').style.display='block'">← Back</button>
+    <div class="card" style="margin-bottom:8px">
+      <div style="font-size:13px;font-weight:600;color:#111">${m.from}</div>
+      <div style="font-size:10px;color:#aaa">${m.time}</div>
+    </div>
+    <div style="border:1px solid #eee;border-radius:10px;overflow:hidden;margin-bottom:8px">
+      <div style="height:240px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:12px;background:#f5f5f3" id="thread-msgs"></div>
+      <div style="display:flex;gap:8px;padding:9px 12px;background:#fff;border-top:1px solid #eee;align-items:center">
+        <input id="reply-input" style="flex:1;font-size:13px;padding:7px 12px;border-radius:20px;border:1px solid #ddd;background:#f5f5f3;color:#111;outline:none" placeholder="Reply to ${m.from}..." onkeydown="if(event.key==='Enter')sendReply()"/>
+        <button class="send-btn" onclick="sendReply()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#f0f0ec"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>`;
+  renderThreadMsgs();
+}
+
+function renderThreadMsgs(){
+  const msgs=threads[activeThread.id]||[];
+  const el=document.getElementById("thread-msgs");
+  if(!el)return;
+  el.innerHTML=msgs.map((msg,i)=>`
+    <div style="align-self:${msg.from==="owner"?"flex-end":"flex-start"};max-width:80%;display:flex;flex-direction:column;align-items:${msg.from==="owner"?"flex-end":"flex-start"}">
+      <div style="font-size:10px;color:#aaa;margin-bottom:2px">${msg.from==="owner"?"You":activeThread.from} · ${msg.time}</div>
+      <div style="font-size:13px;line-height:1.55;padding:8px 12px;border-radius:${msg.from==="owner"?"12px 4px 12px 12px":"4px 12px 12px 12px"};background:${msg.from==="owner"?"#111":"#fff"};color:${msg.from==="owner"?"#f0f0ec":"#111"};border:${msg.from==="owner"?"none":"1px solid #eee"}">${msg.text}</div>
+      ${msg.reaction?`<div style="font-size:16px;margin-top:2px">${msg.reaction}</div>`:""}
+      <div class="reactions">
+        ${["👍","❤️","😊","✅","🙏"].map(e=>`<button class="reaction-btn${msg.reaction===e?" active":""}" onclick="react(${i},'${e}')">${e}</button>`).join("")}
+      </div>
+    </div>`).join("");
+  el.scrollTop=el.scrollHeight;
+}
+
+function react(idx,emoji){
+  threads[activeThread.id][idx].reaction=threads[activeThread.id][idx].reaction===emoji?null:emoji;
+  renderThreadMsgs();
+}
+
+async function sendReply(){
+  const inp=document.getElementById("reply-input");
+  const t=inp.value.trim();if(!t||!activeThread)return;
+  inp.value="";
+  const mid=activeThread.id;
+  threads[mid]=[...(threads[mid]||[]),{from:"owner",text:t,time:"Now",reaction:null}];
+  renderThreadMsgs();
+  showToast("Sent!");
+  setTimeout(async()=>{
+    try{
+      const res=await fetch(BACKEND+"/chat",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          system:`You are ${activeThread.from}, a client texting a hair salon. Reply casually in 1-2 sentences. Plain text.`,
+          messages:threads[mid].map(m=>({role:m.from==="owner"?"user":"assistant",content:m.text}))
+        })
+      });
+      const d=await res.json();
+      threads[mid].push({from:"client",text:d?.content?.[0]?.text||"Ok thanks!",time:"Now",reaction:null});
+      messages=messages.map(m=>m.id===mid?{...m,read:false}:m);
+      renderThreadMsgs();
+      updateNavBadges();
+    }catch{}
+  },1500);
+}
+
+function buildSys(){
+  const taken=bookings.map(b=>`${b.day} ${fmt(b.hour)} ${b.service}`).join(", ");
+  return `You are the AI receptionist for Hollywood Glam Beauty hair salon Hudson Valley NY. Warm and concise.
+Services: Medium knotless $180 4hrs, Large knotless $150 3hrs, Box braids $220 6hrs, Locs $95 2hrs, Silk press $85 1.5hrs, Wig install $120 1hr.
+Hours Tue-Sat 9am-7pm. CLOSED Sun+Mon. Deposit $35. Booked: ${taken||"none"}. Fri open.
+Never book Sun/Mon. Remember full conversation. Collect service,day,time,name then output: DEPOSIT_DUE:$35:[service]:[day]:[time]:[name]
+Under 80 words. Plain text only.`;
+}
+
+function renderChat(){
+  const el=document.getElementById("chat-body");
+  if(el&&chatHistory.length===0){
+    const w=document.createElement("div");
+    w.className="bubble-wrap bot";
+    w.innerHTML='<div class="bubble-label">Glam AI</div><div class="bubble bot">Hey! Welcome to Hollywood Glam Beauty. How can I help you today?</div>';
+    el.appendChild(w);
+  }
+}
+
+function addBubble(role,text){
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.className=`bubble-wrap ${role}`;
+  if(role==="bot"){const l=document.createElement("div");l.className="bubble-label";l.textContent="Glam AI";w.appendChild(l);}
+  const b=document.createElement("div");
+  b.className=`bubble ${role}`;
+  b.textContent=text;
+  w.appendChild(b);
+  el.appendChild(w);
+  el.scrollTop=el.scrollHeight;
+}
+
+function addPayCard(svc,day,time,client){
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.className="bubble-wrap bot";
+  w.innerHTML=`
+    <div class="pay-card">
+      <div style="font-size:12px;font-weight:600;color:#111;margin-bottom:2px">Send $35 deposit to confirm</div>
+      <div style="font-size:11px;color:#888;margin-bottom:10px">${svc} · ${day} at ${time} · ${client}</div>
+      <a href="https://cash.app/${PAY.cashapp}" target="_blank" class="pay-link" style="background:#1a9e3f;margin-bottom:5px">
+        <span style="font-size:14px;color:#fff;font-weight:700">$</span>
+        <div><div style="font-size:12px;font-weight:600;color:#fff">Cash App</div><div style="font-size:10px;color:#a8f0bc">${PAY.cashapp}</div></div>
+      </a>
+      <a href="https://venmo.com/${PAY.venmo.replace("@","")}" target="_blank" class="pay-link" style="background:#3d95ce;margin-bottom:5px">
+        <span style="font-size:14px;color:#fff;font-weight:700">V</span>
+        <div><div style="font-size:12px;font-weight:600;color:#fff">Venmo</div><div style="font-size:10px;color:#b8dff5">${PAY.venmo}</div></div>
+      </a>
+      <div class="pay-link" style="background:#6B2D8B">
+        <span style="font-size:14px;color:#fff;font-weight:700">Z</span>
+        <div><div style="font-size:12px;font-weight:600;color:#fff">Zelle</div><div style="font-size:10px;color:#dbb8f0">${PAY.zelle}</div></div>
+      </div>
+      <div style="font-size:10px;color:#aaa;margin-top:8px">Include name in memo. Slot held 2 hours.</div>
+    </div>`;
+  el.appendChild(w);
+  el.scrollTop=el.scrollHeight;
+}
+
+async function sendChat(txt){
+  const inp=document.getElementById("chat-input");
+  const t=txt||(inp?inp.value.trim():"");if(!t||chatBusy)return;
+  if(inp)inp.value="";
+  addBubble("user",t);
+  chatHistory.push({role:"user",content:t});
+  chatBusy=true;
+  const typing=document.createElement("div");
+  typing.className="bubble-wrap bot";
+  typing.id="typing";
+  typing.innerHTML='<div class="bubble-label">Glam AI</div><div class="bubble bot" style="color:#aaa">typing...</div>';
+  document.getElementById("chat-body").appendChild(typing);
+  document.getElementById("chat-body").scrollTop=9999;
+  try{
+    const res=await fetch(BACKEND+"/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({system:buildSys(),messages:chatHistory})
     });
-    const data = await response.json();
-    console.log("Anthropic response status:", response.status);
-    res.json(data);
-  } catch (err) {
-    console.error("Error:", err.message);
-    res.status(500).json({ error: err.message });
+    const d=await res.json();
+    const raw=(d?.content?.[0]?.text||"Try again!").replace(/\*\*(.*?)\*\*/g,"$1");
+    const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([^:]+):([^\n]+)/);
+    const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").trim();
+    document.getElementById("typing")?.remove();
+    chatHistory.push({role:"assistant",content:raw});
+    if(reply)addBubble("bot",reply);
+    if(dm){
+      const[,,svc,day,time,client]=dm;
+      const hmap={"9am":9,"10am":10,"11am":11,"12pm":12,"1pm":13,"2pm":14,"3pm":15,"4pm":16};
+      const h=hmap[time.trim().toLowerCase()]||10;
+      const bid=Date.now(),mid=Date.now()+1;
+      bookings.push({id:bid,client:client.trim(),service:svc.trim(),day:day.trim(),hour:h,status:"pending",amount:0,deposit:false,newFromChat:true});
+      messages.push({id:mid,from:client.trim(),text:`New booking: ${svc.trim()} ${day.trim()} ${time.trim()}`,time:"Now",read:false});
+      threads[mid]=[{from:"client",text:`New booking: ${svc.trim()} ${day.trim()} ${time.trim()}`,time:"Now",reaction:null}];
+      addPayCard(svc.trim(),day.trim(),time.trim(),client.trim());
+      updateNavBadges();
+      showToast("New booking from "+client.trim()+"!");
+    }
+  }catch(e){
+    document.getElementById("typing")?.remove();
+    const el=document.getElementById("chat-body");
+    const w=document.createElement("div");
+    w.className="bubble-wrap bot";
+    w.innerHTML=`<div class="bubble-label">Glam AI</div><div class="bubble bot" style="color:#888">Having trouble connecting. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="sendChat('${t.replace(/'/g,"\\'")}')">Tap to retry →</span></div>`;
+    el.appendChild(w);
+    el.scrollTop=el.scrollHeight;
+    chatHistory.pop();
   }
-});
+  chatBusy=false;
+}
 
-// Keep alive
-setInterval(() => {
-  fetch("https://glam-backend-rxdf.onrender.com")
-    .then(() => console.log("Keep alive ping sent"))
-    .catch(() => {});
-}, 14 * 60 * 1000);
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+renderHome();
+</script>
+</body>
+</html>
