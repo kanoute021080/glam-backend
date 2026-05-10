@@ -438,32 +438,7 @@ async function sendChat(txt){
   chatBusy=false;
 }
 
-async function loadBookings(){
-  try{
-    const res=await fetch(BACKEND+"/bookings");
-    const data=await res.json();
-    if(Array.isArray(data)){ bookings=data; }
-    renderHome();
-    renderBookings();
-    updateNavBadges();
-  }catch(e){
-    async function loadBookings(){
-  try{
-    const res=await fetch("https://glam-backend-rxdf.onrender.com/bookings");
-    const data=await res.json();
-    if(Array.isArray(data)){
-      bookings=data;
-      renderHome();
-      renderBookings();
-      updateNavBadges();
-    }
-  }catch(e){
-    renderHome();
-  }
-}
-setInterval(loadBookings,15000);
-loadBookings();
-  }
-}
-setInterval(loadBookings,15000);
-loadBookings();
+renderHome();
+</script>
+</body>
+</html>
