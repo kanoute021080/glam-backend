@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 
@@ -15,6 +16,8 @@ let bookings = [
 ];
 
 app.get("/", (req, res) => res.send("Hollywood Glam API running"));
+app.get("/dashboard", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
+app.get("/client", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
 
 app.get("/test", (req, res) => {
   res.json({ status: "Backend is working!", timestamp: new Date().toISOString() });
