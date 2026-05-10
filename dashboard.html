@@ -438,7 +438,17 @@ async function sendChat(txt){
   chatBusy=false;
 }
 
-renderHome();
-</script>
-</body>
-</html>
+async function loadBookings(){
+  try{
+    const res=await fetch(BACKEND+"/bookings");
+    const data=await res.json();
+    if(Array.isArray(data)){ bookings=data; }
+    renderHome();
+    renderBookings();
+    updateNavBadges();
+  }catch(e){
+    renderHome();
+  }
+}
+setInterval(loadBookings,15000);
+loadBookings();
