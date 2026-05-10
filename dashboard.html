@@ -153,7 +153,7 @@ function switchTab(name,btn){
 }
 
 function renderHome(){
-  const rev=bookings.reduce((s,b)=>s+b.amount,0);
+  const rev=bookings.filter(b=>b.status==="confirmed").reduce((s,b)=>s+(parseInt(b.amount)||0),0);
   const deps=bookings.filter(b=>b.deposit).length*35;
   const conf=bookings.filter(b=>b.status==="confirmed").length;
   const pend=bookings.filter(b=>b.status==="pending").length;
