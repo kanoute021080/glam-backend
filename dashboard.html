@@ -212,7 +212,8 @@ function renderBookings(){
 
 function confirmB(id){
   fetch(BACKEND+"/bookings/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:"confirmed",deposit:true})});
-  bookings=bookings.map(b=>b.id===id?{...b,status:"confirmed",deposit:true,amount:b.amount||95}:b);
+const svcPrices={"Silk press":85,"Locs maintenance":95,"Knotless braids":180,"Large knotless":150,"Box braids":220,"Wig install":120,"Medium knotless braids":180,"Large knotless braids":150};
+bookings=bookings.map(b=>b.id===id?{...b,status:"confirmed",deposit:true,amount:b.amount||svcPrices[b.service]||0}:b);
   renderHome();renderBookings();showToast("Confirmed! Client notified.");
 }
 
