@@ -166,7 +166,7 @@ async function send(txt){
       fetch(BACKEND+"/bookings",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:0})
+        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:window.location.pathname.split("/")[2]||"default"})
       }).then(r=>r.json()).then(b=>{
         clientBookings.push({...b,time});
       }).catch(()=>{
