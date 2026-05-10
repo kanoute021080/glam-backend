@@ -412,6 +412,7 @@ async function sendChat(txt){
     const d=await res.json();
     const raw=(d?.content?.[0]?.text||"Try again!").replace(/\*\*(.*?)\*\*/g,"$1");
     const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([^:]+):([^\n]+)/);
+if(dm){dm[5]=dm[5].replace(/^\d+[ap]m[:]\s*/i,"").trim();}
     const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").trim();
     document.getElementById("typing")?.remove();
     chatHistory.push({role:"assistant",content:raw});
