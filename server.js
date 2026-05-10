@@ -65,10 +65,18 @@ app.post("/bookings", async (req, res) => {
 app.patch("/bookings/:id", async (req, res) => {
   try {
     const { status, deposit, amount } = req.body;
+    const svcPrices = {"silk press":85,"locs maintenance":95,"knotless braids":180,"large knotless":150,"box braids":220,"wig install":120,"medium knotless braids":180,"large knotless braids":150};
+    const existing = await supabase("GET", "bookings?id=eq." + req.params.id);
+    const current = Array.isArray(existing) ? existing[0] : {};
+    const serviceName = (current.service || "").toLowerCase();
+    const serviceKey = Object.keys(svcPrices).find(k => serviceName.includes(k));
     const update = {};
     if (status) update.status = status;
     if (deposit !== undefined) update.deposit = deposit;
     if (amount !== undefined) update.amount = amount;
+    if (!current.amount || current.amount === 0) {
+      update.amount = serviceKey ? svcPrices[serviceKey] : 0;
+    }
     const data = await supabase("PATCH", "bookings?id=eq." + req.params.id, update);
     res.json(data);
   } catch (err) {
