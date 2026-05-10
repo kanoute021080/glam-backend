@@ -439,7 +439,8 @@ async function sendChat(txt){
 
 async function loadBookings(){
   try{
-    var res = await fetch("https://glam-backend-rxdf.onrender.com/bookings");
+    var salonId = window.location.pathname.split("/")[2] || "default";
+var res = await fetch("https://glam-backend-rxdf.onrender.com/bookings?salon_id=" + salonId);
     var data = await res.json();
     if(Array.isArray(data)){
       bookings = data;
