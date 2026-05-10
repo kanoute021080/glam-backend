@@ -116,7 +116,13 @@ app.post("/chat", async (req, res) => {
 setInterval(function() {
   fetch("https://glam-backend-rxdf.onrender.com").catch(function() {});
 }, 14 * 60 * 1000);
-
+app.get("*", (req, res) => {
+  if(req.path.startsWith("/dashboard")) {
+    res.sendFile(path.join(__dirname, "dashboard.html"));
+  } else {
+    res.sendFile(path.join(__dirname, "client.html"));
+  }
+});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, function() {
   console.log("Dianke.ai server running on port " + PORT);
