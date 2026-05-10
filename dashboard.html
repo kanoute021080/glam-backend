@@ -437,7 +437,21 @@ async function sendChat(txt){
   chatBusy=false;
 }
 
-loadBookings();
+async function loadBookings(){
+  try{
+    var res = await fetch("https://glam-backend-rxdf.onrender.com/bookings");
+    var data = await res.json();
+    if(Array.isArray(data)){
+      bookings = data;
+      renderHome();
+      renderBookings();
+      updateNavBadges();
+    }
+  }catch(e){
+    console.log("Error loading bookings:", e);
+    renderHome();
+  }
+}loadBookings();
 setInterval(loadBookings, 15000);
 </script>
 </body>
