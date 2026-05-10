@@ -146,8 +146,7 @@ function switchTab(name,btn){
   document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
   document.getElementById(name).style.display="block";
   if(btn)btn.classList.add("active");
-  if(name==="home")// Load bookings first then render
-loadBookings();
+  if(name==="home")renderHome();
   if(name==="bookings")renderBookings();
   if(name==="messages"){activeThread=null;renderInbox();}
   if(name==="chat")renderChat();
@@ -438,7 +437,8 @@ async function sendChat(txt){
   chatBusy=false;
 }
 
-renderHome();
+loadBookings();
+setInterval(loadBookings, 15000);
 </script>
 </body>
 </html>
