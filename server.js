@@ -25,7 +25,7 @@ async function supabase(method, path, body) {
   return res.json();
 }
 
-app.get("/", (req, res) => res.send("Dianke.ai API running"));
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 app.get("/test", (req, res) => res.json({ status: "Backend is working!", timestamp: new Date().toISOString() }));
 
 app.get("/dashboard", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
