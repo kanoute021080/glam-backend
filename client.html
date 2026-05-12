@@ -47,7 +47,7 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
   <div class="quick-btns">
     <button class="qbtn" onclick="send('Book an appointment')">📅 Book appointment</button>
     <button class="qbtn" onclick="send('What are your prices?')">💰 Prices</button>
-    <button class="qbtn" onclick="send('What days and times are you available this week?')">📆 Availability</button>
+    <button class="qbtn" onclick="send('Are you free Friday?')">📆 Availability</button>
     <button class="qbtn" onclick="send('How long for braids?')">⏱ Duration</button>
   </div>
 
@@ -58,7 +58,25 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
     </button>
   </div>
 
-  <div class="footer">Powered by AutoPilot Reception</div>
+  <div class="footer">
+    Powered by AutoPilot Reception · 
+    <span onclick="openStatus()" style="color:#c2426e;cursor:pointer;font-weight:600">Check my booking →</span>
+  </div>
+  
+  <div id="status-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:380px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:15px;font-weight:600;color:#111">Check booking status</div>
+        <button onclick="closeStatus()" style="background:none;border:none;font-size:20px;color:#aaa;cursor:pointer">×</button>
+      </div>
+      <div id="status-search">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Your name</label>
+        <input id="status-name" placeholder="Enter the name used to book" style="width:100%;font-size:14px;padding:9px 12px;border:1px solid #ddd;border-radius:8px;outline:none;margin-bottom:10px"/>
+        <button onclick="checkStatus()" style="width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Check status</button>
+      </div>
+      <div id="status-result" style="display:none"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -142,7 +160,20 @@ async function send(txt){
     document.getElementById("typing")?.remove();
     hist.push({role:"assistant",content:raw});
     if(reply)addBubble("bot",reply);
-    if(dm)addPayCard(dm[2].trim(),dm[3].trim(),dm[4].trim(),dm[5].trim());
+    if(dm){
+      const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
+      // Save booking to backend
+      fetch(BACKEND+"/bookings",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({client,service:svc,day,time,amount:0})
+      }).then(r=>r.json()).then(b=>{
+        clientBookings.push({...b,time});
+      }).catch(()=>{
+        clientBookings.push({client,service:svc,day,time,status:"pending",deposit:false,id:Date.now()});
+      });
+      addPayCard(svc,day,time,client);
+    }
   }catch{
     document.getElementById("typing")?.remove();
     const el=document.getElementById("chat-body");
@@ -156,7 +187,171 @@ async function send(txt){
   busy=false;
 }
 
-// Welcome message
+// Booking status check
+let clientBookings=[];
+
+function openStatus(){
+  document.getElementById("status-modal").style.display="flex";
+  document.getElementById("status-name").value="";
+  document.getElementById("status-result").style.display="none";
+  document.getElementById("status-search").style.display="block";
+}
+
+function closeStatus(){
+  document.getElementById("status-modal").style.display="none";
+}
+
+function checkStatus(){
+  const name=document.getElementById("status-name").value.trim().toLowerCase();
+  if(!name)return;
+  const match=clientBookings.find(b=>b.client.toLowerCase().includes(name));
+  const result=document.getElementById("status-result");
+  const search=document.getElementById("status-search");
+  search.style.display="none";
+  result.style.display="block";
+  if(match){
+    const statusColor=match.status==="confirmed"?"#0F6E56":"#633806";
+    const statusBg=match.status==="confirmed"?"#eafaf1":"#FAEEDA";
+    result.innerHTML=`
+      <div style="text-align:center;padding:10px 0">
+        <div style="font-size:32px;margin-bottom:8px">${match.status==="confirmed"?"✅":"⏳"}</div>
+        <div style="font-size:15px;font-weight:600;color:#111;margin-bottom:4px">${match.service}</div>
+        <div style="font-size:13px;color:#888;margin-bottom:12px">${match.day} at ${match.time} · ${match.client}</div>
+        <span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:${statusBg};color:${statusColor}">${match.status==="confirmed"?"Confirmed ✓":"Pending deposit"}</span>
+        ${!match.deposit?`<div style="font-size:12px;color:#888;margin-top:12px">Please send your $35 deposit to confirm your slot.</div>`:""}
+        <button onclick="closeStatus()" style="display:block;width:100%;margin-top:14px;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Close</button>
+      </div>`;
+  } else {
+    result.innerHTML=`
+      <div style="text-align:center;padding:10px 0">
+        <div style="font-size:32px;margin-bottom:8px">🔍</div>
+        <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:6px">No booking found</div>
+        <div style="font-size:13px;color:#888;margin-bottom:14px">We couldn't find a booking under that name. Make sure you use the same name you gave when booking.</div>
+        <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">Try again</button>
+      </div>`;
+  }
+}
+
+// Booking modal
+function showBookingModal(svc, client) {
+  const existing = document.getElementById("booking-modal");
+  if (existing) existing.remove();
+
+  const today = new Date();
+  const modal = document.createElement("div");
+  modal.id = "booking-modal";
+  modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:flex-end;justify-content:center;padding:0";
+
+  // Generate next 14 days
+  const days = [];
+  for (let i = 1; i <= 14; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    days.push(d);
+  }
+
+  const times = ["9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","12:00 PM","1:00 PM","1:30 PM","2:00 PM","2:30 PM","3:00 PM","3:30 PM","4:00 PM","4:30 PM"];
+
+  modal.innerHTML = `
+    <div style="background:#fff;width:100%;max-width:420px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:15px;font-weight:600;color:#111">Select date & time</div>
+        <button onclick="document.getElementById('booking-modal').remove()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer">×</button>
+      </div>
+      <div style="font-size:13px;color:#888;margin-bottom:14px">${svc} · ${client}</div>
+
+      <div style="font-size:12px;font-weight:600;color:#111;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Select a date</div>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px" id="date-picker">
+        ${days.map((d, i) => `
+          <div onclick="selectDate(${i})" id="date-${i}" style="flex-shrink:0;width:56px;text-align:center;padding:10px 6px;border-radius:12px;border:1px solid #eee;cursor:pointer;background:#fff">
+            <div style="font-size:10px;color:#888;text-transform:uppercase">${d.toLocaleDateString('en-US',{weekday:'short'})}</div>
+            <div style="font-size:18px;font-weight:500;color:#111;margin:2px 0">${d.getDate()}</div>
+            <div style="font-size:10px;color:#888">${d.toLocaleDateString('en-US',{month:'short'})}</div>
+          </div>`).join("")}
+      </div>
+
+      <div style="font-size:12px;font-weight:600;color:#111;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Select a time</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px" id="time-picker">
+        ${times.map((t, i) => `
+          <div onclick="selectTime(${i})" id="time-${i}" style="text-align:center;padding:10px 6px;border-radius:10px;border:1px solid #eee;cursor:pointer;font-size:12px;color:#444;background:#fff">${t}</div>`).join("")}
+      </div>
+
+      <div style="font-size:12px;font-weight:600;color:#111;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Your details</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        <input id="bk-fname" placeholder="First name" style="padding:10px 12px;border:1px solid #eee;border-radius:10px;font-size:13px;outline:none"/>
+        <input id="bk-lname" placeholder="Last name" style="padding:10px 12px;border:1px solid #eee;border-radius:10px;font-size:13px;outline:none"/>
+        <input id="bk-phone" placeholder="Phone number" type="tel" style="padding:10px 12px;border:1px solid #eee;border-radius:10px;font-size:13px;outline:none"/>
+        <input id="bk-email" placeholder="Email address" type="email" style="padding:10px 12px;border:1px solid #eee;border-radius:10px;font-size:13px;outline:none"/>
+      </div>
+
+      <button onclick="confirmModalBooking('${svc}','${client}')" style="width:100%;padding:14px;background:#111;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">Confirm booking</button>
+      <p style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">$35 deposit required to hold your slot</p>
+    </div>`;
+
+  document.body.appendChild(modal);
+}
+
+let selectedDate = null;
+let selectedTime = null;
+
+function selectDate(i) {
+  document.querySelectorAll("[id^='date-']").forEach(el => {
+    el.style.background = "#fff";
+    el.style.borderColor = "#eee";
+    el.querySelector("div:nth-child(2)").style.color = "#111";
+  });
+  const el = document.getElementById("date-" + i);
+  el.style.background = "#111";
+  el.style.borderColor = "#111";
+  el.querySelector("div:nth-child(2)").style.color = "#fff";
+  el.querySelectorAll("div").forEach(d => d.style.color = "#fff");
+  selectedDate = i;
+}
+
+function selectTime(i) {
+  document.querySelectorAll("[id^='time-']").forEach(el => {
+    el.style.background = "#fff";
+    el.style.borderColor = "#eee";
+    el.style.color = "#444";
+  });
+  const el = document.getElementById("time-" + i);
+  el.style.background = "#111";
+  el.style.borderColor = "#111";
+  el.style.color = "#fff";
+  selectedTime = i;
+}
+
+async function confirmModalBooking(svc, client) {
+  const fname = document.getElementById("bk-fname").value.trim();
+  const lname = document.getElementById("bk-lname").value.trim();
+  const phone = document.getElementById("bk-phone").value.trim();
+  const email = document.getElementById("bk-email").value.trim();
+  const times = ["9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","12:00 PM","1:00 PM","1:30 PM","2:00 PM","2:30 PM","3:00 PM","3:30 PM","4:00 PM","4:30 PM"];
+
+  if (selectedDate === null) { alert("Please select a date."); return; }
+  if (selectedTime === null) { alert("Please select a time."); return; }
+  if (!fname || !phone) { alert("Please enter your first name and phone number."); return; }
+
+  const today = new Date();
+  const d = new Date(today);
+  d.setDate(today.getDate() + selectedDate + 1);
+  const dateStr = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+  const timeStr = times[selectedTime];
+  const fullName = fname + (lname ? " " + lname : "");
+
+  // Save to backend
+  const salonId = window.location.pathname.split("/")[2] || "default";
+  await fetch(BACKEND + "/bookings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ client: fullName, service: svc, day: dateStr, time: timeStr, amount: 0, salon_id: salonId, phone, email })
+  }).catch(() => {});
+
+  document.getElementById("booking-modal").remove();
+  addPayCard(svc, dateStr, timeStr, fullName);
+  clientBookings.push({ client: fullName, service: svc, day: dateStr, time: timeStr, status: "pending", deposit: false });
+}
+
 addBubble("bot","Hey! Welcome to Hollywood Glam Beauty. I can help you book an appointment, check availability, or answer any questions. What can I do for you today?");
 </script>
 </body>
