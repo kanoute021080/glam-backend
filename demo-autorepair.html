@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Premier Auto Care — AI Receptionist</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#f0f2f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;overflow-x:hidden}
+.wrap{width:100%;max-width:420px}
+.demo-badge{text-align:center;margin-bottom:10px}
+.demo-badge span{font-size:11px;background:#0A1628;color:#fff;padding:4px 12px;border-radius:20px;letter-spacing:1px}
+.chat-hdr{background:#0A1628;padding:12px 16px;display:flex;align-items:center;gap:10px;border-radius:12px 12px 0 0}
+.av{width:36px;height:36px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.hdr-name{font-size:14px;font-weight:600;color:#f0f0ec}
+.hdr-status{font-size:11px;color:#7dd9b8;display:flex;align-items:center;gap:5px;margin-top:2px}
+.dot{width:6px;height:6px;border-radius:50%;background:#22c98a;display:inline-block}
+.chat-body{height:400px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#f0f2f5;border:1px solid #ddd;border-top:none}
+.bubble-wrap{display:flex;flex-direction:column}
+.bubble-wrap.bot{align-items:flex-start}
+.bubble-wrap.user{align-items:flex-end}
+.bubble-label{font-size:10px;color:#aaa;margin-bottom:2px}
+.bubble{font-size:14px;line-height:1.6;padding:10px 14px;max-width:85%}
+.bubble.bot{background:#fff;color:#111;border:1px solid #ddd;border-radius:4px 14px 14px 14px}
+.bubble.user{background:#0A1628;color:#f0f0ec;border-radius:14px 4px 14px 14px}
+.quick-btns{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;background:#f0f2f5;border:1px solid #ddd;border-top:none}
+.qbtn{font-size:12px;padding:6px 12px;border:1px solid #ccc;border-radius:20px;background:#fff;color:#444;cursor:pointer}
+.input-row{display:flex;gap:8px;padding:10px 12px;background:#fff;border:1px solid #ddd;border-top:none;border-radius:0 0 12px 12px;align-items:center}
+.inp{flex:1;font-size:14px;padding:9px 14px;border-radius:20px;border:1px solid #ddd;background:#f0f2f5;color:#111;outline:none}
+.send-btn{width:38px;height:38px;border-radius:50%;background:#2563EB;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.footer{text-align:center;font-size:11px;color:#aaa;margin-top:10px}
+.footer a{color:#0A1628;text-decoration:none;font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="demo-badge"><span>🔧 LIVE DEMO — Powered by Dianke.ai</span></div>
+
+  <div class="chat-hdr">
+    <div class="av">PA</div>
+    <div>
+      <div class="hdr-name">Premier Auto Care</div>
+      <div class="hdr-status"><span class="dot"></span>AI receptionist · always open</div>
+    </div>
+  </div>
+
+  <div class="chat-body" id="chat-body"></div>
+
+  <div class="quick-btns">
+    <button class="qbtn" onclick="send('I need an oil change')">🔧 Oil change</button>
+    <button class="qbtn" onclick="send('What are your prices?')">💰 Prices</button>
+    <button class="qbtn" onclick="send('Are you available this week?')">📆 Availability</button>
+    <button class="qbtn" onclick="send('My check engine light is on')">⚠️ Check engine</button>
+  </div>
+
+  <div class="input-row">
+    <input class="inp" id="inp" placeholder="Describe your car issue..." onkeydown="if(event.key==='Enter')send()"/>
+    <button class="send-btn" onclick="send()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+
+  <div class="footer">Want this for your shop? <a href="https://dianke.ai">Get started at dianke.ai</a></div>
+</div>
+
+<script>
+const BACKEND="https://dianke.ai";
+let hist=[];
+let busy=false;
+
+const SYS=`You are the AI receptionist for Premier Auto Care, a professional auto repair shop. Be helpful, knowledgeable and concise.
+Services & pricing:
+- Oil change (conventional): $39.99
+- Oil change (synthetic): $69.99
+- Brake inspection: Free
+- Brake pad replacement: $150-$250 per axle
+- Tire rotation: $19.99
+- AC recharge: $99.99
+- Battery replacement: $120-$180
+- Check engine light diagnostic: $49.99
+- General inspection: $29.99
+Hours: Mon-Fri 8am-6pm, Sat 9am-4pm. Closed Sunday. Most services same day.
+Remember the full conversation. When customer describes an issue, recommend the right service and price. Collect: service needed, preferred day, time, and customer name. Once confirmed say exactly: APPOINTMENT_SET:[service]:[day]:[time]:[name]
+Keep replies under 80 words. Plain text only.`;
+
+function addBubble(role,text){
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.className=`bubble-wrap ${role}`;
+  if(role==="bot"){const l=document.createElement("div");l.className="bubble-label";l.textContent="Premier AI";w.appendChild(l);}
+  const b=document.createElement("div");
+  b.className=`bubble ${role}`;
+  b.textContent=text;
+  w.appendChild(b);
+  el.appendChild(w);
+  el.scrollTop=el.scrollHeight;
+}
+
+function addConfirmCard(svc,day,time,client){
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.className="bubble-wrap bot";
+  w.innerHTML=`
+    <div class="bubble-label">Premier AI</div>
+    <div style="background:#fff;border:1px solid #ddd;border-radius:12px;padding:14px;max-width:88%">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:3px">✅ Appointment Confirmed!</div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">${svc} · ${day} at ${time} · ${client}</div>
+      <div style="background:#f0f7ff;border-radius:8px;padding:10px;font-size:12px;color:#1e40af">
+        📍 Premier Auto Care<br/>
+        📞 We'll send a reminder the day before<br/>
+        ⏱ Please arrive 5 minutes early
+      </div>
+      <div style="font-size:11px;color:#aaa;margin-top:10px">Questions? Just reply here anytime.</div>
+    </div>`;
+  el.appendChild(w);
+  el.scrollTop=el.scrollHeight;
+}
+
+async function send(txt){
+  const inp=document.getElementById("inp");
+  const t=txt||(inp?inp.value.trim():"");
+  if(!t||busy)return;
+  if(inp)inp.value="";
+  addBubble("user",t);
+  hist.push({role:"user",content:t});
+  busy=true;
+  const typing=document.createElement("div");
+  typing.className="bubble-wrap bot";
+  typing.id="typing";
+  typing.innerHTML='<div class="bubble-label">Premier AI</div><div class="bubble bot" style="color:#aaa">typing...</div>';
+  document.getElementById("chat-body").appendChild(typing);
+  document.getElementById("chat-body").scrollTop=9999;
+  try{
+    const res=await fetch(BACKEND+"/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({system:SYS,messages:hist})
+    });
+    const d=await res.json();
+    const raw=(d?.content?.[0]?.text||"Try again!").replace(/\*\*(.*?)\*\*/g,"$1");
+    const dm=raw.match(/APPOINTMENT_SET:([^:]+):([^:]+):([^:]+):([^\n]+)/);
+    const reply=raw.replace(/APPOINTMENT_SET:[^\n]*/,"").trim();
+    document.getElementById("typing")?.remove();
+    hist.push({role:"assistant",content:raw});
+    if(reply)addBubble("bot",reply);
+    if(dm)addConfirmCard(dm[1].trim(),dm[2].trim(),dm[3].trim(),dm[4].trim());
+  }catch(e){
+    document.getElementById("typing")?.remove();
+    const el=document.getElementById("chat-body");
+    const w=document.createElement("div");
+    w.className="bubble-wrap bot";
+    w.innerHTML=`<div class="bubble-label">Premier AI</div><div class="bubble bot" style="color:#888">Having trouble connecting. <span style="color:#2563EB;cursor:pointer;font-weight:600" onclick="send('${t.replace(/'/g,"\\'")}')">Tap to retry →</span></div>`;
+    el.appendChild(w);
+    hist.pop();
+  }
+  busy=false;
+}
+
+addBubble("bot","Hey! Welcome to Premier Auto Care. I can help you schedule a service, get pricing, or answer any questions about your vehicle. What can I help you with today?");
+</script>
+</body>
+</html>
