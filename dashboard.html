@@ -83,7 +83,7 @@ body{background:#f5f5f3;min-height:100vh;max-width:100vw;overflow-x:hidden}
       <div id="week-list"></div>
     </div>
   </div>
-  <div id="bookings" style="display:none"><div id="booking-list"></div></div>
+  <div style="margin-bottom:10px">   <button onclick="showAddBooking()" style="width:100%;padding:10px;background:#fff;border:1px solid #ddd;border-radius:10px;font-size:13px;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">     <span style="font-size:16px">+</span> Add booking manually   </button> </div> <div id="add-booking-form" style="display:none;background:#fff;border:1px solid #eee;border-radius:10px;padding:14px;margin-bottom:10px">   <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">Add booking</div>   <div style="display:flex;flex-direction:column;gap:8px">     <input id="m-client" placeholder="Client name" style="padding:8px 10px;border:1px solid #eee;border-radius:8px;font-size:13px"/>     <input id="m-service" placeholder="Service" style="padding:8px 10px;border:1px solid #eee;border-radius:8px;font-size:13px"/>     <input id="m-day" placeholder="Day (e.g. Monday)" style="padding:8px 10px;border:1px solid #eee;border-radius:8px;font-size:13px"/>     <input id="m-time" placeholder="Time (e.g. 2pm)" style="padding:8px 10px;border:1px solid #eee;border-radius:8px;font-size:13px"/>     <select id="m-source" style="padding:8px 10px;border:1px solid #eee;border-radius:8px;font-size:13px">       <option value="walkin">🚶 Walk-in</option>       <option value="instagram">📱 Instagram</option>       <option value="voice">📞 Phone call</option>       <option value="chat">💬 Chat</option>     </select>     <div style="display:flex;gap:8px">       <button onclick="saveManualBooking()" style="flex:1;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer">Save booking</button>       <button onclick="document.getElementById('add-booking-form').style.display='none'" style="padding:9px 14px;background:none;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">Cancel</button>     </div>   </div> </div><div id="booking-list"></div></div>
   <div id="messages" style="display:none">
     <div id="inbox"></div>
     <div id="thread" style="display:none"></div>
@@ -213,7 +213,33 @@ function renderBookings(){
     </div>`).join("");
 }
 
-function confirmB(id){
+function showAddBooking(){
+  const f=document.getElementById("add-booking-form");
+  f.style.display=f.style.display==="none"?"block":"none";
+}
+
+async function saveManualBooking(){
+  const client=document.getElementById("m-client").value.trim();
+  const service=document.getElementById("m-service").value.trim();
+  const day=document.getElementById("m-day").value.trim();
+  const time=document.getElementById("m-time").value.trim();
+  const source=document.getElementById("m-source").value;
+  if(!client||!service||!day||!time){alert("Please fill in all fields.");return;}
+  const salonId=window.location.pathname.split("/")[2]||"default";
+  const hmap={"9am":9,"10am":10,"11am":11,"12pm":12,"1pm":13,"2pm":14,"3pm":15,"4pm":16};
+  const hour=hmap[time.toLowerCase().replace(" ","")]||10;
+  try{
+    await fetch("https://dianke.ai/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client,service,day,time,hour,amount:0,salon_id:salonId,source})});
+    document.getElementById("add-booking-form").style.display="none";
+    document.getElementById("m-client").value="";
+    document.getElementById("m-service").value="";
+    document.getElementById("m-day").value="";
+    document.getElementById("m-time").value="";
+    showToast("Booking added!");
+    loadBookings();
+  }catch{showToast("Error saving booking.");}
+}
+  function confirmB(id){
   fetch(BACKEND+"/bookings/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:"confirmed",deposit:true})});
 const svcPrices={"Silk press":85,"Locs maintenance":95,"Knotless braids":180,"Large knotless":150,"Box braids":220,"Wig install":120,"Medium knotless braids":180,"Large knotless braids":150};
 bookings=bookings.map(b=>b.id===id?{...b,status:"confirmed",deposit:true,amount:b.amount||svcPrices[b.service]||0}:b);
