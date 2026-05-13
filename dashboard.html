@@ -229,7 +229,7 @@ async function saveManualBooking(){
   const hmap={"9am":9,"10am":10,"11am":11,"12pm":12,"1pm":13,"2pm":14,"3pm":15,"4pm":16};
   const hour=hmap[time.toLowerCase().replace(" ","")]||10;
   try{
-    await fetch("https://dianke.ai/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client,service,day,time,hour,amount:parseInt(document.getElementById("m-amount").value)||0,deposit:document.getElementById("m-deposit").checked,salon_id:salonId,source})});
+    await fetch("https://dianke.ai/bookings",{method:"POST",headers:{"Content-Type":"application/json"},const mAmount=parseInt(document.getElementById("m-amount").value)||0;     const mDeposit=document.getElementById("m-deposit").checked;     const mBody={client,service,day,time,hour,amount:mAmount,deposit:mDeposit,salon_id:salonId,source,status:"confirmed"};     await fetch("https://dianke.ai/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(mBody)});});
     document.getElementById("add-booking-form").style.display="none";
     document.getElementById("m-client").value="";
     document.getElementById("m-service").value="";
