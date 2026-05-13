@@ -237,7 +237,9 @@ async function saveManualBooking(){
     document.getElementById("m-time").value="";
     showToast("Booking added!");
     await loadBookings();
-    switchTab("home", document.querySelector(".nav button"));
+    renderHome();
+    renderBookings();
+    switchTab("home", document.querySelector(".nav button:first-child"));
   }catch{showToast("Error saving booking.");}
 }
   function confirmB(id){
