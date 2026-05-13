@@ -184,7 +184,7 @@ document.getElementById("stats").innerHTML=
   document.getElementById("week-list").innerHTML=bookings.map(b=>`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f5f5">
       <div>
-        <div style="font-size:13px;color:#111">${b.client}${b.newFromChat?' <span class="badge chat-new">chat</span>':""}</div>
+        <div style="font-size:13px;color:#111">${b.client}${b.source==="voice"?'<span class="badge" style="background:#fff3e0;color:#e65100">📞 voice</span>':b.source==="walkin"?'<span class="badge" style="background:#f3e5f5;color:#6a1b9a">🚶 walk-in</span>':b.source==="instagram"?'<span class="badge" style="background:#fce4ec;color:#c2426e">📱 instagram</span>':'<span class="badge chat-new">💬 chat</span>'}</div>
         <div style="font-size:11px;color:#888">${b.service} · ${b.day} ${fmt(b.hour)}</div>
       </div>
       <span class="badge ${b.status}">${b.status}</span>
