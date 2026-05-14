@@ -284,6 +284,7 @@ const deposit=source!=="walkin"&&modal.querySelector("#m-deposit").checked;
       body:JSON.stringify({client,service,day,time,hour,amount,deposit,salon_id:getSalonId(),source,status:"confirmed"})});
     document.getElementById("add-form").style.display="none";
     ["m-client","m-service","m-day","m-time","m-amount"].forEach(id=>document.getElementById(id).value="");
+   toggleAddForm();
     showToast("Booking added!");
     await loadBookings();
   }catch{showToast("Error saving. Try again.");}
