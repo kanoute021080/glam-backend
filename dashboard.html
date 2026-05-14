@@ -285,6 +285,14 @@ const deposit=source!=="walkin"&&modal.querySelector("#m-deposit").checked;
     document.getElementById("add-form").style.display="none";
     ["m-client","m-service","m-day","m-time","m-amount"].forEach(id=>document.getElementById(id).value="");
    toggleAddForm();
+    const modal=document.getElementById("add-modal");
+    modal.querySelector("#m-client").value="";
+    modal.querySelector("#m-service").value="";
+    modal.querySelector("#m-day").value="";
+    modal.querySelector("#m-time").value="";
+    modal.querySelector("#m-amount").value="";
+    modal.querySelector("#m-source").value="walkin";
+    modal.querySelector("#m-deposit").checked=false;
     showToast("Booking added!");
     await loadBookings();
   }catch{showToast("Error saving. Try again.");}
