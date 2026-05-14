@@ -175,7 +175,7 @@ function renderBookings(){
 <input class="inp" id="m-service" placeholder="Service" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('m-day').focus();}"/>
 <select class="inp" id="m-day" onchange="document.getElementById('m-time').focus()">   <option value="">Select day</option>   <option>Monday</option>   <option>Tuesday</option>   <option>Wednesday</option>   <option>Thursday</option>   <option>Friday</option>   <option>Saturday</option>   <option>Sunday</option> </select>
 <select class="inp" id="m-time" onchange="document.getElementById('m-amount').focus()">   <option value="">Select time</option>   <option>9am</option><option>9:30am</option><option>10am</option><option>10:30am</option>   <option>11am</option><option>11:30am</option><option>12pm</option><option>1pm</option>   <option>1:30pm</option><option>2pm</option><option>2:30pm</option><option>3pm</option>   <option>3:30pm</option><option>4pm</option><option>4:30pm</option><option>5pm</option> </select>
-<input class="inp" id="m-amount" placeholder="Price (e.g. 180)" type="number" enterkeyhint="done" onkeydown="if(event.key==='Enter')event.preventDefault()"/>
+<input class="inp" id="m-amount" placeholder="Price (e.g. 180)" type="number" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"/>
           <select class="inp" id="m-source" onchange="toggleDeposit()">
             <option value="walkin">🚶 Walk-in</option>
             <option value="instagram">📱 Instagram</option>
