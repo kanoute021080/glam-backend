@@ -275,7 +275,7 @@ async function saveManual(){
   const amount=parseInt(document.getElementById("m-amount").value)||0;
   const source=document.getElementById("m-source").value;
   const deposit=source!=="walkin"&&document.getElementById("m-deposit").checked;
-  if(!client||!service||!day||!time){alert("Please fill in all fields.");return;}
+  if(!client||!service||!day||day===""||!time||time===""){alert("Please select all fields including day and time.");return;}
   const hmap={"9am":9,"10am":10,"11am":11,"12pm":12,"1pm":13,"2pm":14,"3pm":15,"4pm":16};
   const hour=hmap[time.toLowerCase().replace(" ","")]||10;
   try{
