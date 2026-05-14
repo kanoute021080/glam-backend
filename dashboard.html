@@ -171,11 +171,11 @@ function renderBookings(){
       </button>
       <div id="add-form" style="display:none;margin-top:10px">
         <div style="display:flex;flex-direction:column;gap:8px">
-         <input class="inp" id="m-client" placeholder="Client name" onkeydown="if(event.key==='Enter')event.preventDefault()"/>
-          <input class="inp" id="m-service" placeholder="Service" onkeydown="if(event.key==='Enter')event.preventDefault()"/>
-          <input class="inp" id="m-day" placeholder="Day (e.g. Monday)" onkeydown="if(event.key==='Enter')event.preventDefault()"/>
-          <input class="inp" id="m-time" placeholder="Time (e.g. 2pm)" onkeydown="if(event.key==='Enter')event.preventDefault()"/>
-          <input class="inp" id="m-amount" placeholder="Price (e.g. 180)" type="number" onkeydown="if(event.key==='Enter')event.preventDefault()"/>
+         <input class="inp" id="m-client" placeholder="Client name" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('m-service').focus();}"/>
+<input class="inp" id="m-service" placeholder="Service" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('m-day').focus();}"/>
+<input class="inp" id="m-day" placeholder="Day (e.g. Monday)" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('m-time').focus();}"/>
+<input class="inp" id="m-time" placeholder="Time (e.g. 2pm)" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('m-amount').focus();}"/>
+<input class="inp" id="m-amount" placeholder="Price (e.g. 180)" type="number" enterkeyhint="done" onkeydown="if(event.key==='Enter')event.preventDefault()"/>
           <select class="inp" id="m-source" onchange="toggleDeposit()">
             <option value="walkin">🚶 Walk-in</option>
             <option value="instagram">📱 Instagram</option>
