@@ -186,7 +186,7 @@ function renderBookings(){
             <input type="checkbox" id="m-deposit"/> Deposit received ($35)
           </label>
           <div style="display:flex;gap:8px">
-            <button class="btn-p" onclick="saveManual()" style="flex:1">Save booking</button>
+            <button class="btn-p" onclick="saveManual(event)" style="flex:1">Save booking</button>
             <button class="btn-s" onclick="toggleAddForm()">Cancel</button>
           </div>
         </div>
@@ -222,7 +222,7 @@ function toggleDeposit(){
   document.getElementById("m-dep-label").style.display=src==="walkin"?"none":"flex";
 }
 
-async function saveManual(){
+async function saveManual(e){   if(e) e.preventDefault();
   const client=document.getElementById("m-client").value.trim();
   const service=document.getElementById("m-service").value.trim();
   const day=document.getElementById("m-day").value.trim();
