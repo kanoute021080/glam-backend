@@ -175,7 +175,7 @@ function renderBookings(){
           <input class="inp" id="m-service" placeholder="Service"/>
           <input class="inp" id="m-day" placeholder="Day (e.g. Monday)"/>
           <input class="inp" id="m-time" placeholder="Time (e.g. 2pm)"/>
-          <input class="inp" id="m-amount" placeholder="Price (e.g. 180)" type="number"/>
+          <input class="inp" id="m-amount" placeholder="Price (e.g. 180)" type="number" onkeydown="if(event.key==='Enter')event.preventDefault()"/>
           <select class="inp" id="m-source" onchange="toggleDeposit()">
             <option value="walkin">🚶 Walk-in</option>
             <option value="instagram">📱 Instagram</option>
