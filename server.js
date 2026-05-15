@@ -1,12 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-
+const app = express();
 app.use(cors({ origin: "*", methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type", "x-admin-password"] }));
-
-app.use(cors({ origin: "*", methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type"] }));
 app.options("*", cors());
 app.use(express.json());
+
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
