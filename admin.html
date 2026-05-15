@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dianke.ai · Salon Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0d;
+  --surface:#161616;
+  --surface2:#1f1f1f;
+  --border:#2a2a2a;
+  --accent:#c2426e;
+  --accent-soft:rgba(194,66,110,0.12);
+  --accent-glow:rgba(194,66,110,0.25);
+  --text:#f0f0ec;
+  --muted:#888;
+  --green:#22c98a;
+  --green-soft:rgba(34,201,138,0.12);
+  --yellow:#f0b429;
+  --yellow-soft:rgba(240,180,41,0.12);
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+}
+
+/* LOGIN */
+.login-wrap{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 20%, rgba(194,66,110,0.08) 0%, transparent 60%),
+    var(--bg);
+}
+.login-card{
+  width:100%;
+  max-width:380px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:40px 36px;
+}
+.login-logo{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;
+  color:var(--text);
+  margin-bottom:6px;
+}
+.login-logo span{color:var(--accent)}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:32px}
+.login-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;display:block}
+.login-input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:11px 14px;
+  font-size:14px;
+  color:var(--text);
+  outline:none;
+  margin-bottom:14px;
+  font-family:'DM Sans',sans-serif;
+  transition:border-color 0.2s;
+}
+.login-input:focus{border-color:var(--accent)}
+.login-btn{
+  width:100%;
+  padding:12px;
+  background:var(--accent);
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  transition:opacity 0.2s;
+  margin-top:4px;
+}
+.login-btn:hover{opacity:0.88}
+.login-err{font-size:12px;color:var(--accent);margin-top:10px;text-align:center;min-height:18px}
+
+/* DASHBOARD */
+.dashboard{display:none}
+.topbar{
+  border-bottom:1px solid var(--border);
+  padding:14px 28px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--surface);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.topbar-logo{font-family:'DM Serif Display',serif;font-size:18px}
+.topbar-logo span{color:var(--accent)}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.salon-badge{
+  font-size:12px;
+  padding:4px 12px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:20px;
+  color:var(--muted);
+}
+.salon-badge b{color:var(--text)}
+.logout-btn{
+  font-size:12px;
+  padding:6px 14px;
+  background:none;
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--muted);
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+.logout-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.main{max-width:720px;margin:0 auto;padding:36px 24px 60px}
+
+.page-title{
+  font-family:'DM Serif Display',serif;
+  font-size:28px;
+  font-weight:400;
+  margin-bottom:6px;
+}
+.page-sub{font-size:13px;color:var(--muted);margin-bottom:36px}
+
+.section{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  margin-bottom:20px;
+}
+.section-hdr{
+  padding:16px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.section-icon{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
+}
+.section-title{font-size:14px;font-weight:600}
+.section-desc{font-size:12px;color:var(--muted);margin-top:1px}
+.section-body{padding:20px}
+
+/* DEPOSIT TOGGLE */
+.deposit-options{display:flex;flex-direction:column;gap:10px}
+.deposit-option{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  cursor:pointer;
+  transition:all 0.15s;
+  position:relative;
+}
+.deposit-option:hover{border-color:#444}
+.deposit-option.active{
+  border-color:var(--accent);
+  background:var(--accent-soft);
+}
+.deposit-option input[type=radio]{display:none}
+.radio-dot{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--border);
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;
+}
+.deposit-option.active .radio-dot{
+  border-color:var(--accent);
+  background:var(--accent);
+}
+.radio-dot::after{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:#fff;opacity:0;transition:opacity 0.15s;
+}
+.deposit-option.active .radio-dot::after{opacity:1}
+.option-text .label{font-size:14px;font-weight:500}
+.option-text .desc{font-size:12px;color:var(--muted);margin-top:2px}
+.option-badge{
+  margin-left:auto;
+  font-size:10px;font-weight:600;
+  padding:3px 9px;border-radius:20px;
+  text-transform:uppercase;letter-spacing:0.5px;
+}
+.badge-green{background:var(--green-soft);color:var(--green)}
+.badge-yellow{background:var(--yellow-soft);color:var(--yellow)}
+.badge-red{background:rgba(255,80,80,0.1);color:#ff6b6b}
+
+/* AMOUNT ROW */
+.amount-row{
+  display:flex;align-items:center;gap:10px;
+  margin-top:16px;padding-top:16px;
+  border-top:1px solid var(--border);
+}
+.amount-label{font-size:13px;color:var(--muted);flex:1}
+.amount-input-wrap{
+  display:flex;align-items:center;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+}
+.amount-prefix{padding:9px 10px 9px 12px;font-size:14px;color:var(--muted);border-right:1px solid var(--border)}
+.amount-input{
+  background:none;border:none;outline:none;
+  padding:9px 12px;font-size:14px;color:var(--text);
+  width:80px;font-family:'DM Sans',sans-serif;
+}
+
+/* FIELDS */
+.field-row{display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.field-input-wrap{
+  display:flex;align-items:center;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  transition:border-color 0.2s;
+}
+.field-input-wrap:focus-within{border-color:var(--accent)}
+.field-prefix{padding:11px 12px;font-size:13px;color:var(--muted);border-right:1px solid var(--border);background:var(--surface)}
+.field input{
+  flex:1;background:none;border:none;outline:none;
+  padding:11px 14px;font-size:14px;color:var(--text);
+  font-family:'DM Sans',sans-serif;
+}
+.field input::placeholder{color:#555}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:500px){.two-col{grid-template-columns:1fr}}
+
+/* SAVE BAR */
+.save-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  z-index:20;
+  transform:translateY(100%);
+  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.save-bar.visible{transform:translateY(0)}
+.save-note{font-size:13px;color:var(--muted)}
+.save-note b{color:var(--yellow)}
+.save-actions{display:flex;gap:10px}
+.btn-discard{
+  padding:9px 18px;background:none;
+  border:1px solid var(--border);border-radius:8px;
+  color:var(--muted);font-size:13px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+.btn-save{
+  padding:9px 20px;background:var(--accent);
+  border:none;border-radius:8px;
+  color:#fff;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  display:flex;align-items:center;gap:7px;
+  transition:opacity 0.2s;
+}
+.btn-save:hover{opacity:0.88}
+.btn-save.saving{opacity:0.6;pointer-events:none}
+
+/* PREVIEW PILL */
+.preview-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;
+  background:var(--surface2);
+  border-radius:10px;
+  margin-top:4px;
+}
+.preview-url{font-size:12px;color:var(--muted);font-family:monospace;word-break:break-all}
+.copy-btn{
+  font-size:11px;font-weight:600;
+  padding:5px 12px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text);cursor:pointer;
+  white-space:nowrap;margin-left:12px;
+  font-family:'DM Sans',sans-serif;
+  flex-shrink:0;
+}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* STATUS DOT */
+.status-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.s-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1a1a1a;border:1px solid var(--border);
+  border-radius:10px;padding:10px 18px;
+  font-size:13px;color:var(--text);
+  opacity:0;transition:all 0.3s;pointer-events:none;
+  white-space:nowrap;z-index:100;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">dianke<span>.ai</span></div>
+    <div class="login-sub">Salon admin portal</div>
+
+    <label class="login-label">Salon ID</label>
+    <input class="login-input" id="login-salon" placeholder="e.g. salon1" autocomplete="off"/>
+
+    <label class="login-label">Password</label>
+    <input class="login-input" id="login-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+
+    <button class="login-btn" onclick="doLogin()">Sign in →</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="topbar">
+    <div class="topbar-logo">dianke<span>.ai</span></div>
+    <div class="topbar-right">
+      <div class="salon-badge">Logged in as <b id="badge-salon"></b></div>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-title">Receptionist Settings</div>
+    <div class="page-sub">Changes go live instantly on your client chat page.</div>
+
+    <!-- DEPOSIT SECTION -->
+    <div class="section">
+      <div class="section-hdr">
+        <div class="section-icon" style="background:rgba(194,66,110,0.12)">💳</div>
+        <div>
+          <div class="section-title">Deposit Policy</div>
+          <div class="section-desc">How the AI handles payment collection at booking</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="deposit-options">
+          <label class="deposit-option" id="opt-required" onclick="setDeposit('required')">
+            <div class="radio-dot"></div>
+            <div class="option-text">
+              <div class="label">Required</div>
+              <div class="desc">Client must send deposit before slot is confirmed</div>
+            </div>
+            <span class="option-badge badge-green">Recommended</span>
+          </label>
+          <label class="deposit-option" id="opt-optional" onclick="setDeposit('optional')">
+            <div class="radio-dot"></div>
+            <div class="option-text">
+              <div class="label">Optional</div>
+              <div class="desc">AI mentions deposit as a way to secure the slot, but doesn't require it</div>
+            </div>
+            <span class="option-badge badge-yellow">Flexible</span>
+          </label>
+          <label class="deposit-option" id="opt-none" onclick="setDeposit('none')">
+            <div class="radio-dot"></div>
+            <div class="option-text">
+              <div class="label">No deposit</div>
+              <div class="desc">Booking confirmed instantly with no payment step</div>
+            </div>
+            <span class="option-badge badge-red">No protection</span>
+          </label>
+        </div>
+
+        <div class="amount-row" id="amount-row">
+          <span class="amount-label">Deposit amount</span>
+          <div class="amount-input-wrap">
+            <span class="amount-prefix">$</span>
+            <input class="amount-input" id="deposit-amount" type="number" min="1" max="500" value="35" oninput="markDirty()"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENT HANDLES -->
+    <div class="section" id="payment-section">
+      <div class="section-hdr">
+        <div class="section-icon" style="background:rgba(34,201,138,0.1)">💰</div>
+        <div>
+          <div class="section-title">Payment Handles</div>
+          <div class="section-desc">Where clients send the deposit</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Cash App</label>
+            <div class="field-input-wrap">
+              <span class="field-prefix">$</span>
+              <input id="cashapp" placeholder="YourHandle" oninput="markDirty()"/>
+            </div>
+          </div>
+          <div class="field">
+            <label>Venmo</label>
+            <div class="field-input-wrap">
+              <span class="field-prefix">@</span>
+              <input id="venmo" placeholder="YourHandle" oninput="markDirty()"/>
+            </div>
+          </div>
+          <div class="field">
+            <label>Zelle</label>
+            <div class="field-input-wrap">
+              <span class="field-prefix">📧</span>
+              <input id="zelle" placeholder="email or phone" oninput="markDirty()"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SALON INFO -->
+    <div class="section">
+      <div class="section-hdr">
+        <div class="section-icon" style="background:rgba(240,180,41,0.1)">🏪</div>
+        <div>
+          <div class="section-title">Salon Info</div>
+          <div class="section-desc">What the AI knows about your business</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="two-col">
+            <div class="field">
+              <label>Salon Name</label>
+              <div class="field-input-wrap">
+                <input id="salon-name" placeholder="My Salon" oninput="markDirty()"/>
+              </div>
+            </div>
+            <div class="field">
+              <label>Location</label>
+              <div class="field-input-wrap">
+                <input id="salon-location" placeholder="City, State" oninput="markDirty()"/>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Business Hours</label>
+            <div class="field-input-wrap">
+              <input id="salon-hours" placeholder="Tue-Sat 9am-7pm. Closed Sun & Mon." oninput="markDirty()"/>
+            </div>
+          </div>
+          <div class="field">
+            <label>Services & Prices</label>
+            <div class="field-input-wrap" style="align-items:flex-start">
+              <textarea id="salon-services" rows="4" placeholder="Medium knotless braids $180 4hrs, Box braids $220 6hrs..." oninput="markDirty()" style="flex:1;background:none;border:none;outline:none;padding:11px 14px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;resize:vertical;line-height:1.6"></textarea>
+            </div>
+          </div>
+          <div class="field">
+            <label>Availability This Week</label>
+            <div class="field-input-wrap">
+              <input id="salon-availability" placeholder="Fri fully open, Sat 10am-2pm open..." oninput="markDirty()"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMBED LINK -->
+    <div class="section">
+      <div class="section-hdr">
+        <div class="section-icon" style="background:rgba(100,140,255,0.1)">🔗</div>
+        <div>
+          <div class="section-title">Your Chat Link</div>
+          <div class="section-desc">Share this with clients or embed on your website</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="status-row" style="margin-bottom:14px">
+          <div class="s-dot"></div>
+          Live — settings load automatically
+        </div>
+        <div class="preview-row">
+          <span class="preview-url" id="embed-url"></span>
+          <button class="copy-btn" onclick="copyLink()">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE BAR -->
+<div class="save-bar" id="save-bar">
+  <div class="save-note">You have <b>unsaved changes</b></div>
+  <div class="save-actions">
+    <button class="btn-discard" onclick="discardChanges()">Discard</button>
+    <button class="btn-save" id="save-btn" onclick="saveSettings()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save changes
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BACKEND = "https://glam-backend-rxdf.onrender.com";
+let salonId = "";
+let originalSettings = {};
+let currentSettings = {};
+let isDirty = false;
+
+// ─── LOGIN ───────────────────────────────────────────
+async function doLogin() {
+  const salon = document.getElementById("login-salon").value.trim().toLowerCase();
+  const pass = document.getElementById("login-pass").value;
+  const err = document.getElementById("login-err");
+  err.textContent = "";
+
+  if (!salon || !pass) { err.textContent = "Please fill in both fields."; return; }
+
+  try {
+    const res = await fetch(`${BACKEND}/settings/${salon}`, {
+      headers: { "x-admin-password": pass }
+    });
+    if (res.status === 401) { err.textContent = "Incorrect password."; return; }
+    if (res.status === 404) { err.textContent = "Salon not found."; return; }
+    if (!res.ok) { err.textContent = "Server error. Try again."; return; }
+
+    const data = await res.json();
+    salonId = salon;
+    sessionStorage.setItem("dianke_salon", salon);
+    sessionStorage.setItem("dianke_pass", pass);
+    loadDashboard(data);
+  } catch {
+    err.textContent = "Could not connect to server.";
+  }
+}
+
+function doLogout() {
+  sessionStorage.clear();
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("login-wrap").style.display = "flex";
+  salonId = "";
+}
+
+// ─── DASHBOARD ───────────────────────────────────────
+function loadDashboard(data) {
+  document.getElementById("login-wrap").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("badge-salon").textContent = salonId;
+  document.getElementById("embed-url").textContent = `https://dianke.ai/c/${salonId}`;
+
+  fillForm(data);
+  originalSettings = JSON.parse(JSON.stringify(data));
+  currentSettings = JSON.parse(JSON.stringify(data));
+  isDirty = false;
+  document.getElementById("save-bar").classList.remove("visible");
+}
+
+function fillForm(d) {
+  setDeposit(d.deposit_mode || "required", false);
+  document.getElementById("deposit-amount").value = d.deposit_amount || 35;
+  document.getElementById("cashapp").value = d.cashapp || "";
+  document.getElementById("venmo").value = d.venmo || "";
+  document.getElementById("zelle").value = d.zelle || "";
+  document.getElementById("salon-name").value = d.salon_name || "";
+  document.getElementById("salon-location").value = d.location || "";
+  document.getElementById("salon-hours").value = d.hours || "";
+  document.getElementById("salon-services").value = d.services || "";
+  document.getElementById("salon-availability").value = d.availability || "";
+}
+
+// ─── DEPOSIT TOGGLE ──────────────────────────────────
+function setDeposit(mode, dirty = true) {
+  ["required","optional","none"].forEach(m => {
+    document.getElementById(`opt-${m}`).classList.toggle("active", m === mode);
+  });
+  currentSettings.deposit_mode = mode;
+  const amountRow = document.getElementById("amount-row");
+  const paySection = document.getElementById("payment-section");
+  const show = mode !== "none";
+  amountRow.style.display = show ? "flex" : "none";
+  paySection.style.opacity = show ? "1" : "0.4";
+  paySection.style.pointerEvents = show ? "auto" : "none";
+  if (dirty) markDirty();
+}
+
+// ─── DIRTY STATE ─────────────────────────────────────
+function markDirty() {
+  isDirty = true;
+  document.getElementById("save-bar").classList.add("visible");
+}
+
+function discardChanges() {
+  fillForm(originalSettings);
+  isDirty = false;
+  document.getElementById("save-bar").classList.remove("visible");
+}
+
+// ─── SAVE ────────────────────────────────────────────
+async function saveSettings() {
+  const btn = document.getElementById("save-btn");
+  btn.classList.add("saving");
+  btn.querySelector("span") && (btn.querySelector("span").textContent = "Saving…");
+
+  const payload = {
+    deposit_mode: currentSettings.deposit_mode,
+    deposit_amount: parseInt(document.getElementById("deposit-amount").value) || 35,
+    cashapp: document.getElementById("cashapp").value.trim().replace(/^\$/,""),
+    venmo: document.getElementById("venmo").value.trim().replace(/^@/,""),
+    zelle: document.getElementById("zelle").value.trim(),
+    salon_name: document.getElementById("salon-name").value.trim(),
+    location: document.getElementById("salon-location").value.trim(),
+    hours: document.getElementById("salon-hours").value.trim(),
+    services: document.getElementById("salon-services").value.trim(),
+    availability: document.getElementById("salon-availability").value.trim(),
+  };
+
+  const pass = sessionStorage.getItem("dianke_pass");
+
+  try {
+    const res = await fetch(`${BACKEND}/settings/${salonId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "x-admin-password": pass },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error();
+    originalSettings = JSON.parse(JSON.stringify(payload));
+    isDirty = false;
+    document.getElementById("save-bar").classList.remove("visible");
+    showToast("✓ Settings saved and live", "success");
+  } catch {
+    showToast("Failed to save. Try again.", "error");
+  }
+
+  btn.classList.remove("saving");
+}
+
+// ─── UTILS ───────────────────────────────────────────
+function copyLink() {
+  const url = document.getElementById("embed-url").textContent;
+  navigator.clipboard.writeText(url).then(() => showToast("Link copied!", "success"));
+}
+
+function showToast(msg, type = "") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+// ─── AUTO LOGIN ──────────────────────────────────────
+(async () => {
+  const s = sessionStorage.getItem("dianke_salon");
+  const p = sessionStorage.getItem("dianke_pass");
+  if (s && p) {
+    document.getElementById("login-salon").value = s;
+    document.getElementById("login-pass").value = p;
+    try {
+      const res = await fetch(`${BACKEND}/settings/${s}`, { headers: { "x-admin-password": p } });
+      if (res.ok) { salonId = s; loadDashboard(await res.json()); }
+    } catch {}
+  }
+})();
+</script>
+</body>
+</html>
