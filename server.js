@@ -34,7 +34,8 @@ app.get("/demo/salon", (req, res) => res.sendFile(path.join(__dirname, "demo-sal
 app.get("/demo/autorepair", (req, res) => res.sendFile(path.join(__dirname, "demo-autorepair.html")));
 app.get("/client/:salonId", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
 app.get("/dashboard/:salonId", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
-
+app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
+app.get("/admin/:salonId", (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
 app.get("/bookings", async (req, res) => {
   try {
     const salonId = req.query.salon_id || "default";
