@@ -172,7 +172,7 @@ async function send(txt){
       }).catch(()=>{
         clientBookings.push({client,service:svc,day,time,status:"pending",deposit:false,id:Date.now()});
       });
-      addPayCard(svc,day,time,client);
+      clientBookings.push({client,service:svc,day,time,status:"pending",deposit:false,id:Date.now()});       });       if(depositMode!=="none") addPayCard(svc,day,time,client);       else addBubble("bot","Your appointment is confirmed! We look forward to seeing you 💅");
     }
   }catch{
     document.getElementById("typing")?.remove();
@@ -348,7 +348,7 @@ async function confirmModalBooking(svc, client) {
   }).catch(() => {});
 
   document.getElementById("booking-modal").remove();
-  addPayCard(svc, dateStr, timeStr, fullName);
+  document.getElementById("booking-modal").remove();   if(depositMode!=="none") addPayCard(svc, dateStr, timeStr, fullName);   else addBubble("bot","Your appointment is confirmed! We look forward to seeing you 💅");
   clientBookings.push({ client: fullName, service: svc, day: dateStr, time: timeStr, status: "pending", deposit: false });
 }
 
