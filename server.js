@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
-const app = express();
+app.use(cors({ origin: "*", methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type", "x-admin-password"] }));
 
 app.use(cors({ origin: "*", methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type"] }));
 app.options("*", cors());
@@ -139,88 +139,48 @@ app.listen(PORT, function() {
 app.get('/settings/:salon_id', async (req, res) => {
   const { salon_id } = req.params;
   const adminPassword = req.headers['x-admin-password'];
-
   try {
-    const { data, error } = await supabase
-      .from('salon_settings')
-      .select('*')
-      .eq('salon_id', salon_id)
-      .single();
-
-    if (error || !data) return res.status(404).json({ error: 'Salon not found' });
-
-    // If password provided, validate it
+    const data = await supabase("GET", `salon_settings?salon_id=eq.${salon_id}&limit=1`);
+    if (!data || data.length === 0) return res.status(404).json({ error: 'Salon not found' });
+    const salon = data[0];
     if (adminPassword) {
-      if (adminPassword !== data.admin_password) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      // Return full settings to admin
-      const { admin_password, ...safeData } = data;
+      if (adminPassword !== salon.admin_password) return res.status(401).json({ error: 'Unauthorized' });
+      const { admin_password, ...safeData } = salon;
       return res.json(safeData);
     }
-
-    // Public request from client.html — return only what the widget needs
     return res.json({
-      salon_name: data.salon_name,
-      location: data.location,
-      hours: data.hours,
-      services: data.services,
-      availability: data.availability,
-      deposit_mode: data.deposit_mode,
-      deposit_amount: data.deposit_amount,
-      cashapp: data.cashapp,
-      venmo: data.venmo,
-      zelle: data.zelle,
+      salon_name: salon.salon_name,
+      location: salon.location,
+      hours: salon.hours,
+      services: salon.services,
+      availability: salon.availability,
+      deposit_mode: salon.deposit_mode,
+      deposit_amount: salon.deposit_amount,
+      cashapp: salon.cashapp,
+      venmo: salon.venmo,
+      zelle: salon.zelle,
     });
-
   } catch (err) {
-    console.error('GET /settings error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-
-// ─── PUT /settings/:salon_id ──────────────────────────────────────────────────
-// Admin only — requires x-admin-password header
-
 app.put('/settings/:salon_id', async (req, res) => {
   const { salon_id } = req.params;
   const adminPassword = req.headers['x-admin-password'];
-
   if (!adminPassword) return res.status(401).json({ error: 'Password required' });
-
   try {
-    // Verify password first
-    const { data: existing, error: fetchErr } = await supabase
-      .from('salon_settings')
-      .select('admin_password')
-      .eq('salon_id', salon_id)
-      .single();
-
-    if (fetchErr || !existing) return res.status(404).json({ error: 'Salon not found' });
-    if (adminPassword !== existing.admin_password) return res.status(401).json({ error: 'Unauthorized' });
-
-    const {
-      deposit_mode, deposit_amount,
-      cashapp, venmo, zelle,
-      salon_name, location, hours, services, availability
-    } = req.body;
-
-    const { error: updateErr } = await supabase
-      .from('salon_settings')
-      .update({
-        deposit_mode, deposit_amount,
-        cashapp, venmo, zelle,
-        salon_name, location, hours, services, availability,
-        updated_at: new Date().toISOString()
-      })
-      .eq('salon_id', salon_id);
-
-    if (updateErr) throw updateErr;
+    const existing = await supabase("GET", `salon_settings?salon_id=eq.${salon_id}&limit=1`);
+    if (!existing || existing.length === 0) return res.status(404).json({ error: 'Salon not found' });
+    if (adminPassword !== existing[0].admin_password) return res.status(401).json({ error: 'Unauthorized' });
+    const { deposit_mode, deposit_amount, cashapp, venmo, zelle, salon_name, location, hours, services, availability } = req.body;
+    await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, {
+      deposit_mode, deposit_amount, cashapp, venmo, zelle,
+      salon_name, location, hours, services, availability,
+      updated_at: new Date().toISOString()
+    });
     res.json({ success: true });
-
   } catch (err) {
-    console.error('PUT /settings error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
