@@ -119,18 +119,6 @@ app.post("/chat", async (req, res) => {
 setInterval(function() {
   fetch("https://glam-backend-rxdf.onrender.com").catch(function() {});
 }, 14 * 60 * 1000);
-app.get("*", (req, res) => {
-  if(req.path.startsWith("/dashboard")) {
-    res.sendFile(path.join(__dirname, "dashboard.html"));
-  } else {
-    res.sendFile(path.join(__dirname, "client.html"));
-  }
-});
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, function() {
-  // settings.js — add this to your Express backend (server.js / index.js)
-// Requires: supabase client already initialized as `supabase`
-// Add near your other routes
 
 app.get('/settings/:salon_id', async (req, res) => {
   const { salon_id } = req.params;
@@ -160,4 +148,37 @@ app.get('/settings/:salon_id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
+});
+
+app.put('/settings/:salon_id', async (req, res) => {
+  const { salon_id } = req.params;
+  const adminPassword = req.headers['x-admin-password'];
+  if (!adminPassword) return res.status(401).json({ error: 'Password required' });
+  try {
+    const existing = await supabase("GET", `salon_settings?salon_id=eq.${salon_id}&limit=1`);
+    if (!existing || existing.length === 0) return res.status(404).json({ error: 'Salon not found' });
+    if (adminPassword !== existing[0].admin_password) return res.status(401).json({ error: 'Unauthorized' });
+    const { deposit_mode, deposit_amount, cashapp, venmo, zelle, salon_name, location, hours, services, availability } = req.body;
+    await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, {
+      deposit_mode, deposit_amount, cashapp, venmo, zelle,
+      salon_name, location, hours, services, availability,
+      updated_at: new Date().toISOString()
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get("*", (req, res) => {
+  if (req.path.startsWith("/dashboard")) {
+    res.sendFile(path.join(__dirname, "dashboard.html"));
+  } else {
+    res.sendFile(path.join(__dirname, "client.html"));
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, function() {
+  console.log("Dianke.ai server running on port " + PORT);
 });
