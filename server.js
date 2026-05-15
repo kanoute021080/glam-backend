@@ -132,13 +132,10 @@ app.listen(PORT, function() {
 // Requires: supabase client already initialized as `supabase`
 // Add near your other routes
 
-// ─── GET /settings/:salon_id ──────────────────────────────────────────────────
-// Called by admin dashboard (with password) AND by client.html (no password)
-// Returns different data depending on auth
-
 app.get('/settings/:salon_id', async (req, res) => {
   const { salon_id } = req.params;
   const adminPassword = req.headers['x-admin-password'];
+  res.set('Cache-Control', 'no-store');
   try {
     const data = await supabase("GET", `salon_settings?salon_id=eq.${salon_id}&limit=1`);
     if (!data || data.length === 0) return res.status(404).json({ error: 'Salon not found' });
@@ -163,26 +160,4 @@ app.get('/settings/:salon_id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
-});
-
-app.put('/settings/:salon_id', async (req, res) => {
-  const { salon_id } = req.params;
-  const adminPassword = req.headers['x-admin-password'];
-  if (!adminPassword) return res.status(401).json({ error: 'Password required' });
-  try {
-    const existing = await supabase("GET", `salon_settings?salon_id=eq.${salon_id}&limit=1`);
-    if (!existing || existing.length === 0) return res.status(404).json({ error: 'Salon not found' });
-    if (adminPassword !== existing[0].admin_password) return res.status(401).json({ error: 'Unauthorized' });
-    const { deposit_mode, deposit_amount, cashapp, venmo, zelle, salon_name, location, hours, services, availability } = req.body;
-    await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, {
-      deposit_mode, deposit_amount, cashapp, venmo, zelle,
-      salon_name, location, hours, services, availability,
-      updated_at: new Date().toISOString()
-    });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-  console.log("Dianke.ai server running on port " + PORT);
 });
