@@ -88,11 +88,14 @@ let busy=false;
 
 const depositMode=new URLSearchParams(window.location.search).get("deposit")||"required";
 const depositText=depositMode==="none"?"No deposit required to book.":depositMode==="optional"?"A $35 deposit is optional but recommended to secure your slot.":"A $35 deposit is required to secure your slot.";
+const depositConfirmInstruction = depositMode === "none"
+  ? "Once service, day, time, and client name are confirmed, say exactly: BOOKING_CONFIRMED:[service]:[day]:[time]:[name]"
+  : "Once service, day, time, and client name are confirmed, say exactly: DEPOSIT_DUE:$35:[service]:[day]:[time]:[name]";
 const SYS=`You are the AI receptionist for Hollywood Glam Beauty hair salon in Hudson Valley NY. Be warm, friendly and concise like a knowledgeable stylist.
 Services: Medium knotless braids $180 4hrs, Large knotless $150 3hrs, Box braids $220 6hrs, Locs maintenance $95 2hrs, Silk press $85 1.5hrs, Wig install $120 1hr.
 Hours: Tue-Sat 9am-7pm. CLOSED Sunday and Monday. ${depositText} Come with clean detangled hair.
 Availability: Tue 10:30am open, Wed 9-11am & 1-5pm open, Thu 1-5pm open, Fri fully open, Sat 10am-2pm open.
-Remember the full conversation. Never restart. Collect service, day, time, client name. Once all confirmed say exactly: DEPOSIT_DUE:$35:[service]:[day]:[time]:[name]
+Remember the full conversation. Never restart. Collect service, day, time, client name. ${depositConfirmInstruction}
 Keep replies under 80 words. Plain text only. No asterisks.`;
 
 function addBubble(role,text){
@@ -158,13 +161,13 @@ async function send(txt){
     const d=await res.json();
     const raw=(d?.content?.[0]?.text||"Try again!").replace(/\*\*(.*?)\*\*/g,"$1");
     const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([^:]+):([^\n]+)/);
-    const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").trim();
+    const bc=raw.match(/BOOKING_CONFIRMED:([^:]+):([^:]+):([^:]+):([^\n]+)/);
+    const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").replace(/BOOKING_CONFIRMED:[^\n]*/,"").trim();
     document.getElementById("typing")?.remove();
     hist.push({role:"assistant",content:raw});
     if(reply)addBubble("bot",reply);
     if(dm){
       const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
-      // Save booking to backend
       fetch(BACKEND+"/bookings",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
@@ -174,8 +177,22 @@ async function send(txt){
       }).catch(()=>{
         clientBookings.push({client,service:svc,day,time,status:"pending",deposit:false,id:Date.now()});
       });
-      if(depositMode!=="none") addPayCard(svc,day,time,client);
-      else addBubble("bot","Your appointment is confirmed! We look forward to seeing you 💅");
+      if(depositMode==="optional"){
+        addPayCard(svc,day,time,client);
+        addBubble("bot","A deposit is optional but helps secure your slot. You can pay above or just show up — we'll do our best to hold it for you!");
+      } else {
+        addPayCard(svc,day,time,client);
+      }
+    }
+    if(bc){
+      const svc=bc[1].trim(), day=bc[2].trim(), time=bc[3].trim(), client=bc[4].trim();
+      fetch(BACKEND+"/bookings",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:window.location.pathname.split("/")[2]||"default"})
+      }).catch(()=>{});
+      clientBookings.push({client,service:svc,day,time,status:"confirmed",deposit:false,id:Date.now()});
+      addBubble("bot","Your appointment is confirmed! We look forward to seeing you 💅");
     }
   }catch{
     document.getElementById("typing")?.remove();
