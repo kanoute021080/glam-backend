@@ -41,7 +41,33 @@ app.get("/demo/autorepair", (req, res) => res.sendFile(path.join(__dirname, "dem
 app.get("/client/:salonId", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
 app.get("/dashboard/:salonId", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
 app.get("/portal", (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
+app.get("/menu/:salonId", async (req, res) => {
+  try {
+    const hour = new Date().getHours();
+    const period = hour < 11 ? "breakfast" : hour < 18 ? "lunch" : "dinner";
+    const data = await supabase("GET", "menu_items?salon_id=eq." + req.params.salonId + "&available=eq.true&or=(meal_period.eq." + period + ",meal_period.eq.all)&order=meal_period.asc,category.asc");
+    res.json({ period, items: Array.isArray(data) ? data : [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
+app.post("/orders", async (req, res) => {
+  try {
+    const { customer_name, items, total, order_type, estimated_time, salon_id, source, language, status } = req.body;
+    const data = await supabase("POST", "orders", {
+      customer_name, items, total, order_type,
+      estimated_time: estimated_time || "25-30 mins",
+      salon_id: salon_id || "restaurant1",
+      source: source || "chat",
+      language: language || "en",
+      status: status || "pending"
+    });
+    res.json(Array.isArray(data) ? data[0] : data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.get("/bookings", async (req, res) => {
   try {
     const salonId = req.query.salon_id || "default";
