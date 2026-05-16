@@ -51,59 +51,42 @@ app.get("/bookings", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-app.post("/bookings", async (req, res) => {
-  try {
-    const { client, service, day, time, amount, salon_id, source } = req.body;
-    const hmap = { "9am":9, "10am":10, "11am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
-    const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
-    
-    // Check for conflicts
-const existing = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&day=eq.${day}&time=eq.${time}&status=eq.confirmed`);
-if (Array.isArray(existing) && existing.length > 0) {
-  return res.status(409).json({ error: "Time slot already booked" });
-}
-    const data = await supabase("POST", "bookings", {
-      client, service, day, time, hour,
-      amount: amount || 0,
-      status: "pending",
-      deposit: false,
-      salon_id: salon_id || "default",
-      new_from_chat: true,
-      source: source || "chat"
-    });
-    // Send email notification
-fetch("https://api.resend.com/emails", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${RESEND_KEY}`
-  },
-  body: JSON.stringify({
-    from: "Dianke.ai <onboarding@resend.dev>",
-    to: "kanoute021080@gmail.com",
-    subject: `New booking — ${client} · ${service}`,
-    html: `
-      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-        <h2 style="color:#111;margin-bottom:4px">New booking received 📅</h2>
-        <p style="color:#888;font-size:13px;margin-bottom:20px">Via Dianke.ai · ${salon_id}</p>
-        <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
-          <div style="font-size:13px;color:#888;margin-bottom:4px">Client</div>
-          <div style="font-size:15px;font-weight:600;color:#111">${client}</div>
+// Fetch owner email and send notification
+supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`).then(settings => {
+  const ownerEmail = settings?.[0]?.owner_email;
+  if (!ownerEmail) return;
+  fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${RESEND_KEY}`
+    },
+    body: JSON.stringify({
+      from: "Dianke.ai <onboarding@resend.dev>",
+      to: ownerEmail,
+      subject: `New booking — ${client} · ${service}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+          <h2 style="color:#111;margin-bottom:4px">New booking received 📅</h2>
+          <p style="color:#888;font-size:13px;margin-bottom:20px">Via Dianke.ai · ${salon_id}</p>
+          <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+            <div style="font-size:13px;color:#888;margin-bottom:4px">Client</div>
+            <div style="font-size:15px;font-weight:600;color:#111">${client}</div>
+          </div>
+          <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+            <div style="font-size:13px;color:#888;margin-bottom:4px">Service</div>
+            <div style="font-size:15px;font-weight:600;color:#111">${service}</div>
+          </div>
+          <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+            <div style="font-size:13px;color:#888;margin-bottom:4px">Date & Time</div>
+            <div style="font-size:15px;font-weight:600;color:#111">${day} at ${time}</div>
+          </div>
+          <a href="https://dianke.ai/dashboard/${salon_id}" style="display:block;text-align:center;background:#111;color:#fff;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">View on dashboard →</a>
         </div>
-        <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
-          <div style="font-size:13px;color:#888;margin-bottom:4px">Service</div>
-          <div style="font-size:15px;font-weight:600;color:#111">${service}</div>
-        </div>
-        <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
-          <div style="font-size:13px;color:#888;margin-bottom:4px">Date & Time</div>
-          <div style="font-size:15px;font-weight:600;color:#111">${day} at ${time}</div>
-        </div>
-        <a href="https://dianke.ai/dashboard/${salon_id}" style="display:block;text-align:center;background:#111;color:#fff;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">View on dashboard →</a>
-      </div>
-    `
-  })
-}).catch(() => {}); // fail silently — don't block booking
+      `
+    })
+  }).catch(() => {});
+}).catch(() => {});
     res.json(Array.isArray(data) ? data[0] : data);
   } catch (err) {
     res.status(500).json({ error: err.message });
