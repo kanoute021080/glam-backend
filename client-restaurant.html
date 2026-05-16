@@ -183,7 +183,7 @@ function addOrderCard(items,total,time,name,type){
   el.scrollTop=el.scrollHeight;
   // Save order to backend
   fetch(BACKEND+"/orders",{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({customer_name:name,items,total,order_type:type,estimated_time:time,salon_id:salonId,source:"chat",language:currentLang,status:"pending"})
+    body:JSON.stringify({customer_name:name,items,total:parseFloat(String(total).replace(/[^0-9.]/g,"")),order_type:type,estimated_time:time,salon_id:salonId,source:"chat",language:currentLang,status:"pending"})
   }).then(r=>r.json()).then(d=>console.log("Order saved:",d)).catch(e=>console.error("Order error:",e));
 }
 
