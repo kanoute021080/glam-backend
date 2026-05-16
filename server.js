@@ -127,8 +127,17 @@ app.post("/chat", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-app.get('/settings/:salon_id', async (req, res) => {
+app.get("/bookings/search", async (req, res) => {
+  const { name, salon_id } = req.query;
+  if (!name) return res.status(400).json({ error: "Name required" });
+  try {
+    const data = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&client=ilike.*${encodeURIComponent(name)}*&order=created_at.desc&limit=5`);
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+  app.get('/settings/:salon_id', async (req, res) => {
   const { salon_id } = req.params;
   const adminPassword = req.headers['x-admin-password'];
   res.set('Cache-Control', 'no-store');
