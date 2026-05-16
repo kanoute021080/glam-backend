@@ -1,1 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Teranga Restaurant — Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
+.app{max-width:460px;margin:0 auto;padding:12px 10px}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.av{width:34px;height:34px;border-radius:50%;background:#c17f24;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0}
+.hdr-name{font-size:14px;font-weight:600;color:#111}
+.hdr-sub{font-size:11px;color:#888}
+.badge-pr{font-size:10px;background:#c17f24;color:#fff;padding:3px 9px;border-radius:20px;font-weight:600}
+.nav{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto}
+.nav button{flex:1;padding:8px 4px;font-size:11px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;font-weight:500;white-space:nowrap}
+.nav button.active{background:#c17f24;color:#fff;border-color:#c17f24;font-weight:600}
+.card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stat{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-size:22px;font-weight:600;color:#c17f24}
+.stat-lbl{font-size:11px;color:#888;margin-top:2px}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600}
+.badge-pending{background:#FAEEDA;color:#633806}
+.badge-confirmed{background:#eafaf1;color:#0F6E56}
+.badge-ready{background:#e8f4ff;color:#185FA5}
+.badge-done{background:#f0f0f0;color:#666}
+.btn-p{padding:7px 12px;font-size:12px;font-weight:600;border-radius:8px;border:none;background:#c17f24;color:#fff;cursor:pointer}
+.btn-s{padding:7px 12px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid #ddd;background:transparent;color:#666;cursor:pointer}
+.btn-d{padding:7px 12px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid #fca5a5;background:transparent;color:#dc2626;cursor:pointer}
+.toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:9px 18px;border-radius:10px;font-size:13px;z-index:999;white-space:nowrap;display:none}
+.inp{width:100%;padding:8px 10px;border:1px solid #eee;border-radius:8px;font-size:13px;outline:none;background:#fff}
+.period-tab{display:flex;gap:6px;margin-bottom:10px}
+.ptab{flex:1;padding:7px;font-size:12px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;text-align:center;font-weight:500}
+.ptab.active{background:#c17f24;color:#fff;border-color:#c17f24}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="toast" id="toast"></div>
 
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="av">TR</div>
+      <div>
+        <div class="hdr-name">Teranga Restaurant</div>
+        <div class="hdr-sub">Owner dashboard · Dianke.ai</div>
+      </div>
+    </div>
+    <span class="badge-pr">Premium</span>
+  </div>
+
+  <div class="nav">
+    <button class="active" onclick="switchTab('orders',this)">Orders</button>
+    <button onclick="switchTab('menu',this)" id="tab-menu">Menu</button>
+    <button onclick="switchTab('stats',this)">Stats</button>
+  </div>
+
+  <div id="orders"></div>
+  <div id="menu" style="display:none"></div>
+  <div id="stats" style="display:none"></div>
+</div>
+
+<script>
+const B="https://dianke.ai";
+const salonId=window.location.pathname.split("/")[2]||"restaurant1";
+let orders=[], menuItems=[], currentPeriod="dinner";
+
+function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",3000);}
+
+function srcBadge(src){
+  const m={voice:["#fff3e0","#e65100","📞 voice"],walkin:["#f3e5f5","#6a1b9a","🚶 walk-in"],chat:["#e8f4ff","#185FA5","💬 chat"]};
+  const[bg,color,label]=m[src]||m.chat;
+  return `<span class="badge" style="background:${bg};color:${color}">${label}</span>`;
+}
+
+function statusBadge(status){
+  const m={pending:"badge-pending",confirmed:"badge-confirmed",ready:"badge-ready",done:"badge-done"};
+  return `<span class="badge ${m[status]||"badge-pending"}">${status}</span>`;
+}
+
+async function loadOrders(){
+  try{
+    const res=await fetch(B+"/orders-list/"+salonId);
+    const data=await res.json();
+    if(Array.isArray(data)) orders=data;
+    renderOrders();
+    renderStats();
+    updateNav();
+  }catch(e){renderOrders();}
+}
+
+async function loadMenu(){
+  try{
+    const res=await fetch(B+"/menu/"+salonId);
+    const data=await res.json();
+    currentPeriod=data.period;
+    menuItems=data.items||[];
+    renderMenu();
+  }catch(e){renderMenu();}
+}
+
+function updateNav(){
+  const pending=orders.filter(o=>o.status==="pending").length;
+  document.querySelector(".nav button").textContent=pending?`Orders (${pending})`:"Orders";
+}
+
+function switchTab(name,btn){
+  ["orders","menu","stats"].forEach(t=>document.getElementById(t).style.display="none");
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+  document.getElementById(name).style.display="block";
+  btn.classList.add("active");
+  if(name==="menu") loadMenu();
+  if(name==="stats") renderStats();
+}
+
+async function updateOrderStatus(id, status){
+  orders=orders.map(o=>o.id===id?{...o,status}:o);
+  renderOrders(); updateNav();
+  showToast(status==="ready"?"Order ready! Client notified.":status==="done"?"Order completed!":"Order confirmed!");
+  try{
+    await fetch(B+"/orders/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status})});
+  }catch{}
+}
+
+function renderOrders(){
+  const pending=orders.filter(o=>o.status==="pending");
+  const active=orders.filter(o=>o.status==="confirmed"||o.status==="ready");
+  const done=orders.filter(o=>o.status==="done").slice(0,5);
+
+  document.getElementById("orders").innerHTML=`
+    ${pending.length?`<div class="card">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px">🔔 New orders (${pending.length})</div>
+      ${pending.map(o=>`
+        <div style="padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid #f0f0f0">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#111">${o.customer_name}</div>
+              <div style="font-size:12px;color:#888">${o.order_type} · ${srcBadge(o.source||"chat")}</div>
+              <div style="font-size:13px;color:#c17f24;font-weight:500;margin-top:4px">${o.items}</div>
+              <div style="font-size:12px;color:#888">Total: ${o.total} · Est: ${o.estimated_time}</div>
+            </div>
+            ${statusBadge(o.status)}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button class="btn-p" onclick="updateOrderStatus(${o.id},'confirmed')">✓ Confirm</button>
+            <button class="btn-d" onclick="updateOrderStatus(${o.id},'done')">✕ Cancel</button>
+          </div>
+        </div>`).join("")}
+    </div>`:""}
+
+    ${active.length?`<div class="card">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px">🍳 In progress (${active.length})</div>
+      ${active.map(o=>`
+        <div style="padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid #f0f0f0">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#111">${o.customer_name}</div>
+              <div style="font-size:12px;color:#888">${o.order_type} · ⏱️ ${o.estimated_time}</div>
+              <div style="font-size:13px;color:#c17f24;margin-top:2px">${o.items}</div>
+            </div>
+            ${statusBadge(o.status)}
+          </div>
+          <div style="display:flex;gap:6px">
+            ${o.status==="confirmed"?`<button class="btn-p" onclick="updateOrderStatus(${o.id},'ready')">🔔 Mark Ready</button>`:""}
+            ${o.status==="ready"?`<button class="btn-p" onclick="updateOrderStatus(${o.id},'done')">✅ Done</button>`:""}
+          </div>
+        </div>`).join("")}
+    </div>`:""}
+
+    ${orders.length===0?`<div class="card" style="text-align:center;padding:30px">
+      <div style="font-size:32px;margin-bottom:8px">🍽️</div>
+      <div style="font-size:14px;color:#888">No orders yet today</div>
+      <div style="font-size:12px;color:#aaa;margin-top:4px">Orders will appear here instantly</div>
+    </div>`:""}
+
+    ${done.length?`<div class="card">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px">✅ Completed today</div>
+      ${done.map(o=>`
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f5f5f5">
+          <div>
+            <div style="font-size:13px;color:#111">${o.customer_name}</div>
+            <div style="font-size:11px;color:#888">${o.items}</div>
+          </div>
+          <div style="font-size:12px;color:#888">${o.total}</div>
+        </div>`).join("")}
+    </div>`:""}`;
+}
+
+function renderMenu(){
+  const periods=["breakfast","lunch","dinner"];
+  const periodItems=menuItems.filter(i=>i.meal_period===currentPeriod);
+
+  document.getElementById("menu").innerHTML=`
+    <div class="period-tab">
+      ${periods.map(p=>`<button class="ptab${currentPeriod===p?" active":""}" onclick="switchPeriod('${p}',this)">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join("")}
+    </div>
+    <div class="card">
+      <button type="button" onclick="toggleMenuForm()" style="width:100%;padding:9px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:13px;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:4px">
+        <span style="font-size:16px">+</span> Add menu item
+      </button>
+    </div>
+    <div id="menu-form-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;align-items:flex-end;justify-content:center">
+      <div style="background:#fff;width:100%;max-width:460px;border-radius:20px 20px 0 0;padding:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-size:15px;font-weight:600;color:#111">Add menu item</div>
+          <button type="button" onclick="toggleMenuForm()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer">×</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <input class="inp" id="mi-name" placeholder="Dish name" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('mi-price').focus();}"/>
+          <input class="inp" id="mi-price" placeholder="Price (e.g. 18)" type="number" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"/>
+          <input class="inp" id="mi-category" placeholder="Category (e.g. Mains, Drinks)" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('mi-price').focus();}"/>
+          <select class="inp" id="mi-period">
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch" selected>Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="all">All day</option>
+          </select>
+          <div style="display:flex;gap:8px">
+            <button type="button" class="btn-p" onclick="saveMenuItem()" style="flex:1;padding:12px">Add item</button>
+            <button type="button" class="btn-s" onclick="toggleMenuForm()" style="padding:12px 16px">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="menu-list">
+      ${periodItems.length===0?`<div class="card" style="text-align:center;color:#888;font-size:13px;padding:20px">No items for this period yet</div>`:""}
+      ${periodItems.map(item=>`
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#111">${item.name}</div>
+              <div style="font-size:12px;color:#888">${item.category} · $${item.price}</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${item.available?"#eafaf1":"#fcebeb"};color:${item.available?"#0F6E56":"#dc2626"}">${item.available?"Available":"Unavailable"}</span>
+              <button type="button" class="btn-d" onclick="toggleAvailability(${item.id},${item.available})">
+                ${item.available?"Hide":"Show"}
+              </button>
+            </div>
+          </div>
+        </div>`).join("")}
+    </div>`;
+}
+
+async function switchPeriod(period, btn){
+  currentPeriod=period;
+  document.querySelectorAll(".ptab").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  try{
+    const res=await fetch(B+"/menu-period/"+salonId+"?period="+period);
+    const data=await res.json();
+    menuItems=data||[];
+  }catch{}
+  renderMenu();
+}
+
+function toggleMenuForm(){
+  const f=document.getElementById("menu-form-modal");
+  f.style.display=f.style.display==="none"?"flex":"none";
+}
+
+async function saveMenuItem(){
+  const modal=document.getElementById("menu-form-modal");
+  const name=modal.querySelector("#mi-name").value.trim();
+  const price=parseFloat(modal.querySelector("#mi-price").value)||0;
+  const category=modal.querySelector("#mi-category").value.trim()||"Mains";
+  const period=modal.querySelector("#mi-period").value;
+  if(!name||!price){alert("Please enter name and price.");return;}
+  try{
+    await fetch(B+"/menu-items",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({salon_id:salonId,name,price,category,meal_period:period,available:true})});
+    toggleMenuForm();
+    modal.querySelector("#mi-name").value="";
+    modal.querySelector("#mi-price").value="";
+    modal.querySelector("#mi-category").value="";
+    showToast("Menu item added!");
+    await loadMenu();
+  }catch{showToast("Error saving item.");}
+}
+
+async function toggleAvailability(id, current){
+  try{
+    await fetch(B+"/menu-items/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({available:!current})});
+    showToast(current?"Item hidden from menu":"Item back on menu!");
+    await loadMenu();
+  }catch{showToast("Error updating item.");}
+}
+
+function renderStats(){
+  const total=orders.length;
+  const revenue=orders.filter(o=>o.status!=="done"||true).reduce((s,o)=>s+parseFloat(o.total||0),0);
+  const bySource=orders.reduce((acc,o)=>{acc[o.source||"chat"]=(acc[o.source||"chat"]||0)+1;return acc;},{});
+  const byType=orders.reduce((acc,o)=>{acc[o.order_type||"takeout"]=(acc[o.order_type||"takeout"]||0)+1;return acc;},{});
+
+  document.getElementById("stats").innerHTML=`
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val">${total}</div><div class="stat-lbl">Total orders</div></div>
+      <div class="stat"><div class="stat-val">$${revenue.toFixed(0)}</div><div class="stat-lbl">Revenue</div></div>
+      <div class="stat"><div class="stat-val">${orders.filter(o=>o.status==="pending").length}</div><div class="stat-lbl">Pending</div></div>
+      <div class="stat"><div class="stat-val">${orders.filter(o=>o.status==="done").length}</div><div class="stat-lbl">Completed</div></div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">Orders by source</div>
+      ${Object.entries(bySource).map(([src,count])=>`
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f5f5f5">
+          <span style="font-size:13px;color:#111">${srcBadge(src)}</span>
+          <span style="font-size:13px;font-weight:600;color:#c17f24">${count} orders</span>
+        </div>`).join("")}
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">Orders by type</div>
+      ${Object.entries(byType).map(([type,count])=>`
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f5f5f5">
+          <span style="font-size:13px;color:#111">${type}</span>
+          <span style="font-size:13px;font-weight:600;color:#c17f24">${count} orders</span>
+        </div>`).join("")}
+    </div>`;
+}
+
+setInterval(loadOrders, 15000);
+loadOrders();
+</script>
+</body>
+</html>
