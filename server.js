@@ -2,10 +2,15 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const app = express();
-app.use(cors({ origin: "*", methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type", "x-admin-password"] }));
-app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type", "x-admin-password"] })); app.options("*", (req, res) => {   res.header("Access-Control-Allow-Origin", "*");   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");   res.header("Access-Control-Allow-Headers", "Content-Type, x-admin-password");   res.sendStatus(204); });
-app.use(express.json());
 
+app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type", "x-admin-password"] }));
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, x-admin-password");
+  res.sendStatus(204);
+});
+app.use(express.json());
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
@@ -26,7 +31,6 @@ async function supabase(method, path, body) {
 
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 app.get("/test", (req, res) => res.json({ status: "Backend is working!", timestamp: new Date().toISOString() }));
-
 app.get("/dashboard", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
 app.get("/client", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
 app.get("/demo/salon", (req, res) => res.sendFile(path.join(__dirname, "demo-salon.html")));
@@ -34,28 +38,28 @@ app.get("/demo/autorepair", (req, res) => res.sendFile(path.join(__dirname, "dem
 app.get("/client/:salonId", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
 app.get("/dashboard/:salonId", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
 app.get("/portal", (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
+
 app.get("/bookings", async (req, res) => {
   try {
     const salonId = req.query.salon_id || "default";
-      const data = await supabase("GET", "bookings?salon_id=eq." + salonId + "&order=created_at.desc");
-      res.json(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Settings update error:', err);
-      res.status(500).json({ error: err.message || 'Server error' });
-    }
-  });
-  
-  app.post("/bookings", async (req, res) => {
+    const data = await supabase("GET", "bookings?salon_id=eq." + salonId + "&order=created_at.desc");
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/bookings", async (req, res) => {
   try {
     const { client, service, day, time, amount, salon_id, source } = req.body;
-      const hmap = { "9am":9, "10am":10, "11am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
-      const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
-      const data = await supabase("POST", "bookings", {
-        client, service, day, time, hour,
-        amount: amount || 0,
+    const hmap = { "9am":9, "10am":10, "11am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
+    const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
+    const data = await supabase("POST", "bookings", {
+      client, service, day, time, hour,
+      amount: amount || 0,
       status: "pending",
       deposit: false,
-     salon_id: salon_id || "default",
+      salon_id: salon_id || "default",
       new_from_chat: true,
       source: source || "chat"
     });
@@ -116,10 +120,6 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-setInterval(function() {
-  fetch("https://glam-backend-rxdf.onrender.com").catch(function() {});
-}, 14 * 60 * 1000);
-
 app.get('/settings/:salon_id', async (req, res) => {
   const { salon_id } = req.params;
   const adminPassword = req.headers['x-admin-password'];
@@ -149,6 +149,7 @@ app.get('/settings/:salon_id', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 app.post('/settings/:salon_id/update', async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
@@ -168,7 +169,8 @@ app.post('/settings/:salon_id/update', async (req, res) => {
     });
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Settings update error:', err);
+    res.status(500).json({ error: err.message || 'Server error' });
   }
 });
 
@@ -179,6 +181,10 @@ app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "client.html"));
   }
 });
+
+setInterval(function() {
+  fetch("https://glam-backend-rxdf.onrender.com").catch(function() {});
+}, 14 * 60 * 1000);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, function() {
