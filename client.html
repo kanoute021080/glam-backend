@@ -244,33 +244,48 @@ function closeStatus(){
   document.getElementById("status-modal").style.display="none";
 }
 
-function checkStatus(){
-  const name=document.getElementById("status-name").value.trim().toLowerCase();
+async function checkStatus(){
+  const name=document.getElementById("status-name").value.trim();
   if(!name)return;
-  const match=clientBookings.find(b=>b.client.toLowerCase().includes(name));
   const result=document.getElementById("status-result");
   const search=document.getElementById("status-search");
   search.style.display="none";
   result.style.display="block";
-  if(match){
-    const statusColor=match.status==="confirmed"?"#0F6E56":"#633806";
-    const statusBg=match.status==="confirmed"?"#eafaf1":"#FAEEDA";
+  result.innerHTML='<div style="text-align:center;padding:20px;color:#aaa;font-size:13px">Looking up your booking...</div>';
+
+  try{
+    const salonId=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
+    const res=await fetch(`${BACKEND}/bookings/search?name=${encodeURIComponent(name)}&salon_id=${salonId}`,{cache:"no-store"});
+    const bookings=await res.json();
+
+    if(!Array.isArray(bookings)||bookings.length===0){
+      result.innerHTML=`
+        <div style="text-align:center;padding:10px 0">
+          <div style="font-size:32px;margin-bottom:8px">🔍</div>
+          <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:6px">No booking found</div>
+          <div style="font-size:13px;color:#888;margin-bottom:14px">We couldn't find a booking under that name. Make sure you use the same name you gave when booking.</div>
+          <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">Try again</button>
+        </div>`;
+      return;
+    }
+
+    const b=bookings[0];
+    const statusColor=b.status==="confirmed"?"#0F6E56":"#633806";
+    const statusBg=b.status==="confirmed"?"#eafaf1":"#FAEEDA";
     result.innerHTML=`
       <div style="text-align:center;padding:10px 0">
-        <div style="font-size:32px;margin-bottom:8px">${match.status==="confirmed"?"✅":"⏳"}</div>
-        <div style="font-size:15px;font-weight:600;color:#111;margin-bottom:4px">${match.service}</div>
-        <div style="font-size:13px;color:#888;margin-bottom:12px">${match.day} at ${match.time} · ${match.client}</div>
-        <span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:${statusBg};color:${statusColor}">${match.status==="confirmed"?"Confirmed ✓":"Pending deposit"}</span>
-        ${!match.deposit?`<div style="font-size:12px;color:#888;margin-top:12px">Please send your $35 deposit to confirm your slot.</div>`:""}
+        <div style="font-size:32px;margin-bottom:8px">${b.status==="confirmed"?"✅":"⏳"}</div>
+        <div style="font-size:15px;font-weight:600;color:#111;margin-bottom:4px">${b.service}</div>
+        <div style="font-size:13px;color:#888;margin-bottom:12px">${b.day} at ${b.time||b.hour+"am"} · ${b.client}</div>
+        <span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:${statusBg};color:${statusColor}">${b.status==="confirmed"?"Confirmed ✓":"Pending deposit"}</span>
+        ${b.status==="pending"?`<div style="font-size:12px;color:#888;margin-top:12px">Please send your deposit to confirm your slot.</div>`:""}
         <button onclick="closeStatus()" style="display:block;width:100%;margin-top:14px;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Close</button>
       </div>`;
-  } else {
+  }catch{
     result.innerHTML=`
       <div style="text-align:center;padding:10px 0">
-        <div style="font-size:32px;margin-bottom:8px">🔍</div>
-        <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:6px">No booking found</div>
-        <div style="font-size:13px;color:#888;margin-bottom:14px">We couldn't find a booking under that name. Make sure you use the same name you gave when booking.</div>
-        <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">Try again</button>
+        <div style="font-size:13px;color:#888">Could not load booking. Try again.</div>
+        <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;margin-top:10px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">Try again</button>
       </div>`;
   }
 }
