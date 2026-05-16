@@ -37,6 +37,37 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
 .bb-bot{background:#fff;color:#111;border:1px solid #eee;border-radius:4px 12px 12px 12px}
 .bb-user{background:#111;color:#f0f0ec;border-radius:12px 4px 12px 12px}
 .pay-link{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;text-decoration:none;margin-bottom:5px}
+
+/* Settings styles */
+.set-section{background:#fff;border:1px solid #eee;border-radius:10px;overflow:hidden;margin-bottom:10px}
+.set-hdr{padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px}
+.set-icon{font-size:14px}
+.set-title{font-size:13px;font-weight:600;color:#111}
+.set-body{padding:14px}
+.dep-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #eee;border-radius:10px;cursor:pointer;margin-bottom:8px;transition:all 0.15s}
+.dep-option.active{border-color:#c2426e;background:#fff5f8}
+.radio-dot{width:16px;height:16px;border-radius:50%;border:2px solid #ddd;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.dep-option.active .radio-dot{border-color:#c2426e;background:#c2426e}
+.radio-dot::after{content:'';width:5px;height:5px;border-radius:50%;background:#fff;opacity:0}
+.dep-option.active .radio-dot::after{opacity:1}
+.dep-label{font-size:13px;font-weight:500;color:#111}
+.dep-desc{font-size:11px;color:#888;margin-top:1px}
+.set-field{margin-bottom:10px}
+.set-field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#888;display:block;margin-bottom:5px}
+.set-field input,.set-field textarea{width:100%;padding:9px 12px;border:1px solid #eee;border-radius:8px;font-size:13px;color:#111;outline:none;font-family:inherit;transition:border-color 0.2s}
+.set-field input:focus,.set-field textarea:focus{border-color:#c2426e}
+.set-field textarea{resize:vertical;line-height:1.5}
+.field-with-prefix{display:flex;align-items:center;border:1px solid #eee;border-radius:8px;overflow:hidden;transition:border-color 0.2s}
+.field-with-prefix:focus-within{border-color:#c2426e}
+.field-prefix{padding:9px 10px;font-size:13px;color:#888;border-right:1px solid #eee;background:#f5f5f3}
+.field-with-prefix input{flex:1;border:none;padding:9px 12px;font-size:13px;color:#111;outline:none;background:#fff}
+.amount-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #eee}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eee;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;z-index:20;transform:translateY(100%);transition:transform 0.3s}
+.save-bar.visible{transform:translateY(0)}
+.pw-row{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fffbf0;border:1px solid #f0e0a0;border-radius:8px;margin-bottom:12px}
+.pw-row input{flex:1;border:none;background:none;font-size:13px;outline:none;color:#111}
+.pw-row label{font-size:11px;color:#888;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -59,20 +90,115 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
     <button onclick="switchTab('bookings',this)" id="tab-bookings">Bookings</button>
     <button onclick="switchTab('messages',this)" id="tab-messages">Messages</button>
     <button onclick="switchTab('chat',this)">Chat</button>
+    <button onclick="switchTab('settings',this)">⚙️ Settings</button>
   </div>
 
   <div id="home"></div>
-  <div id="bookings" style="display:none">
-    <button type="button" onclick="toggleAddForm()" style="width:100%;padding:10px;background:#fff;border:1px solid #ddd;border-radius:10px;font-size:13px;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px">
-      <span style="font-size:16px">+</span> Add booking manually
-    </button>
-    <div id="booking-list"></div>
-  </div>
+  <div id="bookings" style="display:none"></div>
   <div id="messages" style="display:none">
     <div id="inbox"></div>
     <div id="thread" style="display:none"></div>
   </div>
   <div id="chat" style="display:none"></div>
+  <div id="settings" style="display:none;padding-bottom:70px">
+    <!-- Password row -->
+    <div class="pw-row">
+      <label>Admin password</label>
+      <input type="password" id="set-password" placeholder="Enter to save changes"/>
+    </div>
+
+    <!-- Deposit Policy -->
+    <div class="set-section">
+      <div class="set-hdr">
+        <span class="set-icon">💳</span>
+        <div class="set-title">Deposit Policy</div>
+      </div>
+      <div class="set-body">
+        <div class="dep-option" id="opt-required" onclick="setDeposit('required')">
+          <div class="radio-dot"></div>
+          <div><div class="dep-label">Required</div><div class="dep-desc">Client must pay deposit before slot is confirmed</div></div>
+        </div>
+        <div class="dep-option" id="opt-optional" onclick="setDeposit('optional')">
+          <div class="radio-dot"></div>
+          <div><div class="dep-label">Optional</div><div class="dep-desc">AI mentions deposit as a way to secure the slot</div></div>
+        </div>
+        <div class="dep-option" id="opt-none" onclick="setDeposit('none')">
+          <div class="radio-dot"></div>
+          <div><div class="dep-label">No deposit</div><div class="dep-desc">Booking confirmed instantly with no payment step</div></div>
+        </div>
+        <div class="amount-row" id="amount-row">
+          <span style="font-size:13px;color:#888">Deposit amount</span>
+          <div style="display:flex;align-items:center;border:1px solid #eee;border-radius:8px;overflow:hidden">
+            <span style="padding:7px 10px;font-size:13px;color:#888;border-right:1px solid #eee;background:#f5f5f3">$</span>
+            <input id="deposit-amount" type="number" min="1" max="500" value="35" oninput="markDirty()" style="width:70px;border:none;padding:7px 10px;font-size:13px;outline:none"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Handles -->
+    <div class="set-section" id="payment-section">
+      <div class="set-hdr">
+        <span class="set-icon">💰</span>
+        <div class="set-title">Payment Handles</div>
+      </div>
+      <div class="set-body">
+        <div class="set-field">
+          <label>Cash App</label>
+          <div class="field-with-prefix"><span class="field-prefix">$</span><input id="s-cashapp" placeholder="YourHandle" oninput="markDirty()"/></div>
+        </div>
+        <div class="set-field">
+          <label>Venmo</label>
+          <div class="field-with-prefix"><span class="field-prefix">@</span><input id="s-venmo" placeholder="YourHandle" oninput="markDirty()"/></div>
+        </div>
+        <div class="set-field">
+          <label>Zelle</label>
+          <div class="field-with-prefix"><span class="field-prefix">📧</span><input id="s-zelle" placeholder="email or phone" oninput="markDirty()"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Salon Info -->
+    <div class="set-section">
+      <div class="set-hdr">
+        <span class="set-icon">🏪</span>
+        <div class="set-title">Salon Info</div>
+      </div>
+      <div class="set-body">
+        <div class="two-col" style="margin-bottom:10px">
+          <div class="set-field" style="margin-bottom:0">
+            <label>Salon Name</label>
+            <input class="inp" id="s-name" placeholder="My Salon" oninput="markDirty()"/>
+          </div>
+          <div class="set-field" style="margin-bottom:0">
+            <label>Location</label>
+            <input class="inp" id="s-location" placeholder="City, State" oninput="markDirty()"/>
+          </div>
+        </div>
+        <div class="set-field">
+          <label>Business Hours</label>
+          <input class="inp" id="s-hours" placeholder="Tue-Sat 9am-7pm. Closed Sun & Mon." oninput="markDirty()"/>
+        </div>
+        <div class="set-field">
+          <label>Services & Prices</label>
+          <textarea class="inp" id="s-services" rows="3" placeholder="Medium knotless braids $180 4hrs..." oninput="markDirty()"></textarea>
+        </div>
+        <div class="set-field">
+          <label>Availability This Week</label>
+          <input class="inp" id="s-availability" placeholder="Fri fully open, Sat 10am-2pm..." oninput="markDirty()"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save bar -->
+  <div class="save-bar" id="save-bar">
+    <span style="font-size:12px;color:#888">Unsaved changes</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn-s" onclick="discardSettings()" style="font-size:12px;padding:8px 14px">Discard</button>
+      <button class="btn-p" onclick="saveSettings()" style="font-size:12px;padding:8px 16px" id="save-btn">Save changes</button>
+    </div>
+  </div>
 
   <!-- Add booking modal -->
   <div id="add-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;align-items:flex-end;justify-content:center;padding:0">
@@ -82,8 +208,8 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
         <button type="button" onclick="toggleAddForm()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer">×</button>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <input class="inp" id="m-client" placeholder="Client name" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('m-service').focus();}"/>
-        <input class="inp" id="m-service" placeholder="Service" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('m-day').focus();}"/>
+        <input class="inp" id="m-client" placeholder="Client name"/>
+        <input class="inp" id="m-service" placeholder="Service"/>
         <select class="inp" id="m-day">
           <option value="">Select day</option>
           <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
@@ -96,7 +222,7 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
           <option>1:30pm</option><option>2pm</option><option>2:30pm</option><option>3pm</option>
           <option>3:30pm</option><option>4pm</option><option>4:30pm</option><option>5pm</option>
         </select>
-        <input class="inp" id="m-amount" placeholder="Price (e.g. 180)" type="number" enterkeyhint="done" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"/>
+        <input class="inp" id="m-amount" placeholder="Price (e.g. 180)" type="number"/>
         <select class="inp" id="m-source" onchange="toggleDeposit()">
           <option value="walkin">🚶 Walk-in</option>
           <option value="instagram">📱 Instagram</option>
@@ -107,7 +233,7 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
           <input type="checkbox" id="m-deposit"/> Deposit received ($35)
         </label>
         <div style="display:flex;gap:8px;margin-top:4px">
-          <button type="button" class="btn-p" onclick="saveManual(event)" style="flex:1;padding:12px">Save booking</button>
+          <button type="button" class="btn-p" onclick="saveManual()" style="flex:1;padding:12px">Save booking</button>
           <button type="button" class="btn-s" onclick="toggleAddForm()" style="padding:12px 16px">Cancel</button>
         </div>
       </div>
@@ -116,8 +242,7 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
 </div>
 
 <script>
-const B="https://dianke.ai";
-const PAY={cashapp:"$YourSalonName",venmo:"@YourSalonName",zelle:"yoursalon@email.com"};
+const B="https://glam-backend-rxdf.onrender.com";
 const fmt=h=>h<12?h+"am":h===12?"12pm":(h-12)+"pm";
 let bookings=[], messages=[
   {id:1,from:"Client",text:"Can I add color to my braids?",time:"9:14am",read:false},
@@ -126,11 +251,20 @@ let bookings=[], messages=[
   1:[{from:"client",text:"Can I add color to my braids?",time:"9:14am",reaction:null}],
   2:[{from:"client",text:"Do you do feed-in braids?",time:"10:02am",reaction:null}]
 };
-let activeThread=null, chatHistory=[], chatBusy=false, rInput="";
+let activeThread=null, chatHistory=[], chatBusy=false;
+let currentDepositMode="required";
+let settingsDirty=false;
+let PAY={cashapp:"",venmo:"",zelle:""};
 
-function getSalonId(){return window.location.pathname.split("/")[2]||"default";}
+function getSalonId(){return window.location.pathname.split("/").filter(Boolean).pop()||"salon1";}
 
-function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",3000);}
+function showToast(msg,color){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.style.background=color||"#111";
+  t.style.display="block";
+  setTimeout(()=>t.style.display="none",3000);
+}
 
 function srcBadge(src){
   const m={voice:["#fff3e0","#e65100","📞 voice"],walkin:["#f3e5f5","#6a1b9a","🚶 walk-in"],instagram:["#fce4ec","#c2426e","📱 instagram"],chat:["#e8f4ff","#185FA5","💬 chat"]};
@@ -138,6 +272,91 @@ function srcBadge(src){
   return `<span class="badge" style="background:${bg};color:${color}">${label}</span>`;
 }
 
+// ─── SETTINGS ────────────────────────────────────────
+async function loadSettings(){
+  try{
+    const res=await fetch(`${B}/settings/${getSalonId()}`,{cache:'no-store'});
+    if(!res.ok) return;
+    const d=await res.json();
+    currentDepositMode=d.deposit_mode||"required";
+    PAY={cashapp:d.cashapp||"",venmo:d.venmo||"",zelle:d.zelle||""};
+    document.getElementById("deposit-amount").value=d.deposit_amount||35;
+    document.getElementById("s-cashapp").value=d.cashapp||"";
+    document.getElementById("s-venmo").value=d.venmo||"";
+    document.getElementById("s-zelle").value=d.zelle||"";
+    document.getElementById("s-name").value=d.salon_name||"";
+    document.getElementById("s-location").value=d.location||"";
+    document.getElementById("s-hours").value=d.hours||"";
+    document.getElementById("s-services").value=d.services||"";
+    document.getElementById("s-availability").value=d.availability||"";
+    if(d.salon_name){
+      document.getElementById("salon-name").textContent=d.salon_name;
+      const initials=d.salon_name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+      document.getElementById("salon-av").textContent=initials;
+    }
+    setDeposit(currentDepositMode,false);
+  }catch(e){}
+}
+
+function setDeposit(mode,dirty=true){
+  ["required","optional","none"].forEach(m=>{
+    document.getElementById(`opt-${m}`).classList.toggle("active",m===mode);
+  });
+  currentDepositMode=mode;
+  const show=mode!=="none";
+  document.getElementById("amount-row").style.display=show?"flex":"none";
+  document.getElementById("payment-section").style.opacity=show?"1":"0.4";
+  document.getElementById("payment-section").style.pointerEvents=show?"auto":"none";
+  if(dirty) markDirty();
+}
+
+function markDirty(){
+  settingsDirty=true;
+  document.getElementById("save-bar").classList.add("visible");
+}
+
+function discardSettings(){
+  loadSettings();
+  settingsDirty=false;
+  document.getElementById("save-bar").classList.remove("visible");
+}
+
+async function saveSettings(){
+  const password=document.getElementById("set-password").value;
+  if(!password){showToast("Enter your admin password first","#c2426e");document.getElementById("set-password").focus();return;}
+  const btn=document.getElementById("save-btn");
+  btn.textContent="Saving...";btn.disabled=true;
+  const payload={
+    deposit_mode:currentDepositMode,
+    deposit_amount:parseInt(document.getElementById("deposit-amount").value)||35,
+    cashapp:document.getElementById("s-cashapp").value.trim().replace(/^\$/,""),
+    venmo:document.getElementById("s-venmo").value.trim().replace(/^@/,""),
+    zelle:document.getElementById("s-zelle").value.trim(),
+    salon_name:document.getElementById("s-name").value.trim(),
+    location:document.getElementById("s-location").value.trim(),
+    hours:document.getElementById("s-hours").value.trim(),
+    services:document.getElementById("s-services").value.trim(),
+    availability:document.getElementById("s-availability").value.trim(),
+  };
+  try{
+    const res=await fetch(`${B}/settings/${getSalonId()}/update`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-admin-password":password},
+      body:JSON.stringify(payload)
+    });
+    const d=await res.json();
+    if(!res.ok) throw new Error(d.error||"Failed");
+    PAY={cashapp:payload.cashapp,venmo:payload.venmo,zelle:payload.zelle};
+    settingsDirty=false;
+    document.getElementById("save-bar").classList.remove("visible");
+    showToast("✓ Settings saved and live","#0F6E56");
+  }catch(err){
+    showToast(err.message||"Failed to save","#c2426e");
+  }
+  btn.textContent="Save changes";btn.disabled=false;
+}
+
+// ─── BOOKINGS ────────────────────────────────────────
 async function loadBookings(){
   try{
     const res=await fetch(B+"/bookings?salon_id="+getSalonId());
@@ -156,12 +375,14 @@ function updateNav(){
 }
 
 function switchTab(name,btn){
-  ["home","bookings","messages","chat"].forEach(t=>document.getElementById(t).style.display="none");
+  ["home","bookings","messages","chat","settings"].forEach(t=>document.getElementById(t).style.display="none");
   document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
   document.getElementById(name).style.display="block";
   if(btn) btn.classList.add("active");
   if(name==="messages"){activeThread=null;renderInbox();}
   if(name==="chat") renderChat();
+  if(name==="settings") document.getElementById("save-bar").classList.toggle("visible",settingsDirty);
+  else if(!settingsDirty) document.getElementById("save-bar").classList.remove("visible");
 }
 
 function renderHome(){
@@ -210,36 +431,14 @@ function renderHome(){
 
 function renderBookings(){
   document.getElementById("bookings").innerHTML=`
-    <div class="card" style="cursor:default">
+    <div class="card">
       <button onclick="toggleAddForm()" style="width:100%;padding:9px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:13px;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
         <span style="font-size:16px">+</span> Add booking manually
       </button>
-      <div id="add-form" style="display:none;margin-top:10px">
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <input class="inp" id="m-client" placeholder="Client name"/>
-          <input class="inp" id="m-service" placeholder="Service"/>
-          <input class="inp" id="m-day" placeholder="Day (e.g. Monday)"/>
-          <input class="inp" id="m-time" placeholder="Time (e.g. 2pm)"/>
-          <input class="inp" id="m-amount" placeholder="Price (e.g. 180)" type="number"/>
-          <select class="inp" id="m-source" onchange="toggleDeposit()">
-            <option value="walkin">🚶 Walk-in</option>
-            <option value="instagram">📱 Instagram</option>
-            <option value="voice">📞 Phone call</option>
-            <option value="chat">💬 Chat</option>
-          </select>
-          <label id="m-dep-label" style="display:none;align-items:center;gap:8px;font-size:13px;color:#444">
-            <input type="checkbox" id="m-deposit"/> Deposit received ($35)
-          </label>
-          <div style="display:flex;gap:8px">
-            <button class="btn-p" onclick="saveManual()" style="flex:1">Save booking</button>
-            <button class="btn-s" onclick="toggleAddForm()">Cancel</button>
-          </div>
-        </div>
-      </div>
     </div>
     ${bookings.map(b=>`
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:${b.status==="pending"?"8px":"0"}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
           <div>
             <div style="display:flex;gap:5px;align-items:center;margin-bottom:2px">
               <span style="font-size:13px;font-weight:600;color:#111">${b.client}</span>
@@ -269,29 +468,25 @@ function toggleDeposit(){
 
 async function saveManual(){
   const modal=document.getElementById("add-modal");
-const client=modal.querySelector("#m-client").value.trim();
-const service=modal.querySelector("#m-service").value.trim();
-const day=modal.querySelector("#m-day").value.trim();
-const time=modal.querySelector("#m-time").value.trim();
-const amount=parseInt(modal.querySelector("#m-amount").value)||0;
-const source=modal.querySelector("#m-source").value;
-const deposit=source!=="walkin"&&modal.querySelector("#m-deposit").checked;
-  if(!client||!service||day.length<2||time.length<2){alert("Please fill in all fields.");return;}
+  const client=modal.querySelector("#m-client").value.trim();
+  const service=modal.querySelector("#m-service").value.trim();
+  const day=modal.querySelector("#m-day").value;
+  const time=modal.querySelector("#m-time").value;
+  const amount=parseInt(modal.querySelector("#m-amount").value)||0;
+  const source=modal.querySelector("#m-source").value;
+  const deposit=source!=="walkin"&&modal.querySelector("#m-deposit").checked;
+  if(!client||!service||!day||!time){alert("Please fill in all fields.");return;}
   const hmap={"9am":9,"10am":10,"11am":11,"12pm":12,"1pm":13,"2pm":14,"3pm":15,"4pm":16};
   const hour=hmap[time.toLowerCase().replace(" ","")]||10;
   try{
     await fetch(B+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({client,service,day,time,hour,amount,deposit,salon_id:getSalonId(),source,status:"confirmed"})});
-    document.getElementById("add-form").style.display="none";
-    ["m-client","m-service","m-day","m-time","m-amount"].forEach(id=>document.getElementById(id).value="");
-   toggleAddForm();
-    const modal=document.getElementById("add-modal");
+    toggleAddForm();
     modal.querySelector("#m-client").value="";
     modal.querySelector("#m-service").value="";
     modal.querySelector("#m-day").value="";
     modal.querySelector("#m-time").value="";
     modal.querySelector("#m-amount").value="";
-    modal.querySelector("#m-source").value="walkin";
     modal.querySelector("#m-deposit").checked=false;
     showToast("Booking added!");
     await loadBookings();
@@ -299,26 +494,20 @@ const deposit=source!=="walkin"&&modal.querySelector("#m-deposit").checked;
 }
 
 async function confirmB(id){
-  bookings=bookings.map(b=>b.id===id?{...b,status:"confirmed",deposit:true,amount:b.amount||95}:b);
-  renderHome(); renderBookings(); updateNav();
-  showToast("Confirmed! Client notified.");
+  bookings=bookings.map(b=>b.id===id?{...b,status:"confirmed",deposit:true}:b);
+  renderHome();renderBookings();updateNav();
+  showToast("Confirmed!","#0F6E56");
   await fetch(B+"/bookings/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:"confirmed",deposit:true})});
 }
 
 async function cancelB(id){
-  const b=bookings.find(x=>x.id===id);
   bookings=bookings.filter(x=>x.id!==id);
-  if(b){
-    const mid=Date.now();
-    const note=`Hi ${b.client}, your ${b.service} on ${b.day} at ${b.time||fmt(b.hour)} was cancelled. Please rebook at your convenience.`;
-    messages.push({id:mid,from:b.client,text:"Booking cancelled",time:"Now",read:true});
-    threads[mid]=[{from:"owner",text:note,time:"Now",reaction:null}];
-  }
-  renderHome(); renderBookings(); updateNav();
-  showToast("Cancelled. Client notified.");
+  renderHome();renderBookings();updateNav();
+  showToast("Cancelled.");
   await fetch(B+"/bookings/"+id,{method:"DELETE"});
 }
 
+// ─── MESSAGES ────────────────────────────────────────
 function renderInbox(){
   document.getElementById("inbox").style.display="block";
   document.getElementById("thread").style.display="none";
@@ -339,7 +528,7 @@ function openThread(id){
   activeThread=messages.find(m=>m.id===id)||{id,from:"Client",time:""};
   document.getElementById("inbox").style.display="none";
   document.getElementById("thread").style.display="block";
-  renderThread(); updateNav();
+  renderThread();updateNav();
 }
 
 function renderThread(){
@@ -400,11 +589,12 @@ async function sendReply(){
       const d=await res.json();
       threads[mid].push({from:"client",text:d?.content?.[0]?.text||"Ok thanks!",time:"Now",reaction:null});
       messages=messages.map(m=>m.id===mid?{...m,read:false}:m);
-      renderThreadMsgs(); updateNav();
+      renderThreadMsgs();updateNav();
     }catch{}
   },1500);
 }
 
+// ─── CHAT ────────────────────────────────────────────
 function buildSys(){
   const taken=bookings.map(b=>`${b.day} ${b.time||fmt(b.hour)} ${b.service}`).join(", ");
   return `You are the AI receptionist for a hair salon. Be warm and concise.
@@ -420,17 +610,14 @@ function renderChat(){
     <div style="font-size:11px;color:#888;margin-bottom:8px;padding:7px 10px;background:#fff;border-radius:8px;border:1px solid #eee">Client-facing chat · bookings appear on dashboard instantly</div>
     <div style="border:1px solid #eee;border-radius:12px;overflow:hidden">
       <div style="background:#111;padding:10px 14px;display:flex;align-items:center;gap:8px">
-        <div style="width:28px;height:28px;border-radius:50%;background:#c2426e;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px">HG</div>
+        <div style="width:28px;height:28px;border-radius:50%;background:#c2426e;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px" id="chat-av">HG</div>
         <div>
-          <div style="font-size:13px;font-weight:600;color:#f0f0ec">Hollywood Glam Beauty</div>
+          <div style="font-size:13px;font-weight:600;color:#f0f0ec" id="chat-name">Hollywood Glam Beauty</div>
           <div style="font-size:10px;color:#7dd9b8;display:flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:#22c98a;display:inline-block"></span>AI receptionist · always open</div>
         </div>
       </div>
       <div style="height:260px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;background:#f5f5f3" id="chat-msgs">
-        <div class="bw-bot"><div class="bl">Glam AI</div><div class="bb bb-bot">Hey! Welcome to Hollywood Glam Beauty. How can I help you today?</div></div>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;padding:7px 10px;background:#f5f5f3;border-top:1px solid #eee">
-        ${["Book appointment","Prices?","Free Friday?","How long for braids?"].map(q=>`<button onclick="sendChat('${q}')" style="font-size:11px;padding:4px 9px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#444;cursor:pointer">${q}</button>`).join("")}
+        <div class="bw-bot"><div class="bl">Glam AI</div><div class="bb bb-bot">Hey! Welcome. How can I help you today?</div></div>
       </div>
       <div style="display:flex;gap:8px;padding:9px 12px;background:#fff;border-top:1px solid #eee;align-items:center">
         <input id="c-inp" style="flex:1;font-size:13px;padding:7px 12px;border-radius:20px;border:1px solid #ddd;background:#f5f5f3;color:#111;outline:none" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()"/>
@@ -451,33 +638,6 @@ function addChatBubble(role,text){
   b.className=`bb ${role==="bot"?"bb-bot":"bb-user"}`;
   b.textContent=text;
   w.appendChild(b);
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
-}
-
-function addPayCard(svc,day,time,client){
-  const el=document.getElementById("chat-msgs");
-  if(!el) return;
-  const w=document.createElement("div");
-  w.className="bw-bot";
-  w.innerHTML=`<div class="bl">Glam AI</div>
-    <div style="background:#fff;border:1px solid #eee;border-radius:12px;padding:12px 14px;max-width:88%;margin-top:2px">
-      <div style="font-size:12px;font-weight:600;color:#111;margin-bottom:2px">Send $35 deposit to confirm</div>
-      <div style="font-size:11px;color:#888;margin-bottom:10px">${svc} · ${day} at ${time} · ${client}</div>
-      <a href="https://cash.app/${PAY.cashapp}" target="_blank" class="pay-link" style="background:#1a9e3f">
-        <span style="color:#fff;font-weight:700;font-size:14px">$</span>
-        <div><div style="font-size:12px;font-weight:600;color:#fff">Cash App</div><div style="font-size:10px;color:#a8f0bc">${PAY.cashapp}</div></div>
-      </a>
-      <a href="https://venmo.com/${PAY.venmo.replace("@","")}" target="_blank" class="pay-link" style="background:#3d95ce">
-        <span style="color:#fff;font-weight:700;font-size:14px">V</span>
-        <div><div style="font-size:12px;font-weight:600;color:#fff">Venmo</div><div style="font-size:10px;color:#b8dff5">${PAY.venmo}</div></div>
-      </a>
-      <div class="pay-link" style="background:#6B2D8B">
-        <span style="color:#fff;font-weight:700;font-size:14px">Z</span>
-        <div><div style="font-size:12px;font-weight:600;color:#fff">Zelle</div><div style="font-size:10px;color:#dbb8f0">${PAY.zelle}</div></div>
-      </div>
-      <div style="font-size:10px;color:#aaa;margin-top:8px">Include name in memo. Slot held 2 hours.</div>
-    </div>`;
   el.appendChild(w);
   el.scrollTop=el.scrollHeight;
 }
@@ -503,13 +663,9 @@ async function sendChat(txt){
     if(reply) addChatBubble("bot",reply);
     if(dm){
       const[,,svc,day,time,client]=dm;
-      const salonId=getSalonId();
-      const hmap={"9am":9,"10am":10,"11am":11,"12pm":12,"1pm":13,"2pm":14,"3pm":15,"4pm":16};
-      const h=hmap[time.trim().toLowerCase()]||10;
-      await fetch(B+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client:client.trim(),service:svc.trim(),day:day.trim(),time:time.trim(),hour:h,amount:0,deposit:false,salon_id:salonId,source:"chat"})});
-      addPayCard(svc.trim(),day.trim(),time.trim(),client.trim());
+      await fetch(B+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client:client.trim(),service:svc.trim(),day:day.trim(),time:time.trim(),amount:0,deposit:false,salon_id:getSalonId(),source:"chat"})});
       await loadBookings();
-      showToast("New booking from "+client.trim()+"!");
+      showToast("New booking from "+client.trim()+"!","#0F6E56");
     }
   }catch(e){
     document.getElementById("typing")?.remove();
@@ -519,7 +675,9 @@ async function sendChat(txt){
   chatBusy=false;
 }
 
+// ─── INIT ────────────────────────────────────────────
 loadBookings();
+loadSettings();
 </script>
 </body>
 </html>
