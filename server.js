@@ -17,7 +17,7 @@ async function supabase(method, path, body) {
       "Content-Type": "application/json",
       "apikey": SUPABASE_KEY,
       "Authorization": "Bearer " + SUPABASE_KEY,
-      "Prefer": method === "POST" ? "return=representation" : ""
+      "Prefer": method === "POST" ? "return=representation" : "return=minimal"
     },
     body: body ? JSON.stringify(body) : undefined
   });
