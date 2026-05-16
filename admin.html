@@ -639,7 +639,7 @@ async function saveSettings() {
 
   try {
     const res = await fetch(`${BACKEND}/settings/${salonId}`, {
-      method: "PUT",
+      method: "POST",
       headers: { "Content-Type": "application/json", "x-admin-password": pass },
       body: JSON.stringify(payload)
     });
