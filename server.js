@@ -45,11 +45,9 @@ app.get("/bookings", async (req, res) => {
     }
   });
   
-  app.post("/bookings",
-    
-  
- 
-      const { client, service, day, time, amount, salon_id, source } = req.body;
+  app.post("/bookings", async (req, res) => {
+  try {
+    const { client, service, day, time, amount, salon_id, source } = req.body;
       const hmap = { "9am":9, "10am":10, "11am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
       const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
       const data = await supabase("POST", "bookings", {
