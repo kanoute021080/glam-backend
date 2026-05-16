@@ -43,6 +43,10 @@ app.get("/bookings", async (req, res) => {
     console.error('Settings update error:', err);
     res.status(500).json({ error: err.message || 'Server error' });
   }
+});
+
+app.post("/bookings",
+  
 
 app.post("/bookings", async (req, res) => {
   try {
