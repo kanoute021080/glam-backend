@@ -26,8 +26,10 @@ async function supabase(method, path, body) {
     },
     body: body ? JSON.stringify(body) : undefined
   });
-  return res.json();
+  const text = await res.text();
+  return text ? JSON.parse(text) : {};
 }
+
 
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 app.get("/test", (req, res) => res.json({ status: "Backend is working!", timestamp: new Date().toISOString() }));
