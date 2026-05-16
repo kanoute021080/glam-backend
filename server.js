@@ -148,8 +148,10 @@ app.get('/settings/:salon_id', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
-
 app.put('/settings/:salon_id', async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, x-admin-password");
   const { salon_id } = req.params;
   const adminPassword = req.headers['x-admin-password'];
   if (!adminPassword) return res.status(401).json({ error: 'Password required' });
