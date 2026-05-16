@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Teranga Restaurant — Order Online</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#1a0a00;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;overflow-x:hidden}
+.wrap{width:100%;max-width:420px}
+.lang-bar{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
+.lang-btn{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid #c17f24;background:transparent;color:#c17f24;cursor:pointer;font-weight:500}
+.lang-btn.active{background:#c17f24;color:#fff}
+.chat-hdr{background:#2d1500;padding:12px 16px;display:flex;align-items:center;gap:10px;border-radius:12px 12px 0 0;border:1px solid #c17f24;border-bottom:none}
+.av{width:38px;height:38px;border-radius:50%;background:#c17f24;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0}
+.hdr-name{font-size:14px;font-weight:600;color:#f5e6c8}
+.hdr-status{font-size:11px;color:#c17f24;display:flex;align-items:center;gap:5px;margin-top:2px}
+.dot{width:6px;height:6px;border-radius:50%;background:#22c98a;display:inline-block}
+.period-badge{font-size:10px;background:#c17f24;color:#fff;padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:600}
+.chat-body{height:400px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#0d0500;border:1px solid #3d1f00;border-top:none}
+.bw-bot{display:flex;flex-direction:column;align-items:flex-start}
+.bw-user{display:flex;flex-direction:column;align-items:flex-end}
+.bl{font-size:10px;color:#8a6a3a;margin-bottom:2px}
+.bb{font-size:14px;line-height:1.6;padding:10px 14px;max-width:85%}
+.bb-bot{background:#2d1500;color:#f5e6c8;border:1px solid #3d1f00;border-radius:4px 14px 14px 14px}
+.bb-user{background:#c17f24;color:#fff;border-radius:14px 4px 14px 14px}
+.quick-btns{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;background:#0d0500;border:1px solid #3d1f00;border-top:none}
+.qbtn{font-size:12px;padding:6px 12px;border:1px solid #c17f24;border-radius:20px;background:transparent;color:#c17f24;cursor:pointer}
+.input-row{display:flex;gap:8px;padding:10px 12px;background:#2d1500;border:1px solid #c17f24;border-top:none;border-radius:0 0 12px 12px;align-items:center}
+.inp{flex:1;font-size:14px;padding:9px 14px;border-radius:20px;border:1px solid #3d1f00;background:#0d0500;color:#f5e6c8;outline:none}
+.inp::placeholder{color:#8a6a3a}
+.send-btn{width:38px;height:38px;border-radius:50%;background:#c17f24;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.order-card{background:#2d1500;border:1px solid #c17f24;border-radius:12px;padding:14px;max-width:88%}
+.footer{text-align:center;font-size:11px;color:#8a6a3a;margin-top:10px}
+.footer a{color:#c17f24;text-decoration:none;font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('en',this)">🇺🇸 English</button>
+    <button class="lang-btn" onclick="setLang('fr',this)">🇫🇷 Français</button>
+    <button class="lang-btn" onclick="setLang('wo',this)">🇸🇳 Wolof</button>
+  </div>
+
+  <div class="chat-hdr">
+    <div class="av">TR</div>
+    <div style="flex:1">
+      <div style="display:flex;align-items:center">
+        <div class="hdr-name" id="restaurant-name">Teranga Restaurant</div>
+        <span class="period-badge" id="period-badge">Dinner</span>
+      </div>
+      <div class="hdr-status"><span class="dot"></span><span id="status-text">AI assistant · always open</span></div>
+    </div>
+  </div>
+
+  <div class="chat-body" id="chat-body"></div>
+  <div class="quick-btns" id="quick-btns"></div>
+
+  <div class="input-row">
+    <input class="inp" id="inp" placeholder="Type your order..." onkeydown="if(event.key==='Enter')send()"/>
+    <button class="send-btn" onclick="send()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+
+  <div class="footer">Powered by <a href="https://dianke.ai">Dianke.ai</a></div>
+</div>
+
+<script>
+const BACKEND="https://dianke.ai";
+const salonId=window.location.pathname.split("/")[2]||"restaurant1";
+let hist=[], busy=false, currentLang="en", menuData=null;
+
+const LANGS={
+  en:{
+    status:"AI assistant · always open",
+    placeholder:"Type your order or question...",
+    label:"Teranga AI",
+    periods:{breakfast:"Breakfast",lunch:"Lunch",dinner:"Dinner"},
+    quick:["📋 See menu","🛵 Delivery available?","⏱️ Wait time?","📞 Call us"],
+  },
+  fr:{
+    status:"Assistant IA · toujours disponible",
+    placeholder:"Tapez votre commande...",
+    label:"Teranga IA",
+    periods:{breakfast:"Petit-déjeuner",lunch:"Déjeuner",dinner:"Dîner"},
+    quick:["📋 Voir le menu","🛵 Livraison?","⏱️ Délai d'attente?","📞 Nous appeler"],
+  },
+  wo:{
+    status:"AI ji · def ak yëgël",
+    placeholder:"Bind sa commande...",
+    label:"Teranga AI",
+    periods:{breakfast:"Petit-déjeuner",lunch:"Déjeuner",dinner:"Dîner"},
+    quick:["📋 Xool menu bi","🛵 Livraison am?","⏱️ Benn waxtu?","📞 Woo leen"],
+  }
+};
+
+function buildSystem(menu, period){
+  const items=menu.map(i=>`${i.name}: $${i.price}`).join(", ");
+  const periodName=LANGS[currentLang].periods[period]||period;
+  if(currentLang==="fr") return `Tu es l'assistant IA du Restaurant Teranga. Sois chaleureux en français.\nMenu ${periodName}: ${items}\nHoraires: 11h-22h. À emporter: 20-30 min. Livraison disponible. Sur place bienvenu.\nQuand client commande: confirme articles, total, temps estimé, demande nom et type (sur place/à emporter/livraison). Puis: ORDER_CONFIRMED:[articles]:[total]:[temps]:[nom]:[type]\nMoins de 80 mots. Texte simple.`;
+  if(currentLang==="wo") return `Yaa ngi représente Restaurant Teranga ci Wolof.\nMenu ${periodName}: ${items}\nWaxtu: 11h-22h. À emporter: 20-30 min. Livraison am na.\nBu client bi commande: xalaat li, prix, waxtu, laaj tur ak loolu. Ci kanam: ORDER_CONFIRMED:[articles]:[total]:[waxtu]:[tur]:[loolu]\nMots yu amul solo. Texte simple.`;
+  return `You are the AI order assistant for Teranga Restaurant. Be warm in English.\n${periodName} Menu: ${items}\nHours: 11am-10pm. Takeout: 20-30 mins. Delivery available. Dine-in welcome.\nWhen customer orders: confirm items, total, estimated time, ask name and order type (dine-in/takeout/delivery). Then: ORDER_CONFIRMED:[items]:[total]:[time]:[name]:[type]\nUnder 80 words. Plain text only.`;
+}
+
+function buildWelcome(menu, period){
+  const periodName=LANGS[currentLang].periods[period]||period;
+  const featured=menu.slice(0,3).map(i=>i.name).join(", ");
+  if(currentLang==="fr") return `Bienvenue au Restaurant Teranga! 🍽️ Nous servons notre menu ${periodName}. En vedette: ${featured}. Comment puis-je vous aider?`;
+  if(currentLang==="wo") return `Dalal jaam ci Restaurant Teranga! 🍽️ Lëndëm ${periodName} la ñu def tëy. Ci kanam: ${featured}. Lan nga bëgg?`;
+  return `Welcome to Teranga Restaurant! 🍽️ We're currently serving our ${periodName} menu. Featured tonight: ${featured}. How can I help you?`;
+}
+
+async function loadMenu(){
+  try{
+    const res=await fetch(BACKEND+"/menu/"+salonId);
+    const d=await res.json();
+    menuData=d;
+    const L=LANGS[currentLang];
+    const periodName=L.periods[d.period]||d.period;
+    document.getElementById("period-badge").textContent=periodName;
+    document.getElementById("chat-body").innerHTML="";
+    hist=[];
+    addBubble("bot",buildWelcome(d.items,d.period));
+    renderQuick();
+  }catch(e){
+    addBubble("bot","Welcome to Teranga Restaurant! How can I help you today?");
+  }
+}
+
+function setLang(lang,btn){
+  currentLang=lang;
+  document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("status-text").textContent=LANGS[lang].status;
+  document.getElementById("inp").placeholder=LANGS[lang].placeholder;
+  loadMenu();
+}
+
+function renderQuick(){
+  const L=LANGS[currentLang];
+  document.getElementById("quick-btns").innerHTML=L.quick.map(q=>`<button class="qbtn" onclick="send('${q}')">${q}</button>`).join("");
+}
+
+function addBubble(role,text){
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.className=role==="bot"?"bw-bot":"bw-user";
+  if(role==="bot"){const l=document.createElement("div");l.className="bl";l.textContent=LANGS[currentLang].label;w.appendChild(l);}
+  const b=document.createElement("div");
+  b.className=`bb bb-${role}`;
+  b.textContent=text;
+  w.appendChild(b);
+  el.appendChild(w);
+  el.scrollTop=el.scrollHeight;
+}
+
+function addOrderCard(items,total,time,name,type){
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.className="bw-bot";
+  const labels={
+    en:{confirmed:"Order Confirmed!",kitchen:"Sent to kitchen 🍳",ready:"Ready in",footer:"Thank you! We look forward to serving you."},
+    fr:{confirmed:"Commande Confirmée!",kitchen:"Envoyée en cuisine 🍳",ready:"Prête dans",footer:"Merci! Nous avons hâte de vous servir."},
+    wo:{confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",footer:"Jërëjëf! Ñu xam ñu def la."}
+  };
+  const L=labels[currentLang];
+  w.innerHTML=`
+    <div class="bl">${LANGS[currentLang].label}</div>
+    <div class="order-card">
+      <div style="font-size:14px;font-weight:700;color:#c17f24;margin-bottom:8px">✅ ${L.confirmed}</div>
+      <div style="font-size:13px;color:#f5e6c8;margin-bottom:4px">🍽️ ${items}</div>
+      <div style="font-size:13px;color:#f5e6c8;margin-bottom:4px">💰 Total: ${total}</div>
+      <div style="font-size:13px;color:#f5e6c8;margin-bottom:10px">👤 ${name} · ${type}</div>
+      <div style="background:#1a0a00;border-radius:8px;padding:10px;text-align:center;margin-bottom:8px">
+        <div style="font-size:22px;font-weight:700;color:#c17f24">⏱️ ${L.ready} ${time}</div>
+        <div style="font-size:11px;color:#8a6a3a;margin-top:4px">${L.kitchen}</div>
+      </div>
+      <div style="font-size:11px;color:#8a6a3a;text-align:center">${L.footer}</div>
+    </div>`;
+  el.appendChild(w);
+  el.scrollTop=el.scrollHeight;
+  // Save order to backend
+  fetch(BACKEND+"/orders",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({customer_name:name,items,total,order_type:type,estimated_time:time,salon_id:salonId,source:"chat",language:currentLang,status:"pending"})
+  }).catch(()=>{});
+}
+
+async function send(txt){
+  const inp=document.getElementById("inp");
+  const t=txt||(inp?inp.value.trim():"");
+  if(!t||busy||!menuData)return;
+  if(inp)inp.value="";
+  addBubble("user",t);
+  hist.push({role:"user",content:t});
+  busy=true;
+  const typing=document.createElement("div");
+  typing.className="bw-bot";
+  typing.id="typing";
+  typing.innerHTML=`<div class="bl">${LANGS[currentLang].label}</div><div class="bb bb-bot" style="color:#8a6a3a">...</div>`;
+  document.getElementById("chat-body").appendChild(typing);
+  document.getElementById("chat-body").scrollTop=9999;
+  try{
+    const res=await fetch(BACKEND+"/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({system:buildSystem(menuData.items,menuData.period),messages:hist})
+    });
+    const d=await res.json();
+    const raw=(d?.content?.[0]?.text||"...").replace(/\*\*(.*?)\*\*/g,"$1");
+    const dm=raw.match(/ORDER_CONFIRMED:([^:]+):([^:]+):([^:]+):([^:]+):([^\n]+)/);
+    const reply=raw.replace(/ORDER_CONFIRMED:[^\n]*/,"").trim();
+    document.getElementById("typing")?.remove();
+    hist.push({role:"assistant",content:raw});
+    if(reply)addBubble("bot",reply);
+    if(dm)addOrderCard(dm[1].trim(),dm[2].trim(),dm[3].trim(),dm[4].trim(),dm[5].trim());
+  }catch(e){
+    document.getElementById("typing")?.remove();
+    addBubble("bot","Connection issue. Please try again.");
+    hist.pop();
+  }
+  busy=false;
+}
+
+loadMenu();
+</script>
+</body>
+</html>
