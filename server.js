@@ -70,6 +70,54 @@ app.post("/orders", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get("/orders-list/:salonId", async (req, res) => {
+  try {
+    const data = await supabase("GET", "orders?salon_id=eq." + req.params.salonId + "&order=created_at.desc");
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/orders/:id", async (req, res) => {
+  try {
+    const { status } = req.body;
+    const data = await supabase("PATCH", "orders?id=eq." + req.params.id, { status });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/menu-period/:salonId", async (req, res) => {
+  try {
+    const period = req.query.period || "lunch";
+    const data = await supabase("GET", "menu_items?salon_id=eq." + req.params.salonId + "&meal_period=eq." + period);
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/menu-items", async (req, res) => {
+  try {
+    const { salon_id, name, price, category, meal_period, available } = req.body;
+    const data = await supabase("POST", "menu_items", { salon_id, name, price, category, meal_period, available });
+    res.json(Array.isArray(data) ? data[0] : data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/menu-items/:id", async (req, res) => {
+  try {
+    const { available } = req.body;
+    const data = await supabase("PATCH", "menu_items?id=eq." + req.params.id, { available });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 app.get("/bookings", async (req, res) => {
   try {
     const salonId = req.query.salon_id || "default";
