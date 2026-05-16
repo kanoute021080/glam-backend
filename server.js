@@ -35,6 +35,7 @@ app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 app.get("/test", (req, res) => res.json({ status: "Backend is working!", timestamp: new Date().toISOString() }));
 app.get("/dashboard", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
 app.get("/client", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
+app.get("/demo/restaurant", (req, res) => res.sendFile(path.join(__dirname, "demo-restaurant.html")));
 app.get("/demo/salon", (req, res) => res.sendFile(path.join(__dirname, "demo-salon.html")));
 app.get("/demo/autorepair", (req, res) => res.sendFile(path.join(__dirname, "demo-autorepair.html")));
 app.get("/client/:salonId", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
