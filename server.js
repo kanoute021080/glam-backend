@@ -194,7 +194,7 @@ app.post('/settings/:salon_id/update', async (req, res) => {
     const existing = await supabase("GET", `salon_settings?salon_id=eq.${salon_id}&limit=1`);
     if (!existing || existing.length === 0) return res.status(404).json({ error: 'Salon not found' });
     if (adminPassword !== existing[0].admin_password) return res.status(401).json({ error: 'Unauthorized' });
-    const { deposit_mode, deposit_amount, cashapp, venmo, zelle, salon_name, location, hours, services, availability, owner_email } = req.body;unt, cashapp, venmo, zelle, salon_name, location, hours, services, availability } = req.body;
+    const { deposit_mode, deposit_amount, cashapp, venmo, zelle, salon_name, location, hours, services, availability, owner_email } = req.body;
     await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, {
   deposit_mode, deposit_amount, cashapp, venmo, zelle,
   salon_name, location, hours, services, availability, owner_email,
