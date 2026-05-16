@@ -1,4 +1,5 @@
 const express = require("express");
+const RESEND_KEY = process.env.RESEND_KEY;
 const cors = require("cors");
 const path = require("path");
 const app = express();
@@ -71,6 +72,38 @@ if (Array.isArray(existing) && existing.length > 0) {
       new_from_chat: true,
       source: source || "chat"
     });
+    // Send email notification
+fetch("https://api.resend.com/emails", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${RESEND_KEY}`
+  },
+  body: JSON.stringify({
+    from: "Dianke.ai <onboarding@resend.dev>",
+    to: "kanoute021080@gmail.com",
+    subject: `New booking — ${client} · ${service}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+        <h2 style="color:#111;margin-bottom:4px">New booking received 📅</h2>
+        <p style="color:#888;font-size:13px;margin-bottom:20px">Via Dianke.ai · ${salon_id}</p>
+        <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+          <div style="font-size:13px;color:#888;margin-bottom:4px">Client</div>
+          <div style="font-size:15px;font-weight:600;color:#111">${client}</div>
+        </div>
+        <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+          <div style="font-size:13px;color:#888;margin-bottom:4px">Service</div>
+          <div style="font-size:15px;font-weight:600;color:#111">${service}</div>
+        </div>
+        <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+          <div style="font-size:13px;color:#888;margin-bottom:4px">Date & Time</div>
+          <div style="font-size:15px;font-weight:600;color:#111">${day} at ${time}</div>
+        </div>
+        <a href="https://dianke.ai/dashboard/${salon_id}" style="display:block;text-align:center;background:#111;color:#fff;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">View on dashboard →</a>
+      </div>
+    `
+  })
+}).catch(() => {}); // fail silently — don't block booking
     res.json(Array.isArray(data) ? data[0] : data);
   } catch (err) {
     res.status(500).json({ error: err.message });
