@@ -190,6 +190,10 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
       </div>
     </div>
   </div>
+  <div class="set-field">
+  <label>Notification Email</label>
+  <input class="inp" id="s-email" placeholder="owner@email.com" oninput="markDirty()"/>
+</div>
 
   <!-- Save bar -->
   <div class="save-bar" id="save-bar">
@@ -289,6 +293,7 @@ async function loadSettings(){
     document.getElementById("s-hours").value=d.hours||"";
     document.getElementById("s-services").value=d.services||"";
     document.getElementById("s-availability").value=d.availability||"";
+    document.getElementById("s-email").value=d.owner_email||"";
     if(d.salon_name){
       document.getElementById("salon-name").textContent=d.salon_name;
       const initials=d.salon_name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
@@ -337,6 +342,7 @@ async function saveSettings(){
     hours:document.getElementById("s-hours").value.trim(),
     services:document.getElementById("s-services").value.trim(),
     availability:document.getElementById("s-availability").value.trim(),
+    owner_email: document.getElementById("s-email").value.trim(),
   };
   try{
     const res=await fetch(`${B}/settings/${getSalonId()}/update`,{
