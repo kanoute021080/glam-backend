@@ -56,6 +56,12 @@ app.post("/bookings", async (req, res) => {
     const { client, service, day, time, amount, salon_id, source } = req.body;
     const hmap = { "9am":9, "10am":10, "11am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
     const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
+    
+    // Check for conflicts
+const existing = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&day=eq.${day}&time=eq.${time}&status=eq.confirmed`);
+if (Array.isArray(existing) && existing.length > 0) {
+  return res.status(409).json({ error: "Time slot already booked" });
+}
     const data = await supabase("POST", "bookings", {
       client, service, day, time, hour,
       amount: amount || 0,
