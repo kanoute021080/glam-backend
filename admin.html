@@ -638,7 +638,7 @@ async function saveSettings() {
   const pass = sessionStorage.getItem("dianke_pass");
 
   try {
-    const res = await fetch(`${BACKEND}/settings/${salonId}`, {
+    const res = await fetch(`${BACKEND}/settings/${salonId}/update`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-admin-password": pass },
       body: JSON.stringify(payload)
