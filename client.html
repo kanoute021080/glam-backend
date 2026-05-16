@@ -111,7 +111,7 @@ async function loadSettings(){
 Services: ${d.services||"Ask the stylist for current services and pricing."}
 Hours: ${d.hours||"Call us for current hours."} ${depositText} Come with clean detangled hair.
 Availability: ${d.availability||"Contact us to check availability."}
-Remember the full conversation. Never restart. Collect service, day, time, client name. ${depositInstruction}
+Remember the full conversation. Never restart. "Collect service, day, time (use format like 9am, 10am, 2pm), client name. ${depositInstruction}"
 Keep replies under 80 words. Plain text only. No asterisks.`;
   }catch{
     // Fallback if settings fetch fails
@@ -183,7 +183,7 @@ async function send(txt){
     });
     const d=await res.json();
     const raw=(d?.content?.[0]?.text||"Try again!").replace(/\*\*(.*?)\*\*/g,"$1");
-    const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([^:]+):([^\n]+)/);
+    const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([^:]+):(.+)/);
     const bc=raw.match(/BOOKING_CONFIRMED:([^:]+):([^:]+):([^:]+):([^\n]+)/);
     const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").replace(/BOOKING_CONFIRMED:[^\n]*/,"").trim();
     document.getElementById("typing")?.remove();
