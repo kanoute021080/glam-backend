@@ -37,25 +37,24 @@ app.get("/portal", (req, res) => res.sendFile(path.join(__dirname, "admin.html")
 app.get("/bookings", async (req, res) => {
   try {
     const salonId = req.query.salon_id || "default";
-    const data = await supabase("GET", "bookings?salon_id=eq." + salonId + "&order=created_at.desc");
-    res.json(Array.isArray(data) ? data : []);
-  } catch (err) {
-    console.error('Settings update error:', err);
-    res.status(500).json({ error: err.message || 'Server error' });
-  }
-});
-
-app.post("/bookings",
+      const data = await supabase("GET", "bookings?salon_id=eq." + salonId + "&order=created_at.desc");
+      res.json(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Settings update error:', err);
+      res.status(500).json({ error: err.message || 'Server error' });
+    }
+  });
   
-
-app.post("/bookings", async (req, res) => {
-  try {
-    const { client, service, day, time, amount, salon_id, source } = req.body;
-    const hmap = { "9am":9, "10am":10, "11am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
-    const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
-    const data = await supabase("POST", "bookings", {
-      client, service, day, time, hour,
-      amount: amount || 0,
+  app.post("/bookings",
+    
+  
+ 
+      const { client, service, day, time, amount, salon_id, source } = req.body;
+      const hmap = { "9am":9, "10am":10, "11am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
+      const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
+      const data = await supabase("POST", "bookings", {
+        client, service, day, time, hour,
+        amount: amount || 0,
       status: "pending",
       deposit: false,
      salon_id: salon_id || "default",
