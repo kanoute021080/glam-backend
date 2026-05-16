@@ -40,9 +40,9 @@ app.get("/bookings", async (req, res) => {
     const data = await supabase("GET", "bookings?salon_id=eq." + salonId + "&order=created_at.desc");
     res.json(Array.isArray(data) ? data : []);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Settings update error:', err);
+    res.status(500).json({ error: err.message || 'Server error' });
   }
-});
 
 app.post("/bookings", async (req, res) => {
   try {
