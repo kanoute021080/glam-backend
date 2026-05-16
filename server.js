@@ -1,8 +1,11 @@
 const express = require("express");
-const RESEND_KEY = process.env.RESEND_KEY;
 const cors = require("cors");
 const path = require("path");
 const app = express();
+
+const RESEND_KEY = process.env.RESEND_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
 app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type", "x-admin-password"] }));
 app.options("*", (req, res) => {
@@ -12,9 +15,6 @@ app.options("*", (req, res) => {
   res.sendStatus(204);
 });
 app.use(express.json());
-
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
 async function supabase(method, path, body) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
@@ -30,7 +30,6 @@ async function supabase(method, path, body) {
   const text = await res.text();
   return text ? JSON.parse(text) : {};
 }
-
 
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 app.get("/test", (req, res) => res.json({ status: "Backend is working!", timestamp: new Date().toISOString() }));
@@ -51,42 +50,77 @@ app.get("/bookings", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// Fetch owner email and send notification
-supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`).then(settings => {
-  const ownerEmail = settings?.[0]?.owner_email;
-  if (!ownerEmail) return;
-  fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${RESEND_KEY}`
-    },
-    body: JSON.stringify({
-      from: "Dianke.ai <onboarding@resend.dev>",
-      to: ownerEmail,
-      subject: `New booking — ${client} · ${service}`,
-      html: `
-        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-          <h2 style="color:#111;margin-bottom:4px">New booking received 📅</h2>
-          <p style="color:#888;font-size:13px;margin-bottom:20px">Via Dianke.ai · ${salon_id}</p>
-          <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
-            <div style="font-size:13px;color:#888;margin-bottom:4px">Client</div>
-            <div style="font-size:15px;font-weight:600;color:#111">${client}</div>
-          </div>
-          <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
-            <div style="font-size:13px;color:#888;margin-bottom:4px">Service</div>
-            <div style="font-size:15px;font-weight:600;color:#111">${service}</div>
-          </div>
-          <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
-            <div style="font-size:13px;color:#888;margin-bottom:4px">Date & Time</div>
-            <div style="font-size:15px;font-weight:600;color:#111">${day} at ${time}</div>
-          </div>
-          <a href="https://dianke.ai/dashboard/${salon_id}" style="display:block;text-align:center;background:#111;color:#fff;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">View on dashboard →</a>
-        </div>
-      `
-    })
-  }).catch(() => {});
-}).catch(() => {});
+
+app.get("/bookings/search", async (req, res) => {
+  const { name, salon_id } = req.query;
+  if (!name) return res.status(400).json({ error: "Name required" });
+  try {
+    const data = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&client=ilike.*${encodeURIComponent(name)}*&order=created_at.desc&limit=5`);
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/bookings", async (req, res) => {
+  try {
+    const { client, service, day, time, amount, salon_id, source } = req.body;
+    const hmap = { "9am":9, "10am":10, "10:30am":10, "11am":11, "11:30am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
+    const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
+
+    // Check for conflicts
+    const conflict = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&day=eq.${day}&time=eq.${time}&status=eq.confirmed`);
+    if (Array.isArray(conflict) && conflict.length > 0) {
+      return res.status(409).json({ error: "Time slot already booked" });
+    }
+
+    const data = await supabase("POST", "bookings", {
+      client, service, day, time, hour,
+      amount: amount || 0,
+      status: "pending",
+      deposit: false,
+      salon_id: salon_id || "default",
+      new_from_chat: true,
+      source: source || "chat"
+    });
+
+    // Send email notification to salon owner
+    supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`).then(settings => {
+      const ownerEmail = settings?.[0]?.owner_email;
+      if (!ownerEmail) return;
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${RESEND_KEY}`
+        },
+        body: JSON.stringify({
+          from: "Dianke.ai <onboarding@resend.dev>",
+          to: ownerEmail,
+          subject: `New booking — ${client} · ${service}`,
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+              <h2 style="color:#111;margin-bottom:4px">New booking received 📅</h2>
+              <p style="color:#888;font-size:13px;margin-bottom:20px">Via Dianke.ai · ${salon_id}</p>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Client</div>
+                <div style="font-size:15px;font-weight:600;color:#111">${client}</div>
+              </div>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Service</div>
+                <div style="font-size:15px;font-weight:600;color:#111">${service}</div>
+              </div>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Date & Time</div>
+                <div style="font-size:15px;font-weight:600;color:#111">${day} at ${time}</div>
+              </div>
+              <a href="https://dianke.ai/dashboard/${salon_id}" style="display:block;text-align:center;background:#111;color:#fff;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">View on dashboard →</a>
+            </div>
+          `
+        })
+      }).catch(() => {});
+    }).catch(() => {});
+
     res.json(Array.isArray(data) ? data[0] : data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -143,17 +177,8 @@ app.post("/chat", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.get("/bookings/search", async (req, res) => {
-  const { name, salon_id } = req.query;
-  if (!name) return res.status(400).json({ error: "Name required" });
-  try {
-    const data = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&client=ilike.*${encodeURIComponent(name)}*&order=created_at.desc&limit=5`);
-    res.json(Array.isArray(data) ? data : []);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-  app.get('/settings/:salon_id', async (req, res) => {
+
+app.get('/settings/:salon_id', async (req, res) => {
   const { salon_id } = req.params;
   const adminPassword = req.headers['x-admin-password'];
   res.set('Cache-Control', 'no-store');
@@ -196,11 +221,11 @@ app.post('/settings/:salon_id/update', async (req, res) => {
     if (adminPassword !== existing[0].admin_password) return res.status(401).json({ error: 'Unauthorized' });
     const { deposit_mode, deposit_amount, cashapp, venmo, zelle, salon_name, location, hours, services, availability, owner_email } = req.body;
     await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, {
-  deposit_mode, deposit_amount, cashapp, venmo, zelle,
-  salon_name, location, hours, services, availability, owner_email,
-  updated_at: new Date().toISOString()
-});
-  res.json({ success: true });
+      deposit_mode, deposit_amount, cashapp, venmo, zelle,
+      salon_name, location, hours, services, availability, owner_email,
+      updated_at: new Date().toISOString()
+    });
+    res.json({ success: true });
   } catch (err) {
     console.error('Settings update error:', err);
     res.status(500).json({ error: err.message || 'Server error' });
