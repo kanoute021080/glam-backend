@@ -89,7 +89,7 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
     <button class="active" onclick="switchTab('home',this)">Home</button>
     <button onclick="switchTab('bookings',this)" id="tab-bookings">Bookings</button>
     <button onclick="switchTab('messages',this)" id="tab-messages">Messages</button>
-    <button onclick="switchTab('chat',this)">Chat</button>
+    
     <button onclick="switchTab('settings',this)">⚙️ Settings</button>
   </div>
 
@@ -99,7 +99,7 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
     <div id="inbox"></div>
     <div id="thread" style="display:none"></div>
   </div>
-  <div id="chat" style="display:none"></div>
+ 
   <div id="settings" style="display:none;padding-bottom:70px">
     <!-- Password row -->
     <div class="pw-row">
@@ -375,12 +375,12 @@ function updateNav(){
 }
 
 function switchTab(name,btn){
-  ["home","bookings","messages","chat","settings"].forEach(t=>document.getElementById(t).style.display="none");
+  ["home","bookings","messages","settings"].forEach(t=>document.getElementById(t).style.display="none");
   document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
   document.getElementById(name).style.display="block";
   if(btn) btn.classList.add("active");
   if(name==="messages"){activeThread=null;renderInbox();}
-  if(name==="chat") renderChat();
+ 
   if(name==="settings") document.getElementById("save-bar").classList.toggle("visible",settingsDirty);
   else if(!settingsDirty) document.getElementById("save-bar").classList.remove("visible");
 }
