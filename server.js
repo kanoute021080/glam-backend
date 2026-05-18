@@ -58,10 +58,12 @@ app.get("/menu/:salonId", async (req, res) => {
 
 app.post("/orders", async (req, res) => {
   try {
-    const { customer_name, items, total, order_type, estimated_time, salon_id, source, language, status } = req.body;
+    const { customer_name, customer_email, items, total, order_type, estimated_time, salon_id, source, language, status } = req.body;
     const sid = salon_id || "restaurant1";
     const data = await supabase("POST", "orders", {
-      customer_name, items, total, order_type,
+      customer_name,
+      customer_email: customer_email || null,
+      items, total, order_type,
       estimated_time: estimated_time || "25-30 mins",
       salon_id: sid,
       source: source || "chat",
@@ -144,6 +146,64 @@ app.patch("/orders/:id", async (req, res) => {
   try {
     const { status } = req.body;
     const data = await supabase("PATCH", "orders?id=eq." + req.params.id, { status });
+
+    // When the owner marks the order Ready, email the customer (if we have an email).
+    if (status === "ready") {
+      (async () => {
+        try {
+          const orderRows = await supabase("GET", "orders?id=eq." + req.params.id + "&limit=1");
+          const order = Array.isArray(orderRows) ? orderRows[0] : null;
+          if (!order || !order.customer_email || !RESEND_KEY) {
+            console.log(`[ready-email] skip — email=${!!(order && order.customer_email)} resendKey=${!!RESEND_KEY}`);
+            return;
+          }
+          const settings = await supabase("GET", `salon_settings?salon_id=eq.${order.salon_id}&limit=1`);
+          const restaurantName = settings?.[0]?.salon_name || order.salon_id;
+          const restaurantPhone = settings?.[0]?.phone || "";
+          const lang = order.language || "en";
+          const copy = {
+            en: { subject: `Your order is ready at ${restaurantName} 🍽️`, heading: "Your order is ready!", body: "Come pick it up at the counter.", labelOrder: "Order", labelName: "Name", labelPhone: "Restaurant phone" },
+            fr: { subject: `Votre commande est prête chez ${restaurantName} 🍽️`, heading: "Votre commande est prête!", body: "Venez la chercher au comptoir.", labelOrder: "Commande", labelName: "Nom", labelPhone: "Téléphone du restaurant" },
+            wo: { subject: `Sa commande sett na ci ${restaurantName} 🍽️`, heading: "Sa commande sett na!", body: "Ñëw ko jëlël ci comptoir bi.", labelOrder: "Commande", labelName: "Tur", labelPhone: "Téléphone restaurant bi" }
+          };
+          const t = copy[lang] || copy.en;
+          fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${RESEND_KEY}`
+            },
+            body: JSON.stringify({
+              from: "Dianke.ai <onboarding@resend.dev>",
+              to: order.customer_email,
+              subject: t.subject,
+              html: `
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+                  <h2 style="color:#22c98a;margin-bottom:6px">🔔 ${t.heading}</h2>
+                  <p style="color:#555;font-size:14px;margin-bottom:18px">${t.body}</p>
+                  <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                    <div style="font-size:13px;color:#888;margin-bottom:4px">${t.labelOrder}</div>
+                    <div style="font-size:15px;font-weight:600;color:#111">${order.items || ""}</div>
+                  </div>
+                  <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                    <div style="font-size:13px;color:#888;margin-bottom:4px">${t.labelName}</div>
+                    <div style="font-size:15px;font-weight:600;color:#111">${order.customer_name || ""}</div>
+                  </div>
+                  ${restaurantPhone ? `<div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                    <div style="font-size:13px;color:#888;margin-bottom:4px">${t.labelPhone}</div>
+                    <div style="font-size:15px;font-weight:600;color:#111"><a href="tel:${restaurantPhone.replace(/[^0-9+]/g,"")}" style="color:#c17f24;text-decoration:none">${restaurantPhone}</a></div>
+                  </div>` : ""}
+                  <p style="color:#888;font-size:12px;margin-top:16px;text-align:center">Sent by ${restaurantName} via Dianke.ai</p>
+                </div>
+              `
+            })
+          }).then(r => r.text()).then(t => console.log(`[ready-email] resend response: ${t.slice(0, 200)}`)).catch(e => console.error("[ready-email] error:", e));
+        } catch (e) {
+          console.error("[ready-email] lookup failed:", e);
+        }
+      })();
+    }
+
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
