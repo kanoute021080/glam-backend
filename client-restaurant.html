@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -133,9 +134,9 @@ const ORDER_LABELS={
 function buildSystem(menu, period){
   const items=menu.map(i=>`${i.name}: $${i.price}`).join(", ");
   const periodName=LANGS[currentLang].periods[period]||period;
-  if(currentLang==="fr") return `Tu es l'assistant IA du Restaurant Teranga. Sois chaleureux en français.\nMenu ${periodName}: ${items}\nHoraires: 11h-22h. À emporter: 20-30 min. Livraison disponible. Sur place bienvenu.\nQuand client commande: confirme articles, total, temps estimé, demande nom et type (sur place/à emporter/livraison). Puis: ORDER_CONFIRMED:[articles]:[total]:[temps]:[nom]:[type]\nMoins de 80 mots. Texte simple.`;
-  if(currentLang==="wo") return `Yaa ngi représente Restaurant Teranga ci Wolof.\nMenu ${periodName}: ${items}\nWaxtu: 11h-22h. À emporter: 20-30 min. Livraison am na.\nBu client bi commande: xalaat li, prix, waxtu, laaj tur ak loolu. Ci kanam: ORDER_CONFIRMED:[articles]:[total]:[waxtu]:[tur]:[loolu]\nMots yu amul solo. Texte simple.`;
-  return `You are the AI order assistant for Teranga Restaurant. Be warm in English.\n${periodName} Menu: ${items}\nHours: 11am-10pm. Takeout: 20-30 mins. Delivery available. Dine-in welcome.\nWhen customer orders: confirm items, total, estimated time, ask name and order type (dine-in/takeout/delivery). Then: ORDER_CONFIRMED:[items]:[total]:[time]:[name]:[type]\nUnder 80 words. Plain text only.`;
+  if(currentLang==="fr") return `Tu es l'assistant IA du Restaurant Teranga. Sois chaleureux en français.\nMenu ${periodName}: ${items}\nHoraires: 11h-22h. À emporter: 20-30 min. Livraison disponible. Sur place bienvenu.\nQuand client commande: confirme articles, total, temps estimé, demande nom, type (sur place/à emporter/livraison), et demande son email pour être prévenu quand prêt (optionnel — accepte s'il refuse). Puis: ORDER_CONFIRMED:[articles]:[total]:[temps]:[nom]:[type]:[email-ou-vide]\nMoins de 90 mots. Texte simple.`;
+  if(currentLang==="wo") return `Yaa ngi représente Restaurant Teranga ci Wolof.\nMenu ${periodName}: ${items}\nWaxtu: 11h-22h. À emporter: 20-30 min. Livraison am na.\nBu client bi commande: xalaat li, prix, waxtu, laaj tur, loolu (sur place/à emporter/livraison), ak laaj email pour yëgël ko bu sett (optionnel). Ci kanam: ORDER_CONFIRMED:[articles]:[total]:[waxtu]:[tur]:[loolu]:[email-walla-tuuti]\nMots yu amul solo. Texte simple.`;
+  return `You are the AI order assistant for Teranga Restaurant. Be warm in English.\n${periodName} Menu: ${items}\nHours: 11am-10pm. Takeout: 20-30 mins. Delivery available. Dine-in welcome.\nWhen customer orders: confirm items, total, estimated time, ask name, order type (dine-in/takeout/delivery), and ask for an email so we can notify them when ready (optional — accept "no thanks" gracefully). Then: ORDER_CONFIRMED:[items]:[total]:[time]:[name]:[type]:[email-or-empty]\nIf the customer declines email, leave the email segment empty (still output the trailing colon). Under 90 words. Plain text only.`;
 }
 
 function buildWelcome(menu, period){
@@ -223,6 +224,75 @@ function callUs(){
   }
 }
 
+// ─── ORDER-READY NOTIFICATIONS ───────────────────────
+const READY_LABELS={
+  en:{title:"🔔 Your order is ready!",sub:"Come pick it up at the counter.",notifTitle:"Your order is ready! 🍽️"},
+  fr:{title:"🔔 Votre commande est prête!",sub:"Venez la chercher au comptoir.",notifTitle:"Votre commande est prête! 🍽️"},
+  wo:{title:"🔔 Sa commande sett na!",sub:"Ñëw ko jëlël ci comptoir bi.",notifTitle:"Sa commande sett na! 🍽️"}
+};
+let pollTimer=null, watchedOrderId=null, watchedCustomerName=null, lastStatus=null;
+
+function requestNotifPermission(){
+  if(!("Notification" in window)) return;
+  if(Notification.permission==="default"){
+    try{ Notification.requestPermission(); }catch{}
+  }
+}
+
+function fireReadyAlerts(order){
+  const L=READY_LABELS[currentLang]||READY_LABELS.en;
+  // In-chat banner
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.className="bw-bot";
+  w.innerHTML=`
+    <div class="bl">${LANGS[currentLang].label}</div>
+    <div class="order-card" style="border-color:#22c98a;background:#0e2d1a">
+      <div style="font-size:15px;font-weight:700;color:#22c98a;margin-bottom:6px">${L.title}</div>
+      <div style="font-size:13px;color:#f5e6c8;margin-bottom:6px">${order.items||""}</div>
+      <div style="font-size:12px;color:#a8d5b8">${L.sub}</div>
+    </div>`;
+  el.appendChild(w);
+  el.scrollTop=el.scrollHeight;
+  // Browser notification (only if permission granted)
+  if("Notification" in window && Notification.permission==="granted"){
+    try{
+      new Notification(L.notifTitle,{ body: order.items || "", tag: "order-"+order.id });
+    }catch{}
+  }
+  // Short vibration on mobile
+  if("vibrate" in navigator) try{ navigator.vibrate([200,80,200]); }catch{}
+}
+
+async function pollOrderStatus(){
+  if(!watchedOrderId||!watchedCustomerName){
+    clearInterval(pollTimer); pollTimer=null; return;
+  }
+  try{
+    const res=await fetch(`${BACKEND}/orders/search?name=${encodeURIComponent(watchedCustomerName)}&salon_id=${salonId}`,{cache:"no-store"});
+    const orders=await res.json();
+    if(!Array.isArray(orders)) return;
+    const o=orders.find(x=>x.id===watchedOrderId);
+    if(!o||o.status===lastStatus) return;
+    lastStatus=o.status;
+    if(o.status==="ready") fireReadyAlerts(o);
+    if(o.status==="ready"||o.status==="done"||o.status==="cancelled"){
+      clearInterval(pollTimer); pollTimer=null;
+    }
+  }catch{}
+}
+
+function startOrderPolling(orderId, customerName){
+  if(!orderId||!customerName) return;
+  watchedOrderId=orderId;
+  watchedCustomerName=customerName;
+  lastStatus="pending";
+  if(pollTimer) clearInterval(pollTimer);
+  // First check after 8s, then every 12s
+  setTimeout(pollOrderStatus, 8000);
+  pollTimer=setInterval(pollOrderStatus, 12000);
+}
+
 function addBubble(role,text){
   const el=document.getElementById("chat-body");
   const w=document.createElement("div");
@@ -236,14 +306,14 @@ function addBubble(role,text){
   el.scrollTop=el.scrollHeight;
 }
 
-function addOrderCard(items,total,time,name,type){
+function addOrderCard(items,total,time,name,type,email){
   const el=document.getElementById("chat-body");
   const w=document.createElement("div");
   w.className="bw-bot";
   const labels={
-    en:{confirmed:"Order Confirmed!",kitchen:"Sent to kitchen 🍳",ready:"Ready in",footer:"Thank you! We look forward to serving you."},
-    fr:{confirmed:"Commande Confirmée!",kitchen:"Envoyée en cuisine 🍳",ready:"Prête dans",footer:"Merci! Nous avons hâte de vous servir."},
-    wo:{confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",footer:"Jërëjëf! Ñu xam ñu def la."}
+    en:{confirmed:"Order Confirmed!",kitchen:"Sent to kitchen 🍳",ready:"Ready in",footer:"Thank you! We look forward to serving you.",notifyEmail:"📧 We'll email you when it's ready"},
+    fr:{confirmed:"Commande Confirmée!",kitchen:"Envoyée en cuisine 🍳",ready:"Prête dans",footer:"Merci! Nous avons hâte de vous servir.",notifyEmail:"📧 Nous vous enverrons un email quand prête"},
+    wo:{confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",footer:"Jërëjëf! Ñu xam ñu def la.",notifyEmail:"📧 Dinañu yónni email bu sett"}
   };
   const L=labels[currentLang];
   w.innerHTML=`
@@ -257,13 +327,20 @@ function addOrderCard(items,total,time,name,type){
         <div style="font-size:22px;font-weight:700;color:#c17f24">⏱️ ${L.ready} ${time}</div>
         <div style="font-size:11px;color:#8a6a3a;margin-top:4px">${L.kitchen}</div>
       </div>
+      ${email?`<div style="font-size:11px;color:#22c98a;text-align:center;margin-bottom:6px">${L.notifyEmail}</div>`:""}
       <div style="font-size:11px;color:#8a6a3a;text-align:center">${L.footer}</div>
     </div>`;
   el.appendChild(w);
   el.scrollTop=el.scrollHeight;
+  // Ask for browser-notification permission right when the customer commits to an order.
+  requestNotifPermission();
   fetch(BACKEND+"/orders",{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({customer_name:name,items,total:parseFloat(String(total).replace(/[^0-9.]/g,"")),order_type:type,estimated_time:time,salon_id:salonId,source:"chat",language:currentLang,status:"pending"})
-  }).then(r=>r.json()).then(d=>console.log("Order saved:",d)).catch(e=>console.error("Order error:",e));
+    body:JSON.stringify({customer_name:name,customer_email:email||null,items,total:parseFloat(String(total).replace(/[^0-9.]/g,"")),order_type:type,estimated_time:time,salon_id:salonId,source:"chat",language:currentLang,status:"pending"})
+  }).then(r=>r.json()).then(d=>{
+    console.log("Order saved:",d);
+    // Server returns the inserted row(s); start polling for status="ready"
+    if(d && d.id) startOrderPolling(d.id, name);
+  }).catch(e=>console.error("Order error:",e));
 }
 
 async function send(txt){
@@ -288,12 +365,18 @@ async function send(txt){
     });
     const d=await res.json();
     const raw=(d?.content?.[0]?.text||"...").replace(/\*\*(.*?)\*\*/g,"$1");
-    const dm=raw.match(/ORDER_CONFIRMED:([^:]+):([^:]+):([^:]+):([^:]+):([^\n]+)/);
+    // Email segment is optional — works with both the old 5-segment format and the new 6-segment one.
+    const dm=raw.match(/ORDER_CONFIRMED:([^:\n]+):([^:\n]+):([^:\n]+):([^:\n]+):([^:\n]+)(?::([^\n]*))?/);
     const reply=raw.replace(/ORDER_CONFIRMED:[^\n]*/,"").trim();
     document.getElementById("typing")?.remove();
     hist.push({role:"assistant",content:raw});
     if(reply)addBubble("bot",reply);
-    if(dm)addOrderCard(dm[1].trim(),dm[2].trim(),dm[3].trim(),dm[4].trim(),dm[5].trim());
+    if(dm){
+      const emailRaw=(dm[6]||"").trim();
+      // Sanity-check it actually looks like an email; otherwise treat as no-email.
+      const email=/^\S+@\S+\.\S+$/.test(emailRaw) ? emailRaw : "";
+      addOrderCard(dm[1].trim(),dm[2].trim(),dm[3].trim(),dm[4].trim(),dm[5].trim(),email);
+    }
   }catch(e){
     document.getElementById("typing")?.remove();
     addBubble("bot","Connection issue. Please try again.");
