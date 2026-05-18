@@ -484,6 +484,37 @@ body{
       </div>
     </div>
 
+    <!-- CONTACT & NOTIFICATIONS -->
+    <div class="section">
+      <div class="section-hdr">
+        <div class="section-icon" style="background:rgba(100,140,255,0.1)">📬</div>
+        <div>
+          <div class="section-title">Contact & Notifications</div>
+          <div class="section-desc">Where new orders/bookings are sent and how customers can reach you</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="two-col">
+            <div class="field">
+              <label>Owner email (notifications)</label>
+              <div class="field-input-wrap">
+                <span class="field-prefix">📧</span>
+                <input id="owner-email" type="email" placeholder="you@yourrestaurant.com" oninput="markDirty()"/>
+              </div>
+            </div>
+            <div class="field">
+              <label>Phone (for "Call us" button)</label>
+              <div class="field-input-wrap">
+                <span class="field-prefix">📞</span>
+                <input id="salon-phone" type="tel" placeholder="+1 555 123 4567" oninput="markDirty()"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- EMBED LINK -->
     <div class="section">
       <div class="section-hdr">
@@ -587,6 +618,8 @@ function fillForm(d) {
   document.getElementById("salon-hours").value = d.hours || "";
   document.getElementById("salon-services").value = d.services || "";
   document.getElementById("salon-availability").value = d.availability || "";
+  document.getElementById("owner-email").value = d.owner_email || "";
+  document.getElementById("salon-phone").value = d.phone || "";
 }
 
 // ─── DEPOSIT TOGGLE ──────────────────────────────────
@@ -633,6 +666,8 @@ async function saveSettings() {
     hours: document.getElementById("salon-hours").value.trim(),
     services: document.getElementById("salon-services").value.trim(),
     availability: document.getElementById("salon-availability").value.trim(),
+    owner_email: document.getElementById("owner-email").value.trim(),
+    phone: document.getElementById("salon-phone").value.trim(),
   };
 
   const pass = sessionStorage.getItem("dianke_pass");
