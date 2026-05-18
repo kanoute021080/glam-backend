@@ -46,7 +46,9 @@ app.get("/portal", (req, res) => res.sendFile(path.join(__dirname, "admin.html")
 app.get("/menu/:salonId", async (req, res) => {
   try {
     const hour = new Date().getHours();
-    const period = hour < 11 ? "breakfast" : hour < 18 ? "lunch" : "dinner";
+    const autoPeriod = hour < 11 ? "breakfast" : hour < 18 ? "lunch" : "dinner";
+    const requested = (req.query.period || "").toLowerCase();
+    const period = ["breakfast", "lunch", "dinner"].includes(requested) ? requested : autoPeriod;
     const data = await supabase("GET", "menu_items?salon_id=eq." + req.params.salonId + "&available=eq.true&or=(meal_period.eq." + period + ",meal_period.eq.all)&order=meal_period.asc,category.asc");
     res.json({ period, items: Array.isArray(data) ? data : [] });
   } catch (err) {
@@ -57,19 +59,78 @@ app.get("/menu/:salonId", async (req, res) => {
 app.post("/orders", async (req, res) => {
   try {
     const { customer_name, items, total, order_type, estimated_time, salon_id, source, language, status } = req.body;
+    const sid = salon_id || "restaurant1";
     const data = await supabase("POST", "orders", {
       customer_name, items, total, order_type,
       estimated_time: estimated_time || "25-30 mins",
-      salon_id: salon_id || "restaurant1",
+      salon_id: sid,
       source: source || "chat",
       language: language || "en",
       status: status || "pending"
     });
+
+    // Fire-and-forget email notification to the restaurant owner.
+    // Falls back silently if owner_email isn't configured or Resend isn't set up.
+    supabase("GET", `salon_settings?salon_id=eq.${sid}&limit=1`).then(settings => {
+      const ownerEmail = settings?.[0]?.owner_email;
+      const restaurantName = settings?.[0]?.salon_name || sid;
+      if (!ownerEmail || !RESEND_KEY) {
+        console.log(`[orders] skip email — ownerEmail=${!!ownerEmail} resendKey=${!!RESEND_KEY}`);
+        return;
+      }
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${RESEND_KEY}`
+        },
+        body: JSON.stringify({
+          from: "Dianke.ai <onboarding@resend.dev>",
+          to: ownerEmail,
+          subject: `New order — ${customer_name} · $${total}`,
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+              <h2 style="color:#111;margin-bottom:4px">New order received 🍽️</h2>
+              <p style="color:#888;font-size:13px;margin-bottom:20px">Via Dianke.ai · ${restaurantName}</p>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Customer</div>
+                <div style="font-size:15px;font-weight:600;color:#111">${customer_name}</div>
+              </div>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Items</div>
+                <div style="font-size:15px;font-weight:600;color:#111">${items}</div>
+              </div>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Total · Type · ETA</div>
+                <div style="font-size:15px;font-weight:600;color:#111">$${total} · ${order_type || "takeout"} · ${estimated_time || "25-30 mins"}</div>
+              </div>
+              <a href="https://dianke.ai/dashboard/${sid}" style="display:block;text-align:center;background:#c17f24;color:#fff;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">Open dashboard →</a>
+            </div>
+          `
+        })
+      }).then(r => r.text()).then(t => console.log(`[orders] resend response: ${t.slice(0, 200)}`)).catch(e => console.error("[orders] email error:", e));
+    }).catch(e => console.error("[orders] settings lookup failed:", e));
+
     res.json(Array.isArray(data) ? data[0] : data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.get("/orders/search", async (req, res) => {
+  const { name, salon_id } = req.query;
+  if (!name) return res.status(400).json({ error: "Name required" });
+  try {
+    const data = await supabase(
+      "GET",
+      `orders?salon_id=eq.${salon_id || "restaurant1"}&customer_name=ilike.*${encodeURIComponent(name)}*&order=created_at.desc&limit=5`
+    );
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/orders-list/:salonId", async (req, res) => {
   try {
     const data = await supabase("GET", "orders?salon_id=eq." + req.params.salonId + "&order=created_at.desc");
@@ -279,6 +340,7 @@ app.get('/settings/:salon_id', async (req, res) => {
       cashapp: salon.cashapp,
       venmo: salon.venmo,
       zelle: salon.zelle,
+      phone: salon.phone,
     });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -296,10 +358,10 @@ app.post('/settings/:salon_id/update', async (req, res) => {
     const existing = await supabase("GET", `salon_settings?salon_id=eq.${salon_id}&limit=1`);
     if (!existing || existing.length === 0) return res.status(404).json({ error: 'Salon not found' });
     if (adminPassword !== existing[0].admin_password) return res.status(401).json({ error: 'Unauthorized' });
-    const { deposit_mode, deposit_amount, cashapp, venmo, zelle, salon_name, location, hours, services, availability, owner_email } = req.body;
+    const { deposit_mode, deposit_amount, cashapp, venmo, zelle, salon_name, location, hours, services, availability, owner_email, phone } = req.body;
     await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, {
       deposit_mode, deposit_amount, cashapp, venmo, zelle,
-      salon_name, location, hours, services, availability, owner_email,
+      salon_name, location, hours, services, availability, owner_email, phone,
       updated_at: new Date().toISOString()
     });
     res.json({ success: true });
