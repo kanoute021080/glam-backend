@@ -89,7 +89,7 @@ let busy=false;
 let PAY={cashapp:"",venmo:"",zelle:""};
 let depositMode="required";
 let SYS="";
-  let currentSalonId="salon1";
+  const slugMap={"theafricancrown":"salon3","freshcut":"salon2"}; const rawSlug=window.location.pathname.split("/").filter(Boolean).pop()||"salon1"; let currentSalonId=slugMap[rawSlug]||rawSlug;
 
 async function loadSettings(){
   const slugMap = {"theafricancrown":"salon3", "freshcut":"salon2"}; const rawSlug = window.location.pathname.split("/").filter(Boolean).pop()||"salon1"; const salonId = slugMap[rawSlug] || rawSlug;
@@ -260,7 +260,7 @@ async function checkStatus(){
 
   try{
     const salonId=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
-currentSalonId = salonId;
+
     const res=await fetch(`${BACKEND}/bookings/search?name=${encodeURIComponent(name)}&salon_id=${salonId}`,{cache:"no-store"});
     const bookings=await res.json();
 
