@@ -89,6 +89,7 @@ let busy=false;
 let PAY={cashapp:"",venmo:"",zelle:""};
 let depositMode="required";
 let SYS="";
+  let currentSalonId="salon1";
 
 async function loadSettings(){
   const slugMap = {"theafricancrown":"salon3", "freshcut":"salon2"}; const rawSlug = window.location.pathname.split("/").filter(Boolean).pop()||"salon1"; const salonId = slugMap[rawSlug] || rawSlug;
@@ -198,7 +199,7 @@ async function send(txt){
       fetch(BACKEND+"/bookings",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:window.location.pathname.split("/")[2]||"default"})
+          body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId})
       }).then(r=>r.json()).then(b=>{
         clientBookings.push({...b,time});
       }).catch(()=>{
@@ -216,7 +217,7 @@ async function send(txt){
       fetch(BACKEND+"/bookings",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:window.location.pathname.split("/")[2]||"default"})
+        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId})
       }).catch(()=>{});
       clientBookings.push({client,service:svc,day,time,status:"confirmed",deposit:false,id:Date.now()});
       addBubble("bot","Your appointment is confirmed! We look forward to seeing you 💅");
@@ -259,6 +260,8 @@ async function checkStatus(){
 
   try{
     const salonId=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
+    const salonId=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
+currentSalonId = salonId;
     const res=await fetch(`${BACKEND}/bookings/search?name=${encodeURIComponent(name)}&salon_id=${salonId}`,{cache:"no-store"});
     const bookings=await res.json();
 
