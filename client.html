@@ -121,7 +121,7 @@ Keep replies under 80 words. Plain text only. No asterisks.`;
     depositMode="required";
     SYS=`You are an AI receptionist for a hair salon. Be warm and helpful. Collect service, day, time, and client name. Once confirmed say: DEPOSIT_DUE:$35:[service]:[day]:[time]:[name]. Keep replies under 80 words. Plain text only.`;
   }
-  addBubble("bot",`Hey! Welcome to ${d.salon_name||"our salon"}. I can help you book an appointment, check availability, or answer any questions. What can I do for you today?`);
+  addBubble("bot",`Hey! Welcome to ${d.salon_name||"our salon"}. I can help you book an appointment, check availability, or answer any questions. What can I do for you today?`);}
 
 function addBubble(role,text){
   const el=document.getElementById("chat-body");
