@@ -433,12 +433,14 @@ app.post('/settings/:salon_id/update', async (req, res) => {
     res.status(500).json({ error: err.message || 'Server error' });
   }
 });
-
-app.get("*", (req, res) => {
-  if (req.path.startsWith("/dashboard")) {
-    res.sendFile(path.join(__dirname, "dashboard.html"));
-  } else {
-    res.sendFile(path.join(__dirname, "client.html"));
+  app.get("/theafricancrown", (req, res) => res.redirect("/client/salon3"));
+  app.get("/theafricancrown/dashboard", (req, res) => res.redirect("/dashboard/salon3"));
+  
+  app.get("*", (req, res) => {
+    if (req.path.startsWith("/dashboard")) {
+      res.sendFile(path.join(__dirname, "dashboard.html"));
+    } else {
+      res.sendFile(path.join(__dirname, "client.html"));
   }
 });
 
