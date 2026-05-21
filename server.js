@@ -41,9 +41,9 @@ app.get("/dashboard/restaurant1", (req, res) => res.sendFile(path.join(__dirname
 app.get("/demo/salon", (req, res) => res.sendFile(path.join(__dirname, "demo-salon.html")));
 app.get("/demo/autorepair", (req, res) => res.sendFile(path.join(__dirname, "demo-autorepair.html")));
 app.get("/client/:salonId", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
-app.get("/theafricancrown", (req, res) => res.redirect("/client/salon3"));
-app.get("/theafricancrown", (req, res) => res.redirect("/client/salon3"));
-app.get("/theafricancrown/dashboard", (req, res) => res.redirect("/dashboard/salon3"));
+app.get("/theafricancrown", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
+app.get("/theafricancrown/dashboard", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
+
 app.get("/dashboard/:salonId", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
 app.get("/portal", (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
 app.get("/menu/:salonId", async (req, res) => {
