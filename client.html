@@ -91,7 +91,7 @@ let depositMode="required";
 let SYS="";
 
 async function loadSettings(){
-  const salonId=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
+  const slugMap = {"theafricancrown":"salon3", "freshcut":"salon2"}; const rawSlug = window.location.pathname.split("/").filter(Boolean).pop()||"salon1"; const salonId = slugMap[rawSlug] || rawSlug;
   try{
     const res=await fetch(`${BACKEND}/settings/${salonId}`);
     if(!res.ok) throw new Error();
