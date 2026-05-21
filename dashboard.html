@@ -260,8 +260,12 @@ let currentDepositMode="required";
 let settingsDirty=false;
 let PAY={cashapp:"",venmo:"",zelle:""};
 
-function getSalonId(){return window.location.pathname.split("/").filter(Boolean).pop()||"salon1";}
-
+function getSalonId(){
+  const slugMap={"theafricancrown":"salon3","freshcut":"salon2"};
+  const parts=window.location.pathname.split("/").filter(Boolean);
+  const slug=parts[0]==="dashboard"?parts[1]:parts[0];
+  return slugMap[slug]||slug||"salon1";
+}
 function showToast(msg,color){
   const t=document.getElementById("toast");
   t.textContent=msg;
