@@ -270,10 +270,28 @@ app.post("/bookings", async (req, res) => {
     const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
 
     // Check for conflicts
-    const conflict = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&day=eq.${day}&time=eq.${time}&status=in.(confirmed,pending)`);
-    if (Array.isArray(conflict) && conflict.length > 0) {
-      return res.status(409).json({ error: "Time slot already booked" });
-    }
+    const durations = {
+  "knotless braids": 4, "medium knotless braids": 4, "large knotless braids": 3,
+  "box braids": 6, "locs maintenance": 2, "silk press": 1.5, "wig install": 1,
+  "crochet braids": 3, "feed-in braids": 3
+};
+const dayBookings = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&day=eq.${day}&status=in.(confirmed,pending)`);
+if (Array.isArray(dayBookings) && dayBookings.length > 0) {
+  const newHour = parseInt(time) || 10;
+  const newService = (service || "").toLowerCase();
+  const newKey = Object.keys(durations).find(k => newService.includes(k));
+  const newEnd = newHour + (newKey ? durations[newKey] : 2);
+  const conflict = dayBookings.find(b => {
+    const existHour = b.hour || 10;
+    const existService = (b.service || "").toLowerCase();
+    const existKey = Object.keys(durations).find(k => existService.includes(k));
+    const existEnd = existHour + (existKey ? durations[existKey] : 2);
+    return newHour < existEnd && newEnd > existHour;
+  });
+  if (conflict) {
+    return res.status(409).json({ error: "Time slot conflicts with existing booking" });
+  }
+}
 
     const data = await supabase("POST", "bookings", {
       client, service, day, time, hour,
