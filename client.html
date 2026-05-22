@@ -188,8 +188,8 @@ async function send(txt){
     });
     const d=await res.json();
     const raw=(d?.content?.[0]?.text||"Try again!").replace(/\*\*(.*?)\*\*/g,"$1");
-    const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([^:]+):(.+)/);
-    const bc=raw.match(/BOOKING_CONFIRMED:([^:]+):([^:]+):([^:]+):([^\n]+)/);
+    const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([\d:apm]+[apm]):(.+)/i);
+    const bc=raw.match(/BOOKING_CONFIRMED:([^:]+):([^:]+):([\d:apm]+[apm]):([^\n]+)/i);
     const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").replace(/BOOKING_CONFIRMED:[^\n]*/,"").trim();
     document.getElementById("typing")?.remove();
     hist.push({role:"assistant",content:raw});
