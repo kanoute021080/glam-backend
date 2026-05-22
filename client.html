@@ -196,13 +196,15 @@ async function send(txt){
     if(reply)addBubble("bot",reply);
     if(dm){
       const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
-      fetch(BACKEND+"/bookings",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId})
-      }).then(r=>r.json()).then(b=>{
-        clientBookings.push({...b,time});
-      }).catch(()=>{
+fetch(BACKEND+"/bookings",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId})
+}).then(r=>{
+  if(r.status===409){
+    addBubble("bot","Sorry, that time slot is already taken! What other day or time works for you?");
+  }
+}).catch(()=>{});
         clientBookings.push({client,service:svc,day,time,status:"pending",deposit:false,id:Date.now()});
       });
       if(depositMode==="optional"){
