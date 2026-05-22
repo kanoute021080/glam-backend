@@ -204,6 +204,10 @@ fetch(BACKEND+"/bookings",{
   if(r.status===409){
     addBubble("bot","Sorry, that time slot is already taken! What other day or time works for you?");
   }
+}).then(r=>{
+  if(r.status===409){
+    addBubble("bot","Sorry, that time slot is already taken! What other day or time works for you?");
+  }
 }).catch(()=>{});
         clientBookings.push({client,service:svc,day,time,status:"pending",deposit:false,id:Date.now()});
       });
