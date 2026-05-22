@@ -202,7 +202,9 @@ fetch(BACKEND+"/bookings",{
   body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId})
 }).then(r=>{
   if(r.status===409){
-    addBubble("bot","Sorry, that time slot is already taken! What other day or time works for you?");
+    const conflictMsg="Sorry, that time slot is already taken! What other day or time works for you?";
+    addBubble("bot", conflictMsg);
+    hist.push({role:"assistant", content: conflictMsg});
   }
 }).catch(()=>{});
       if(depositMode==="optional"){
