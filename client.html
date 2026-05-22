@@ -90,7 +90,14 @@ let PAY={cashapp:"",venmo:"",zelle:""};
 let depositMode="required";
 let SYS="";
   const slugMap={"theafricancrown":"salon3","freshcut":"salon2"}; const rawSlug=window.location.pathname.split("/").filter(Boolean).pop()||"salon1"; let currentSalonId=slugMap[rawSlug]||rawSlug;
-
+async function getBookedSlots(){
+  try{
+    const res=await fetch(`${BACKEND}/bookings?salon_id=${currentSalonId}`,{cache:'no-store'});
+    const bookings=await res.json();
+    if(!Array.isArray(bookings)||bookings.length===0) return "none";
+    return bookings.map(b=>`${b.day} ${b.time} (${b.service})`).join(", ");
+  }catch{return "none";}
+}
 async function loadSettings(){
   const slugMap = {"theafricancrown":"salon3", "freshcut":"salon2"}; const rawSlug = window.location.pathname.split("/").filter(Boolean).pop()||"salon1"; const salonId = slugMap[rawSlug] || rawSlug;
   try{
@@ -114,7 +121,7 @@ async function loadSettings(){
     SYS=`You are the AI receptionist for ${d.salon_name||"this salon"} in ${d.location||"the local area"}. Be warm, friendly and concise.
 Services: ${d.services||"Ask the stylist for current services and pricing."}
 Hours: ${d.hours||"Call us for current hours."} ${depositText} Come with clean detangled hair.
-Availability: ${d.availability||"Contact us to check availability."}
+Availability: ${d.availability||"Contact us to check availability."} Already booked: ${await getBookedSlots()}
 Remember the full conversation. Never restart. Collect service, day, time (use format like 9am, 10am, 2pm), client name. ${depositInstruction}
 Keep replies under 80 words. Plain text only. No asterisks.`;
     addBubble("bot",`Hey! Welcome to ${d.salon_name||"our salon"}. I can help you book an appointment, check availability, or answer any questions. What can I do for you today?`);
