@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,9 +17,6 @@ body{background:#1a0a00;min-height:100vh;display:flex;flex-direction:column;alig
 .hdr-status{font-size:11px;color:#c17f24;display:flex;align-items:center;gap:5px;margin-top:2px}
 .dot{width:6px;height:6px;border-radius:50%;background:#22c98a;display:inline-block}
 .period-badge{font-size:10px;background:#c17f24;color:#fff;padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:600}
-.cust-period-bar{display:flex;gap:4px;padding:8px 12px;background:#0d0500;border-left:1px solid #3d1f00;border-right:1px solid #3d1f00}
-.cust-period-tab{flex:1;font-size:11px;padding:6px 0;border-radius:14px;border:1px solid #3d1f00;background:transparent;color:#8a6a3a;cursor:pointer;font-weight:500;text-align:center;transition:all .15s}
-.cust-period-tab.active{background:#c17f24;color:#fff;border-color:#c17f24;font-weight:600}
 .chat-body{height:380px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#0d0500;border:1px solid #3d1f00;border-top:none}
 .bw-bot{display:flex;flex-direction:column;align-items:flex-start}
 .bw-user{display:flex;flex-direction:column;align-items:flex-end}
@@ -52,16 +48,10 @@ body{background:#1a0a00;min-height:100vh;display:flex;flex-direction:column;alig
     <div style="flex:1">
       <div style="display:flex;align-items:center">
         <div class="hdr-name" id="restaurant-name">Teranga Restaurant</div>
-        <span class="period-badge" id="period-badge">Dinner</span>
+        <span class="period-badge" id="period-badge">Lunch</span>
       </div>
       <div class="hdr-status"><span class="dot"></span><span id="status-text">AI assistant · always open</span></div>
     </div>
-  </div>
-
-  <div class="cust-period-bar" id="period-bar">
-    <button class="cust-period-tab" data-period="breakfast" onclick="switchPeriod('breakfast')">🥐 <span data-period-label="breakfast">Breakfast</span></button>
-    <button class="cust-period-tab" data-period="lunch" onclick="switchPeriod('lunch')">🥗 <span data-period-label="lunch">Lunch</span></button>
-    <button class="cust-period-tab" data-period="dinner" onclick="switchPeriod('dinner')">🍽️ <span data-period-label="dinner">Dinner</span></button>
   </div>
 
   <div class="chat-body" id="chat-body"></div>
@@ -126,9 +116,9 @@ const LANGS={
 };
 
 const ORDER_LABELS={
-  en:{ title:"Check my order", label:"Your name", btn:"Check status", notfound:"No order found", notfound_sub:"We couldn't find an order under that name.", tryagain:"Try again", pending:"Preparing", confirmed:"Confirmed, in kitchen", ready:"Ready for pickup", done:"Completed", noPhone:"Sorry — phone number isn't available right now. Please order through chat." },
-  fr:{ title:"Vérifier ma commande", label:"Votre nom", btn:"Vérifier", notfound:"Commande introuvable", notfound_sub:"Nous n'avons pas trouvé de commande sous ce nom.", tryagain:"Réessayer", pending:"En préparation", confirmed:"Confirmée, en cuisine", ready:"Prête à récupérer", done:"Terminée", noPhone:"Désolé — le numéro n'est pas disponible. Veuillez commander par chat." },
-  wo:{ title:"Xool sa commande", label:"Sa tur", btn:"Xool", notfound:"Commande bi amul", notfound_sub:"Xoolul commande bu am sa tur.", tryagain:"Saytu", pending:"Def nanu ko", confirmed:"Wone na, ci cuisine", ready:"Sett na, jëlël", done:"Mat na", noPhone:"Numéro bi amul leegi. Bind ci chat bi." }
+  en:{title:"Check my order",label:"Your name",btn:"Check status",notfound:"No order found",notfound_sub:"We couldn't find an order under that name.",tryagain:"Try again",pending:"Preparing",confirmed:"Confirmed, in kitchen",ready:"Ready for pickup",done:"Completed",noPhone:"Sorry — phone number isn't available right now. Please order through chat."},
+  fr:{title:"Vérifier ma commande",label:"Votre nom",btn:"Vérifier",notfound:"Commande introuvable",notfound_sub:"Nous n'avons pas trouvé de commande sous ce nom.",tryagain:"Réessayer",pending:"En préparation",confirmed:"Confirmée, en cuisine",ready:"Prête à récupérer",done:"Terminée",noPhone:"Désolé — le numéro n'est pas disponible. Veuillez commander par chat."},
+  wo:{title:"Xool sa commande",label:"Sa tur",btn:"Xool",notfound:"Commande bi amul",notfound_sub:"Xoolul commande bu am sa tur.",tryagain:"Saytu",pending:"Def nanu ko",confirmed:"Wone na, ci cuisine",ready:"Sett na, jëlël",done:"Mat na",noPhone:"Numéro bi amul leegi. Bind ci chat bi."}
 };
 
 function buildSystem(menu, period){
@@ -144,20 +134,19 @@ function buildWelcome(menu, period){
   const featured=menu.slice(0,3).map(i=>i.name).join(", ");
   if(currentLang==="fr") return `Bienvenue au Restaurant Teranga! 🍽️ Nous servons notre menu ${periodName}. En vedette: ${featured}. Comment puis-je vous aider?`;
   if(currentLang==="wo") return `Dalal jaam ci Restaurant Teranga! 🍽️ Lëndëm ${periodName} la ñu def tëy. Ci kanam: ${featured}. Lan nga bëgg?`;
-  return `Welcome to Teranga Restaurant! 🍽️ We're currently serving our ${periodName} menu. Featured tonight: ${featured}. How can I help you?`;
+  return `Welcome to Teranga Restaurant! 🍽️ We're currently serving our ${periodName} menu. Featured: ${featured}. How can I help you?`;
 }
 
-async function loadMenu(period){
+// Loads the active period from the server — no period arg means server decides
+async function loadMenu(){
   try{
-    const url=BACKEND+"/menu/"+salonId+(period?("?period="+encodeURIComponent(period)):"");
-    const res=await fetch(url,{cache:"no-store"});
+    const res=await fetch(BACKEND+"/menu/"+salonId, {cache:"no-store"});
     const d=await res.json();
     menuData=d;
     currentPeriod=d.period;
     const L=LANGS[currentLang];
     const periodName=L.periods[d.period]||d.period;
     document.getElementById("period-badge").textContent=periodName;
-    updatePeriodTabs(d.period);
     document.getElementById("chat-body").innerHTML="";
     hist=[];
     addBubble("bot",buildWelcome(d.items,d.period));
@@ -167,37 +156,19 @@ async function loadMenu(period){
   }
 }
 
-function updatePeriodTabs(period){
-  document.querySelectorAll(".cust-period-tab").forEach(b=>{
-    b.classList.toggle("active", b.dataset.period===period);
-  });
-  // refresh per-language labels on each tab
-  const L=LANGS[currentLang];
-  document.querySelectorAll("[data-period-label]").forEach(s=>{
-    const p=s.dataset.periodLabel;
-    s.textContent=L.periods[p]||p;
-  });
-}
-
-async function switchPeriod(period){
-  if(busy||period===currentPeriod) return;
-  await loadMenu(period);
-}
-
 function setLang(lang,btn){
   currentLang=lang;
   document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   document.getElementById("status-text").textContent=LANGS[lang].status;
   document.getElementById("inp").placeholder=LANGS[lang].placeholder;
-  // keep whatever period the customer is currently browsing
-  loadMenu(currentPeriod);
+  // reload using the server's current active period
+  loadMenu();
 }
 
 function renderQuick(){
   const L=LANGS[currentLang];
   document.getElementById("quick-btns").innerHTML=L.quick.map(q=>{
-    // 📞 Call us → trigger phone dialer instead of sending a chat message
     if(q.indexOf("📞")!==-1) return `<button class="qbtn" onclick="callUs()">${q}</button>`;
     return `<button class="qbtn" onclick="send('${q.replace(/'/g,"\\'")}')">${q}</button>`;
   }).join("");
@@ -205,7 +176,7 @@ function renderQuick(){
 
 async function loadSettings(){
   try{
-    const res=await fetch(BACKEND+"/settings/"+salonId,{cache:"no-store"});
+    const res=await fetch(BACKEND+"/settings/"+salonId, {cache:"no-store"});
     if(!res.ok) return;
     const d=await res.json();
     restaurantPhone=d.phone||null;
@@ -216,7 +187,6 @@ function callUs(){
   const L=ORDER_LABELS[currentLang];
   if(restaurantPhone){
     const clean=String(restaurantPhone).replace(/[^0-9+]/g,"");
-    // Show the number in chat first so customers on desktop can copy it
     addBubble("bot","📞 "+restaurantPhone);
     window.location.href="tel:"+clean;
   } else {
@@ -230,6 +200,7 @@ const READY_LABELS={
   fr:{title:"🔔 Votre commande est prête!",sub:"Venez la chercher au comptoir.",notifTitle:"Votre commande est prête! 🍽️"},
   wo:{title:"🔔 Sa commande sett na!",sub:"Ñëw ko jëlël ci comptoir bi.",notifTitle:"Sa commande sett na! 🍽️"}
 };
+
 let pollTimer=null, watchedOrderId=null, watchedCustomerName=null, lastStatus=null;
 
 function requestNotifPermission(){
@@ -241,7 +212,6 @@ function requestNotifPermission(){
 
 function fireReadyAlerts(order){
   const L=READY_LABELS[currentLang]||READY_LABELS.en;
-  // In-chat banner
   const el=document.getElementById("chat-body");
   const w=document.createElement("div");
   w.className="bw-bot";
@@ -254,20 +224,14 @@ function fireReadyAlerts(order){
     </div>`;
   el.appendChild(w);
   el.scrollTop=el.scrollHeight;
-  // Browser notification (only if permission granted)
   if("Notification" in window && Notification.permission==="granted"){
-    try{
-      new Notification(L.notifTitle,{ body: order.items || "", tag: "order-"+order.id });
-    }catch{}
+    try{ new Notification(L.notifTitle,{body:order.items||"",tag:"order-"+order.id}); }catch{}
   }
-  // Short vibration on mobile
   if("vibrate" in navigator) try{ navigator.vibrate([200,80,200]); }catch{}
 }
 
 async function pollOrderStatus(){
-  if(!watchedOrderId||!watchedCustomerName){
-    clearInterval(pollTimer); pollTimer=null; return;
-  }
+  if(!watchedOrderId||!watchedCustomerName){ clearInterval(pollTimer); pollTimer=null; return; }
   try{
     const res=await fetch(`${BACKEND}/orders/search?name=${encodeURIComponent(watchedCustomerName)}&salon_id=${salonId}`,{cache:"no-store"});
     const orders=await res.json();
@@ -276,9 +240,7 @@ async function pollOrderStatus(){
     if(!o||o.status===lastStatus) return;
     lastStatus=o.status;
     if(o.status==="ready") fireReadyAlerts(o);
-    if(o.status==="ready"||o.status==="done"||o.status==="cancelled"){
-      clearInterval(pollTimer); pollTimer=null;
-    }
+    if(o.status==="ready"||o.status==="done"||o.status==="cancelled"){ clearInterval(pollTimer); pollTimer=null; }
   }catch{}
 }
 
@@ -288,7 +250,6 @@ function startOrderPolling(orderId, customerName){
   watchedCustomerName=customerName;
   lastStatus="pending";
   if(pollTimer) clearInterval(pollTimer);
-  // First check after 8s, then every 12s
   setTimeout(pollOrderStatus, 8000);
   pollTimer=setInterval(pollOrderStatus, 12000);
 }
@@ -332,14 +293,11 @@ function addOrderCard(items,total,time,name,type,email){
     </div>`;
   el.appendChild(w);
   el.scrollTop=el.scrollHeight;
-  // Ask for browser-notification permission right when the customer commits to an order.
   requestNotifPermission();
   fetch(BACKEND+"/orders",{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({customer_name:name,customer_email:email||null,items,total:parseFloat(String(total).replace(/[^0-9.]/g,"")),order_type:type,estimated_time:time,salon_id:salonId,source:"chat",language:currentLang,status:"pending"})
   }).then(r=>r.json()).then(d=>{
-    console.log("Order saved:",d);
-    // Server returns the inserted row(s); start polling for status="ready"
-    if(d && d.id) startOrderPolling(d.id, name);
+    if(d&&d.id) startOrderPolling(d.id,name);
   }).catch(e=>console.error("Order error:",e));
 }
 
@@ -365,7 +323,6 @@ async function send(txt){
     });
     const d=await res.json();
     const raw=(d?.content?.[0]?.text||"...").replace(/\*\*(.*?)\*\*/g,"$1");
-    // Email segment is optional — works with both the old 5-segment format and the new 6-segment one.
     const dm=raw.match(/ORDER_CONFIRMED:([^:\n]+):([^:\n]+):([^:\n]+):([^:\n]+):([^:\n]+)(?::([^\n]*))?/);
     const reply=raw.replace(/ORDER_CONFIRMED:[^\n]*/,"").trim();
     document.getElementById("typing")?.remove();
@@ -373,8 +330,7 @@ async function send(txt){
     if(reply)addBubble("bot",reply);
     if(dm){
       const emailRaw=(dm[6]||"").trim();
-      // Sanity-check it actually looks like an email; otherwise treat as no-email.
-      const email=/^\S+@\S+\.\S+$/.test(emailRaw) ? emailRaw : "";
+      const email=/^\S+@\S+\.\S+$/.test(emailRaw)?emailRaw:"";
       addOrderCard(dm[1].trim(),dm[2].trim(),dm[3].trim(),dm[4].trim(),dm[5].trim(),email);
     }
   }catch(e){
@@ -411,8 +367,6 @@ async function checkOrderStatus(){
   result.style.display="block";
   result.innerHTML=`<div style="text-align:center;padding:20px;color:#8a6a3a;font-size:13px">...</div>`;
   try{
-    // Orders live in the `orders` table — use the new /orders/search endpoint,
-    // not /bookings/search (that's for the salon use case and has a different schema).
     const res=await fetch(`${BACKEND}/orders/search?name=${encodeURIComponent(name)}&salon_id=${salonId}`,{cache:"no-store"});
     const orders=await res.json();
     if(!Array.isArray(orders)||orders.length===0){
@@ -433,13 +387,13 @@ async function checkOrderStatus(){
       done:{icon:"✅",label:L.done,color:"#8a6a3a"}
     };
     const s=statusMap[o.status]||statusMap.pending;
-    const totalDisplay=(o.total!=null && o.total!=="")?("$"+o.total):"";
+    const totalDisplay=(o.total!=null&&o.total!=="")?"$"+o.total:"";
     result.innerHTML=`
       <div style="text-align:center;padding:10px 0">
         <div style="font-size:32px;margin-bottom:8px">${s.icon}</div>
         <div style="font-size:15px;font-weight:600;color:#f5e6c8;margin-bottom:4px">${o.items||"Your order"}</div>
-        <div style="font-size:13px;color:#8a6a3a;margin-bottom:4px">${o.customer_name||""}${o.order_type?(" · "+o.order_type):""}</div>
-        ${totalDisplay?`<div style="font-size:12px;color:#8a6a3a;margin-bottom:10px">${totalDisplay}${o.estimated_time?(" · ETA "+o.estimated_time):""}</div>`:`<div style="margin-bottom:10px"></div>`}
+        <div style="font-size:13px;color:#8a6a3a;margin-bottom:4px">${o.customer_name||""}${o.order_type?" · "+o.order_type:""}</div>
+        ${totalDisplay?`<div style="font-size:12px;color:#8a6a3a;margin-bottom:10px">${totalDisplay}${o.estimated_time?" · ETA "+o.estimated_time:""}</div>`:`<div style="margin-bottom:10px"></div>`}
         <span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:rgba(193,127,36,0.15);color:${s.color}">${s.label}</span>
         <button onclick="closeOrderStatus()" style="display:block;width:100%;margin-top:14px;padding:9px;background:#c17f24;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Close</button>
       </div>`;
