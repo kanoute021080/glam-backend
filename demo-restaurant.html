@@ -46,7 +46,11 @@ body{background:#1a0a00;min-height:100vh;display:flex;flex-direction:column;alig
     <button class="lang-btn" onclick="setLang('fr',this)">🇫🇷 Français</button>
     <button class="lang-btn" onclick="setLang('wo',this)">🇸🇳 Wolof</button>
   </div>
-
+<div style="display:flex;gap:6px;justify-content:center;margin-bottom:10px">
+  <button class="lang-btn" id="per-breakfast" onclick="setPeriod('breakfast',this)">🌅 Breakfast</button>
+  <button class="lang-btn active" id="per-lunch" onclick="setPeriod('lunch',this)">☀️ Lunch</button>
+  <button class="lang-btn" id="per-dinner" onclick="setPeriod('dinner',this)">🌙 Dinner</button>
+</div>
   <div class="chat-hdr">
     <div class="av">TR</div>
     <div>
@@ -129,7 +133,36 @@ Bu client bi commande: xalaat li ñu bëgg, prix bi, waxtu bi, ci kanam laaj tur
 Mots yu amul solo. Texte simple rekk.`
   }
 };
+let currentPeriod="lunch";
 
+const MENUS={
+  breakfast:{
+    en:"Café Touba $3, Akara (bean fritters) $8, Omelette $9, Pain beurre $5, Thiakry $6",
+    fr:"Café Touba $3, Akara (beignets de haricots) $8, Omelette $9, Pain beurre $5, Thiakry $6",
+    wo:"Café Touba $3, Akara $8, Omelette $9, Pain beurre $5, Thiakry $6"
+  },
+  lunch:{
+    en:"Thieboudienne $18, Yassa Poulet $16, Mafé $15, Thiebou Yapp $17, Dibi $20, Fried plantains $5, Bissap juice $4",
+    fr:"Thiéboudiène $18, Yassa Poulet $16, Mafé $15, Thiébou Yapp $17, Dibi $20, Alloco $5, Jus de bissap $4",
+    wo:"Ceebu Jën $18, Yassa Ginaar $16, Mafé $15, Ceebu Yapp $17, Dibi $20, Alloco $5, Jus bissap $4"
+  },
+  dinner:{
+    en:"Thieboudienne $18, Yassa Poulet $16, Dibi $20, Grilled fish $22, Mafé $15, Thiakry $6, Bissap juice $4",
+    fr:"Thiéboudiène $18, Yassa Poulet $16, Dibi $20, Poisson grillé $22, Mafé $15, Thiakry $6, Jus de bissap $4",
+    wo:"Ceebu Jën $18, Yassa Ginaar $16, Dibi $20, Jën bu dëkk $22, Mafé $15, Thiakry $6, Jus bissap $4"
+  }
+};
+
+function setPeriod(period, btn){
+  currentPeriod=period;
+  document.querySelectorAll("[id^='per-']").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  hist=[];
+  const cb=document.getElementById("chat-body");
+  cb.innerHTML="";
+  addBubble("bot", LANGS[currentLang].welcome);
+  renderQuick();
+}
 function setLang(lang, btn){
   currentLang=lang;
   document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
