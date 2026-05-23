@@ -43,15 +43,29 @@ app.get("/demo/autorepair", (req, res) => res.sendFile(path.join(__dirname, "dem
 app.get("/client/:salonId", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
 app.get("/theafricancrown", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
 app.get("/theafricancrown/dashboard", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
-
 app.get("/dashboard/:salonId", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
 app.get("/portal", (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
+
+// ── CHANGE 1: Read active_period from settings instead of guessing by clock ──
 app.get("/menu/:salonId", async (req, res) => {
   try {
-    const hour = new Date().getHours();
-    const autoPeriod = hour < 11 ? "breakfast" : hour < 18 ? "lunch" : "dinner";
     const requested = (req.query.period || "").toLowerCase();
-    const period = ["breakfast", "lunch", "dinner"].includes(requested) ? requested : autoPeriod;
+    let period;
+    if (["breakfast", "lunch", "dinner"].includes(requested)) {
+      // Explicit ?period=xxx from the dashboard menu browser — honour it
+      period = requested;
+    } else {
+      // No period specified — read what the owner set as active
+      const settings = await supabase("GET", `salon_settings?salon_id=eq.${req.params.salonId}&limit=1`);
+      const saved = settings?.[0]?.active_period;
+      if (["breakfast", "lunch", "dinner"].includes(saved)) {
+        period = saved;
+      } else {
+        // Fallback to time-based if column not yet set in DB
+        const hour = new Date().getHours();
+        period = hour < 11 ? "breakfast" : hour < 18 ? "lunch" : "dinner";
+      }
+    }
     const data = await supabase("GET", "menu_items?salon_id=eq." + req.params.salonId + "&available=eq.true&or=(meal_period.eq." + period + ",meal_period.eq.all)&order=meal_period.asc,category.asc");
     res.json({ period, items: Array.isArray(data) ? data : [] });
   } catch (err) {
@@ -74,8 +88,6 @@ app.post("/orders", async (req, res) => {
       status: status || "pending"
     });
 
-    // Fire-and-forget email notification to the restaurant owner.
-    // Falls back silently if owner_email isn't configured or Resend isn't set up.
     supabase("GET", `salon_settings?salon_id=eq.${sid}&limit=1`).then(settings => {
       const ownerEmail = settings?.[0]?.owner_email;
       const restaurantName = settings?.[0]?.salon_name || sid;
@@ -85,10 +97,7 @@ app.post("/orders", async (req, res) => {
       }
       fetch("https://api.resend.com/emails", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${RESEND_KEY}`
-        },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
         body: JSON.stringify({
           from: "Dianke.ai <onboarding@resend.dev>",
           to: ownerEmail,
@@ -126,10 +135,7 @@ app.get("/orders/search", async (req, res) => {
   const { name, salon_id } = req.query;
   if (!name) return res.status(400).json({ error: "Name required" });
   try {
-    const data = await supabase(
-      "GET",
-      `orders?salon_id=eq.${salon_id || "restaurant1"}&customer_name=ilike.*${encodeURIComponent(name)}*&order=created_at.desc&limit=5`
-    );
+    const data = await supabase("GET", `orders?salon_id=eq.${salon_id || "restaurant1"}&customer_name=ilike.*${encodeURIComponent(name)}*&order=created_at.desc&limit=5`);
     res.json(Array.isArray(data) ? data : []);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -150,7 +156,6 @@ app.patch("/orders/:id", async (req, res) => {
     const { status } = req.body;
     const data = await supabase("PATCH", "orders?id=eq." + req.params.id, { status });
 
-    // When the owner marks the order Ready, email the customer (if we have an email).
     if (status === "ready") {
       (async () => {
         try {
@@ -172,10 +177,7 @@ app.patch("/orders/:id", async (req, res) => {
           const t = copy[lang] || copy.en;
           fetch("https://api.resend.com/emails", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${RESEND_KEY}`
-            },
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
             body: JSON.stringify({
               from: "Dianke.ai <onboarding@resend.dev>",
               to: order.customer_email,
@@ -242,6 +244,7 @@ app.patch("/menu-items/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 app.get("/bookings", async (req, res) => {
   try {
     const salonId = req.query.salon_id || "default";
@@ -269,29 +272,26 @@ app.post("/bookings", async (req, res) => {
     const hmap = { "9am":9, "10am":10, "10:30am":10, "11am":11, "11:30am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
     const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
 
-    // Check for conflicts
     const durations = {
-  "knotless braids": 4, "medium knotless braids": 4, "large knotless braids": 3,
-  "box braids": 6, "locs maintenance": 2, "silk press": 1.5, "wig install": 1,
-  "crochet braids": 3, "feed-in braids": 3
-};
-const dayBookings = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&day=eq.${day}&status=in.(confirmed,pending)`);
-if (Array.isArray(dayBookings) && dayBookings.length > 0) {
-  const newHour = parseInt(time) || 10;
-  const newService = (service || "").toLowerCase();
-  const newKey = Object.keys(durations).find(k => newService.includes(k));
-  const newEnd = newHour + (newKey ? durations[newKey] : 2);
-  const conflict = dayBookings.find(b => {
-    const existHour = b.hour || 10;
-    const existService = (b.service || "").toLowerCase();
-    const existKey = Object.keys(durations).find(k => existService.includes(k));
-    const existEnd = existHour + (existKey ? durations[existKey] : 2);
-    return newHour < existEnd && newEnd > existHour;
-  });
-  if (conflict) {
-    return res.status(409).json({ error: "Time slot conflicts with existing booking" });
-  }
-}
+      "knotless braids": 4, "medium knotless braids": 4, "large knotless braids": 3,
+      "box braids": 6, "locs maintenance": 2, "silk press": 1.5, "wig install": 1,
+      "crochet braids": 3, "feed-in braids": 3
+    };
+    const dayBookings = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&day=eq.${day}&status=in.(confirmed,pending)`);
+    if (Array.isArray(dayBookings) && dayBookings.length > 0) {
+      const newHour = parseInt(time) || 10;
+      const newService = (service || "").toLowerCase();
+      const newKey = Object.keys(durations).find(k => newService.includes(k));
+      const newEnd = newHour + (newKey ? durations[newKey] : 2);
+      const conflict = dayBookings.find(b => {
+        const existHour = b.hour || 10;
+        const existService = (b.service || "").toLowerCase();
+        const existKey = Object.keys(durations).find(k => existService.includes(k));
+        const existEnd = existHour + (existKey ? durations[existKey] : 2);
+        return newHour < existEnd && newEnd > existHour;
+      });
+      if (conflict) return res.status(409).json({ error: "Time slot conflicts with existing booking" });
+    }
 
     const data = await supabase("POST", "bookings", {
       client, service, day, time, hour,
@@ -303,16 +303,12 @@ if (Array.isArray(dayBookings) && dayBookings.length > 0) {
       source: source || "chat"
     });
 
-    // Send email notification to salon owner
     supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`).then(settings => {
       const ownerEmail = settings?.[0]?.owner_email;
       if (!ownerEmail) return;
       fetch("https://api.resend.com/emails", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${RESEND_KEY}`
-        },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
         body: JSON.stringify({
           from: "Dianke.ai <onboarding@resend.dev>",
           to: ownerEmail,
@@ -397,6 +393,7 @@ app.post("/chat", async (req, res) => {
   }
 });
 
+// ── CHANGE 2: Expose active_period in the public settings response ──
 app.get('/settings/:salon_id', async (req, res) => {
   const { salon_id } = req.params;
   const adminPassword = req.headers['x-admin-password'];
@@ -422,9 +419,25 @@ app.get('/settings/:salon_id', async (req, res) => {
       venmo: salon.venmo,
       zelle: salon.zelle,
       phone: salon.phone,
+      active_period: salon.active_period,   // ← NEW: dashboard reads this on load
     });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── CHANGE 3: New PATCH /settings/:salon_id — owner sets active period ──
+app.patch('/settings/:salon_id', async (req, res) => {
+  const { salon_id } = req.params;
+  const { active_period } = req.body;
+  if (!["breakfast", "lunch", "dinner"].includes(active_period)) {
+    return res.status(400).json({ error: "Invalid period. Must be breakfast, lunch, or dinner." });
+  }
+  try {
+    await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, { active_period });
+    res.json({ ok: true, active_period });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -451,14 +464,12 @@ app.post('/settings/:salon_id/update', async (req, res) => {
     res.status(500).json({ error: err.message || 'Server error' });
   }
 });
-  app.get("/theafricancrown", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
-app.get("/theafricancrown/dashboard", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
-  
-  app.get("*", (req, res) => {
-    if (req.path.startsWith("/dashboard")) {
-      res.sendFile(path.join(__dirname, "dashboard.html"));
-    } else {
-      res.sendFile(path.join(__dirname, "client.html"));
+
+app.get("*", (req, res) => {
+  if (req.path.startsWith("/dashboard")) {
+    res.sendFile(path.join(__dirname, "dashboard.html"));
+  } else {
+    res.sendFile(path.join(__dirname, "client.html"));
   }
 });
 
