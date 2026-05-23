@@ -34,6 +34,10 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
 .period-tab{display:flex;gap:6px;margin-bottom:10px}
 .ptab{flex:1;padding:7px;font-size:12px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;text-align:center;font-weight:500}
 .ptab.active{background:#c17f24;color:#fff;border-color:#c17f24}
+
+/* Now Serving toggle — larger, more prominent */
+.serve-tab{flex:1;padding:10px 6px;font-size:13px;border-radius:10px;border:2px solid #e8d5b0;background:#fff;color:#888;cursor:pointer;text-align:center;font-weight:500;transition:all .15s}
+.serve-tab.active{background:#c17f24;color:#fff;border-color:#c17f24;font-weight:700;box-shadow:0 2px 8px rgba(193,127,36,0.3)}
 </style>
 </head>
 <body>
@@ -57,6 +61,17 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
     <button onclick="switchTab('stats',this)">Stats</button>
   </div>
 
+  <!-- ── NOW SERVING ── only shown on Orders tab -->
+  <div id="serving-card" class="card" style="margin-bottom:10px">
+    <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🍽️ Now serving</div>
+    <div style="display:flex;gap:6px">
+      <button class="serve-tab" id="aptab-breakfast" onclick="setActivePeriod('breakfast',this)">🌅 Breakfast</button>
+      <button class="serve-tab" id="aptab-lunch" onclick="setActivePeriod('lunch',this)">☀️ Lunch</button>
+      <button class="serve-tab active" id="aptab-dinner" onclick="setActivePeriod('dinner',this)">🌙 Dinner</button>
+    </div>
+    <div style="font-size:11px;color:#aaa;margin-top:6px">Clients will see this menu period automatically</div>
+  </div>
+
   <div id="orders"></div>
   <div id="menu" style="display:none"></div>
   <div id="stats" style="display:none"></div>
@@ -65,7 +80,7 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
 <script>
 const B="https://dianke.ai";
 const salonId=window.location.pathname.split("/")[2]||"restaurant1";
-let orders=[], menuItems=[], currentPeriod="dinner";
+let orders=[], menuItems=[], currentPeriod="dinner", activePeriod="dinner";
 
 function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",3000);}
 
@@ -79,6 +94,43 @@ function statusBadge(status){
   const m={pending:"badge-pending",confirmed:"badge-confirmed",ready:"badge-ready",done:"badge-done"};
   return `<span class="badge ${m[status]||"badge-pending"}">${status}</span>`;
 }
+
+// ─── ACTIVE PERIOD ───────────────────────────────────
+async function loadActivePeriod(){
+  try{
+    const res=await fetch(B+"/settings/"+salonId, {cache:"no-store"});
+    if(!res.ok) return;
+    const d=await res.json();
+    if(d.active_period){
+      activePeriod=d.active_period;
+      updateActivePeriodUI(activePeriod);
+    }
+  }catch{}
+}
+
+function updateActivePeriodUI(period){
+  document.querySelectorAll("[id^='aptab-']").forEach(b=>{
+    b.classList.toggle("active", b.id==="aptab-"+period);
+  });
+}
+
+async function setActivePeriod(period, btn){
+  if(period===activePeriod) return;
+  activePeriod=period;
+  updateActivePeriodUI(period);
+  try{
+    await fetch(B+"/settings/"+salonId, {
+      method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({active_period: period})
+    });
+    const label=period.charAt(0).toUpperCase()+period.slice(1);
+    showToast("Now serving: "+label+" menu");
+  }catch{
+    showToast("Error updating period");
+  }
+}
+// ─────────────────────────────────────────────────────
 
 async function loadOrders(){
   try{
@@ -111,6 +163,8 @@ function switchTab(name,btn){
   document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
   document.getElementById(name).style.display="block";
   btn.classList.add("active");
+  // Only show the Now Serving card on the Orders tab
+  document.getElementById("serving-card").style.display=(name==="orders")?"block":"none";
   if(name==="menu") loadMenu();
   if(name==="stats") renderStats();
 }
@@ -191,10 +245,9 @@ function renderOrders(){
 function renderMenu(){
   const periods=["breakfast","lunch","dinner"];
   const periodItems=menuItems.filter(i=>i.meal_period===currentPeriod);
-
   document.getElementById("menu").innerHTML=`
     <div class="period-tab">
-      ${periods.map(p=>`<button class="ptab${currentPeriod===p?" active":""}" onclick="switchPeriod('${p}',this)">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join("")}
+      ${periods.map(p=>`<button class="ptab${currentPeriod===p?" active":""}" onclick="switchMenuPeriod('${p}',this)">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join("")}
     </div>
     <div class="card">
       <button type="button" onclick="toggleMenuForm()" style="width:100%;padding:9px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:13px;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:4px">
@@ -235,16 +288,14 @@ function renderMenu(){
             </div>
             <div style="display:flex;gap:6px;align-items:center">
               <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${item.available?"#eafaf1":"#fcebeb"};color:${item.available?"#0F6E56":"#dc2626"}">${item.available?"Available":"Unavailable"}</span>
-              <button type="button" class="btn-d" onclick="toggleAvailability(${item.id},${item.available})">
-                ${item.available?"Hide":"Show"}
-              </button>
+              <button type="button" class="btn-d" onclick="toggleAvailability(${item.id},${item.available})">${item.available?"Hide":"Show"}</button>
             </div>
           </div>
         </div>`).join("")}
     </div>`;
 }
 
-async function switchPeriod(period, btn){
+async function switchMenuPeriod(period, btn){
   currentPeriod=period;
   document.querySelectorAll(".ptab").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
@@ -290,10 +341,9 @@ async function toggleAvailability(id, current){
 
 function renderStats(){
   const total=orders.length;
-  const revenue=orders.filter(o=>o.status!=="done"||true).reduce((s,o)=>s+parseFloat(o.total||0),0);
+  const revenue=orders.reduce((s,o)=>s+parseFloat(o.total||0),0);
   const bySource=orders.reduce((acc,o)=>{acc[o.source||"chat"]=(acc[o.source||"chat"]||0)+1;return acc;},{});
   const byType=orders.reduce((acc,o)=>{acc[o.order_type||"takeout"]=(acc[o.order_type||"takeout"]||0)+1;return acc;},{});
-
   document.getElementById("stats").innerHTML=`
     <div class="stat-grid">
       <div class="stat"><div class="stat-val">${total}</div><div class="stat-lbl">Total orders</div></div>
@@ -321,6 +371,7 @@ function renderStats(){
 
 setInterval(loadOrders, 15000);
 loadOrders();
+loadActivePeriod();
 </script>
 </body>
 </html>
