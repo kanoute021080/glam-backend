@@ -81,8 +81,8 @@ app.post("/orders", async (req, res) => {
     // ── Generate order number: highest existing + 1, starting at 1000 ──
     let order_number = 1000;
     try {
-      const existing = await supabase("GET", "orders?select=order_number&order=order_number.desc&limit=1");
-      const last = Array.isArray(existing) && existing[0]?.order_number;
+      const existing = await supabase("GET", "orders?select=order_number&order_number=not.is.null&order=order_number.desc&limit=1");
+      const last = Array.isArray(existing) && existing.length > 0 && existing[0]?.order_number;
       order_number = last ? parseInt(last) + 1 : 1000;
     } catch (e) {
       order_number = 1000 + (Date.now() % 9000);
