@@ -77,6 +77,26 @@ app.post("/orders", async (req, res) => {
   try {
     const { customer_name, customer_email, items, total, order_type, estimated_time, salon_id, source, language, status } = req.body;
     const sid = salon_id || "restaurant1";
+
+    // ── Generate order number from Supabase sequence ──
+    let order_number = null;
+    try {
+      const seqRes = await fetch(SUPABASE_URL + "/rest/v1/rpc/nextval", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_KEY,
+          "Authorization": "Bearer " + SUPABASE_KEY
+        },
+        body: JSON.stringify({ seq_name: "order_number_seq" })
+      });
+      const seqData = await seqRes.json();
+      order_number = seqData || null;
+    } catch (e) {
+      // Fallback: use timestamp-based number if sequence fails
+      order_number = 1000 + (Date.now() % 9000);
+    }
+
     const data = await supabase("POST", "orders", {
       customer_name,
       customer_email: customer_email || null,
@@ -85,7 +105,8 @@ app.post("/orders", async (req, res) => {
       salon_id: sid,
       source: source || "chat",
       language: language || "en",
-      status: status || "pending"
+      status: status || "pending",
+      order_number
     });
 
     supabase("GET", `salon_settings?salon_id=eq.${sid}&limit=1`).then(settings => {
