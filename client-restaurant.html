@@ -196,9 +196,33 @@ function callUs(){
 
 // ─── ORDER-READY NOTIFICATIONS ───────────────────────
 const READY_LABELS={
-  en:{title:"🔔 Your order is ready!",sub:"Come pick it up at the counter.",notifTitle:"Your order is ready! 🍽️"},
-  fr:{title:"🔔 Votre commande est prête!",sub:"Venez la chercher au comptoir.",notifTitle:"Votre commande est prête! 🍽️"},
-  wo:{title:"🔔 Sa commande sett na!",sub:"Ñëw ko jëlël ci comptoir bi.",notifTitle:"Sa commande sett na! 🍽️"}
+  en:{
+    title:"🔔 Your order is ready!",
+    notifTitle:"Your order is ready! 🍽️",
+    sub:{
+      takeout:"Come pick it up at the counter.",
+      "dine-in":"Your food is on its way to your table!",
+      delivery:"Your order is on its way to you! 🛵"
+    }
+  },
+  fr:{
+    title:"🔔 Votre commande est prête!",
+    notifTitle:"Votre commande est prête! 🍽️",
+    sub:{
+      takeout:"Venez la chercher au comptoir.",
+      "dine-in":"Votre repas arrive à votre table!",
+      delivery:"Votre commande est en route! 🛵"
+    }
+  },
+  wo:{
+    title:"🔔 Sa commande sett na!",
+    notifTitle:"Sa commande sett na! 🍽️",
+    sub:{
+      takeout:"Ñëw ko jëlël ci comptoir bi.",
+      "dine-in":"Dinañu ko dëkk ci sa tabël!",
+      delivery:"Sa commande dafa dem yoon! 🛵"
+    }
+  }
 };
 
 let pollTimer=null, watchedOrderId=null, watchedCustomerName=null, lastStatus=null;
@@ -212,6 +236,8 @@ function requestNotifPermission(){
 
 function fireReadyAlerts(order){
   const L=READY_LABELS[currentLang]||READY_LABELS.en;
+  const orderType=(order.order_type||"takeout").toLowerCase();
+  const subMsg=L.sub[orderType]||L.sub.takeout;
   const el=document.getElementById("chat-body");
   const w=document.createElement("div");
   w.className="bw-bot";
@@ -220,7 +246,7 @@ function fireReadyAlerts(order){
     <div class="order-card" style="border-color:#22c98a;background:#0e2d1a">
       <div style="font-size:15px;font-weight:700;color:#22c98a;margin-bottom:6px">${L.title}</div>
       <div style="font-size:13px;color:#f5e6c8;margin-bottom:6px">${order.items||""}</div>
-      <div style="font-size:12px;color:#a8d5b8">${L.sub}</div>
+      <div style="font-size:12px;color:#a8d5b8">${subMsg}</div>
     </div>`;
   el.appendChild(w);
   el.scrollTop=el.scrollHeight;
@@ -272,11 +298,30 @@ function addOrderCard(items,total,time,name,type,email){
   const w=document.createElement("div");
   w.className="bw-bot";
   const labels={
-    en:{confirmed:"Order Confirmed!",kitchen:"Sent to kitchen 🍳",ready:"Ready in",footer:"Show this number when you pick up.",notifyEmail:"📧 We'll email you when it's ready",orderNum:"Your order number"},
-    fr:{confirmed:"Commande Confirmée!",kitchen:"Envoyée en cuisine 🍳",ready:"Prête dans",footer:"Montrez ce numéro au comptoir.",notifyEmail:"📧 Nous vous enverrons un email quand prête",orderNum:"Votre numéro de commande"},
-    wo:{confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",footer:"Yëgël numéro bi bu nga ñëw.",notifyEmail:"📧 Dinañu yónni email bu sett",orderNum:"Numéro commande bi"}
+    en:{
+      confirmed:"Order Confirmed!",kitchen:"Sent to kitchen 🍳",ready:"Ready in",
+      notifyEmail:"📧 We'll email you when it's ready",orderNum:"Your order number",
+      footer:{takeout:"Show this number when you pick up.",
+              "dine-in":"Sit back — your food will be brought to you!",
+              delivery:"Your order will be delivered to you 🛵"}
+    },
+    fr:{
+      confirmed:"Commande Confirmée!",kitchen:"Envoyée en cuisine 🍳",ready:"Prête dans",
+      notifyEmail:"📧 Nous vous enverrons un email quand prête",orderNum:"Votre numéro de commande",
+      footer:{takeout:"Montrez ce numéro au comptoir.",
+              "dine-in":"Restez assis — votre repas vous sera apporté!",
+              delivery:"Votre commande vous sera livrée 🛵"}
+    },
+    wo:{
+      confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",
+      notifyEmail:"📧 Dinañu yónni email bu sett",orderNum:"Numéro commande bi",
+      footer:{takeout:"Yëgël numéro bi bu nga ñëw.",
+              "dine-in":"Dëgël — dinañu ko indi ci sa tabël!",
+              delivery:"Dinañu ko indi ci sa adresse 🛵"}
+    }
   };
   const L=labels[currentLang];
+  const footerMsg=L.footer[(type||"takeout").toLowerCase()]||L.footer.takeout;
   // Render card with placeholder — real order number filled in after server responds
   w.innerHTML=`
     <div class="bl">${LANGS[currentLang].label}</div>
@@ -294,7 +339,7 @@ function addOrderCard(items,total,time,name,type,email){
         <div style="font-size:11px;color:#8a6a3a;margin-top:4px">${L.kitchen}</div>
       </div>
       ${email?`<div style="font-size:11px;color:#22c98a;text-align:center;margin-bottom:6px">${L.notifyEmail}</div>`:""}
-      <div style="font-size:11px;color:#8a6a3a;text-align:center">${L.footer}</div>
+      <div style="font-size:11px;color:#8a6a3a;text-align:center">${footerMsg}</div>
     </div>`;
   el.appendChild(w);
   el.scrollTop=el.scrollHeight;
