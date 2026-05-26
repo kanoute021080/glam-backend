@@ -8,6 +8,9 @@
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;overflow-x:hidden}
 .wrap{width:100%;max-width:420px}
+.lang-bar{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
+.lang-btn{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid #c2426e;background:transparent;color:#c2426e;cursor:pointer;font-weight:500}
+.lang-btn.active{background:#c2426e;color:#fff}
 .chat-hdr{background:#111;padding:12px 16px;display:flex;align-items:center;gap:10px;border-radius:12px 12px 0 0}
 .av{width:36px;height:36px;border-radius:50%;background:#c2426e;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
 .hdr-name{font-size:14px;font-weight:600;color:#f0f0ec}
@@ -34,22 +37,24 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
 </head>
 <body>
 <div class="wrap">
+
+  <!-- Language toggle -->
+  <div class="lang-bar">
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en',this)">🇺🇸 English</button>
+    <button class="lang-btn" id="btn-es" onclick="setLang('es',this)">🇪🇸 Español</button>
+  </div>
+
   <div class="chat-hdr">
     <div class="av" id="salon-av">CG</div>
     <div>
       <div class="hdr-name" id="salon-name">Crown & Glory Beauty</div>
-      <div class="hdr-status"><span class="dot"></span>AI receptionist · always open</div>
+      <div class="hdr-status"><span class="dot"></span><span id="status-text">AI receptionist · always open</span></div>
     </div>
   </div>
 
   <div class="chat-body" id="chat-body"></div>
 
-  <div class="quick-btns">
-    <button class="qbtn" onclick="send('Book an appointment')">📅 Book appointment</button>
-    <button class="qbtn" onclick="send('What are your prices?')">💰 Prices</button>
-    <button class="qbtn" onclick="send('Are you free Friday?')">📆 Availability</button>
-    <button class="qbtn" onclick="send('How long for braids?')">⏱ Duration</button>
-  </div>
+  <div class="quick-btns" id="quick-btns"></div>
 
   <div class="input-row">
     <input class="inp" id="inp" placeholder="Type a message..." onkeydown="if(event.key==='Enter')send()"/>
@@ -59,20 +64,21 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
   </div>
 
   <div class="footer">
-    Powered by AutoPilot Reception · 
-    <span onclick="openStatus()" style="color:#c2426e;cursor:pointer;font-weight:600">Check my booking →</span>
+    Powered by AutoPilot Reception ·
+    <span onclick="openStatus()" style="color:#c2426e;cursor:pointer;font-weight:600" id="check-link">Check my booking →</span>
   </div>
-  
+
+  <!-- Booking status modal -->
   <div id="status-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;padding:20px">
     <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:380px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:15px;font-weight:600;color:#111">Check booking status</div>
+        <div style="font-size:15px;font-weight:600;color:#111" id="modal-title">Check booking status</div>
         <button onclick="closeStatus()" style="background:none;border:none;font-size:20px;color:#aaa;cursor:pointer">×</button>
       </div>
       <div id="status-search">
-        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Your name</label>
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px" id="modal-label">Your name</label>
         <input id="status-name" placeholder="Enter the name used to book" style="width:100%;font-size:14px;padding:9px 12px;border:1px solid #ddd;border-radius:8px;outline:none;margin-bottom:10px"/>
-        <button onclick="checkStatus()" style="width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Check status</button>
+        <button onclick="checkStatus()" style="width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer" id="modal-btn">Check status</button>
       </div>
       <div id="status-result" style="display:none"></div>
     </div>
@@ -81,15 +87,119 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
 
 <script>
 const BACKEND="https://glam-backend-rxdf.onrender.com";
-const fmt=h=>h<12?h+"am":h===12?"12pm":(h-12)+"pm";
-let hist=[];
-let busy=false;
-
-// Settings loaded from backend
+let hist=[], busy=false, currentLang="en";
 let PAY={cashapp:"",venmo:"",zelle:""};
-let depositMode="required";
-let SYS="";
-  const slugMap={"theafricancrown":"salon3","freshcut":"salon2"}; const rawSlug=window.location.pathname.split("/").filter(Boolean).pop()||"salon1"; let currentSalonId=slugMap[rawSlug]||rawSlug;
+let depositMode="required", depositAmount=35, SYS="", salonData={};
+let clientBookings=[];
+
+const slugMap={"theafricancrown":"salon3","freshcut":"salon2"};
+const rawSlug=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
+const currentSalonId=slugMap[rawSlug]||rawSlug;
+
+// ── LANGUAGE STRINGS ─────────────────────────────────
+const LANGS={
+  en:{
+    status:"AI receptionist · always open",
+    placeholder:"Type a message...",
+    label:"Glam AI",
+    checkLink:"Check my booking →",
+    modalTitle:"Check booking status",
+    modalLabel:"Your name",
+    modalBtn:"Check status",
+    modalPlaceholder:"Enter the name used to book",
+    notFound:"No booking found",
+    notFoundSub:"We couldn't find a booking under that name. Make sure you use the same name you gave when booking.",
+    tryAgain:"Try again",
+    confirmed:"Confirmed ✓",
+    pendingDeposit:"Pending deposit",
+    pendingMsg:"Please send your deposit to confirm your slot.",
+    close:"Close",
+    looking:"Looking up your booking...",
+    couldNot:"Could not load booking. Try again.",
+    quick:["📅 Book appointment","💰 Prices","📆 Availability","⏱ Duration"],
+    quickMsgs:["Book an appointment","What are your prices?","Are you free Friday?","How long for braids?"],
+    welcome:(name)=>`Hey! Welcome to ${name}. I can help you book an appointment, check availability, or answer any questions. What can I do for you today?`,
+    depositLabel:(amt)=>`Send $${amt} deposit to confirm`,
+    depositSub:(svc,day,time,client)=>`${svc} · ${day} at ${time} · ${client}`,
+    depositFooter:"Include your name in the memo. Your slot is held for 2 hours pending deposit.",
+    optionalMsg:"A deposit is optional but helps secure your slot. You can pay above or just show up — we'll do our best to hold it for you!",
+    confirmedMsg:"Your appointment is confirmed! We look forward to seeing you 💅",
+    retryMsg:(t)=>`Having trouble connecting. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t}')">Tap to retry →</span>`,
+    system:(d,slots,depositText,depositInstruction)=>`You are the AI receptionist for ${d.salon_name||"this salon"} in ${d.location||"the local area"}. Be warm, friendly and concise. Reply in English.
+Services: ${d.services||"Ask the stylist for current services and pricing."}
+Hours: ${d.hours||"Call us for current hours."} ${depositText} Come with clean detangled hair.
+Availability: ${d.availability||"Contact us to check availability."} Already booked: ${slots}
+Remember the full conversation. Never restart. Collect service, day, time (use format like 9am, 10am, 2pm), client name. ${depositInstruction}
+Keep replies under 80 words. Plain text only. No asterisks.`
+  },
+  es:{
+    status:"Recepcionista IA · siempre disponible",
+    placeholder:"Escribe un mensaje...",
+    label:"Glam IA",
+    checkLink:"Ver mi reserva →",
+    modalTitle:"Verificar reserva",
+    modalLabel:"Tu nombre",
+    modalBtn:"Verificar",
+    modalPlaceholder:"Ingresa el nombre usado al reservar",
+    notFound:"Reserva no encontrada",
+    notFoundSub:"No encontramos una reserva con ese nombre. Asegúrate de usar el mismo nombre que diste al reservar.",
+    tryAgain:"Intentar de nuevo",
+    confirmed:"Confirmada ✓",
+    pendingDeposit:"Depósito pendiente",
+    pendingMsg:"Por favor envía tu depósito para confirmar tu cita.",
+    close:"Cerrar",
+    looking:"Buscando tu reserva...",
+    couldNot:"No se pudo cargar la reserva. Intenta de nuevo.",
+    quick:["📅 Reservar cita","💰 Precios","📆 Disponibilidad","⏱ Duración"],
+    quickMsgs:["Quiero reservar una cita","¿Cuáles son sus precios?","¿Hay disponibilidad el viernes?","¿Cuánto tiempo toman las trenzas?"],
+    welcome:(name)=>`¡Hola! Bienvenida a ${name}. Puedo ayudarte a reservar una cita, revisar disponibilidad o responder tus preguntas. ¿En qué te puedo ayudar hoy?`,
+    depositLabel:(amt)=>`Envía $${amt} de depósito para confirmar`,
+    depositSub:(svc,day,time,client)=>`${svc} · ${day} a las ${time} · ${client}`,
+    depositFooter:"Incluye tu nombre en el memo. Tu cita queda reservada por 2 horas mientras se confirma el depósito.",
+    optionalMsg:"El depósito es opcional pero ayuda a asegurar tu cita. Puedes pagar arriba o simplemente llegar — haremos lo posible por guardarte el turno.",
+    confirmedMsg:"¡Tu cita está confirmada! Con gusto te atenderemos 💅",
+    retryMsg:(t)=>`Problema de conexión. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t}')">Toca para reintentar →</span>`,
+    system:(d,slots,depositText,depositInstruction)=>`Eres la recepcionista IA de ${d.salon_name||"este salón"} en ${d.location||"el área local"}. Sé cálida, amigable y concisa. Responde siempre en español.
+Servicios: ${d.services||"Consulta con la estilista los servicios y precios actuales."}
+Horarios: ${d.hours||"Llámanos para conocer los horarios."} ${depositText} Ven con el cabello limpio y desenredado.
+Disponibilidad: ${d.availability||"Contáctanos para verificar disponibilidad."} Ya reservado: ${slots}
+Recuerda toda la conversación. No reinicies. Solicita: servicio, día, hora (formato como 9am, 10am, 2pm), nombre del cliente. ${depositInstruction}
+Respuestas de menos de 80 palabras. Solo texto simple. Sin asteriscos.`
+  }
+};
+
+// ── LANGUAGE SWITCH ───────────────────────────────────
+function setLang(lang, btn){
+  currentLang=lang;
+  document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  const L=LANGS[lang];
+  document.getElementById("status-text").textContent=L.status;
+  document.getElementById("inp").placeholder=L.placeholder;
+  document.getElementById("check-link").textContent=L.checkLink;
+  document.getElementById("modal-title").textContent=L.modalTitle;
+  document.getElementById("modal-label").textContent=L.modalLabel;
+  document.getElementById("modal-btn").textContent=L.modalBtn;
+  document.getElementById("status-name").placeholder=L.modalPlaceholder;
+  renderQuickBtns();
+  // Reload system prompt in new language and restart chat
+  if(Object.keys(salonData).length>0){
+    rebuildSystem(salonData).then(()=>{
+      document.getElementById("chat-body").innerHTML="";
+      hist=[];
+      addBubble("bot", L.welcome(salonData.salon_name||"our salon"));
+    });
+  }
+}
+
+function renderQuickBtns(){
+  const L=LANGS[currentLang];
+  document.getElementById("quick-btns").innerHTML=L.quick.map((label,i)=>
+    `<button class="qbtn" onclick="send('${L.quickMsgs[i].replace(/'/g,"\\'")}')">${label}</button>`
+  ).join("");
+}
+
+// ── SETTINGS & SYSTEM PROMPT ─────────────────────────
 async function getBookedSlots(){
   try{
     const res=await fetch(`${BACKEND}/bookings?salon_id=${currentSalonId}`,{cache:'no-store'});
@@ -98,46 +208,70 @@ async function getBookedSlots(){
     return bookings.map(b=>`${b.day} ${b.time} (${b.service})`).join(", ");
   }catch{return "none";}
 }
+
+async function rebuildSystem(d){
+  const slots=await getBookedSlots();
+  const lang=currentLang;
+  const amt=depositAmount;
+  let depositText, depositInstruction;
+  if(depositMode==="none"){
+    depositText= lang==="es"?"No se requiere depósito para reservar.":"No deposit required to book.";
+    depositInstruction= lang==="es"
+      ?`Una vez confirmada toda la info di exactamente: BOOKING_CONFIRMED:[servicio]:[día]:[hora]:[nombre]`
+      :`Once all info confirmed say exactly: BOOKING_CONFIRMED:[service]:[day]:[time]:[name]`;
+  } else if(depositMode==="optional"){
+    depositText= lang==="es"
+      ?`Un depósito de $${amt} es opcional pero recomendado para asegurar tu turno.`
+      :`A $${amt} deposit is optional but recommended to secure your slot.`;
+    depositInstruction= lang==="es"
+      ?`Una vez confirmada toda la info di exactamente: DEPOSIT_DUE:$${amt}:[servicio]:[día]:[hora]:[nombre]`
+      :`Once all info confirmed say exactly: DEPOSIT_DUE:$${amt}:[service]:[day]:[time]:[name]`;
+  } else {
+    depositText= lang==="es"
+      ?`Se requiere un depósito de $${amt} para asegurar tu turno.`
+      :`A $${amt} deposit is required to secure your slot.`;
+    depositInstruction= lang==="es"
+      ?`Una vez confirmada toda la info di exactamente: DEPOSIT_DUE:$${amt}:[servicio]:[día]:[hora]:[nombre]`
+      :`Once all info confirmed say exactly: DEPOSIT_DUE:$${amt}:[service]:[day]:[time]:[name]`;
+  }
+  SYS=LANGS[lang].system(d, slots, depositText, depositInstruction);
+}
+
 async function loadSettings(){
-  const slugMap = {"theafricancrown":"salon3", "freshcut":"salon2"}; const rawSlug = window.location.pathname.split("/").filter(Boolean).pop()||"salon1"; const salonId = slugMap[rawSlug] || rawSlug;
   try{
-    const res=await fetch(`${BACKEND}/settings/${salonId}`);
+    const res=await fetch(`${BACKEND}/settings/${currentSalonId}`);
     if(!res.ok) throw new Error();
     const d=await res.json();
-    document.getElementById("salon-name").textContent = d.salon_name || "Our Salon";
-    const initials = d.salon_name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-    document.getElementById("salon-av").textContent = initials;
+    salonData=d;
+    document.getElementById("salon-name").textContent=d.salon_name||"Our Salon";
+    const initials=(d.salon_name||"GS").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+    document.getElementById("salon-av").textContent=initials;
     depositMode=d.deposit_mode||"required";
+    depositAmount=d.deposit_amount||35;
     PAY={cashapp:d.cashapp||"",venmo:d.venmo||"",zelle:d.zelle||""};
-    const depositAmount=d.deposit_amount||35;
-    const depositText=depositMode==="none"
-      ?"No deposit required to book."
-      :depositMode==="optional"
-        ?`A $${depositAmount} deposit is optional but recommended to secure your slot.`
-        :`A $${depositAmount} deposit is required to secure your slot.`;
-    const depositInstruction=depositMode==="none"
-      ?"Once all info confirmed say exactly: BOOKING_CONFIRMED:[service]:[day]:[time]:[name]"
-      :`Once all info confirmed say exactly: DEPOSIT_DUE:$${depositAmount}:[service]:[day]:[time]:[name]`;
-    SYS=`You are the AI receptionist for ${d.salon_name||"this salon"} in ${d.location||"the local area"}. Be warm, friendly and concise.
-Services: ${d.services||"Ask the stylist for current services and pricing."}
-Hours: ${d.hours||"Call us for current hours."} ${depositText} Come with clean detangled hair.
-Availability: ${d.availability||"Contact us to check availability."} Already booked: ${await getBookedSlots()}
-Remember the full conversation. Never restart. Collect service, day, time (use format like 9am, 10am, 2pm), client name. ${depositInstruction}
-Keep replies under 80 words. Plain text only. No asterisks.`;
-    addBubble("bot",`Hey! Welcome to ${d.salon_name||"our salon"}. I can help you book an appointment, check availability, or answer any questions. What can I do for you today?`);
+    await rebuildSystem(d);
+    renderQuickBtns();
+    addBubble("bot", LANGS[currentLang].welcome(d.salon_name||"our salon"));
   }catch{
     depositMode="required";
+    depositAmount=35;
     SYS=`You are an AI receptionist for a hair salon. Be warm and helpful. Collect service, day, time, and client name. Once confirmed say: DEPOSIT_DUE:$35:[service]:[day]:[time]:[name]. Keep replies under 80 words. Plain text only.`;
-    addBubble("bot","Hey! Welcome. I can help you book an appointment, check availability, or answer any questions. What can I do for you today?");
+    renderQuickBtns();
+    addBubble("bot", LANGS[currentLang].welcome("our salon"));
   }
 }
 
-
+// ── BUBBLES ───────────────────────────────────────────
 function addBubble(role,text){
   const el=document.getElementById("chat-body");
   const w=document.createElement("div");
   w.className=`bubble-wrap ${role}`;
-  if(role==="bot"){const l=document.createElement("div");l.className="bubble-label";l.textContent="Glam AI";w.appendChild(l);}
+  if(role==="bot"){
+    const l=document.createElement("div");
+    l.className="bubble-label";
+    l.textContent=LANGS[currentLang].label;
+    w.appendChild(l);
+  }
   const b=document.createElement("div");
   b.className=`bubble ${role}`;
   b.textContent=text;
@@ -147,14 +281,15 @@ function addBubble(role,text){
 }
 
 function addPayCard(svc,day,time,client){
+  const L=LANGS[currentLang];
   const el=document.getElementById("chat-body");
   const w=document.createElement("div");
   w.className="bubble-wrap bot";
   w.innerHTML=`
-    <div class="bubble-label">Glam AI</div>
+    <div class="bubble-label">${L.label}</div>
     <div class="pay-card">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:3px">Send $35 deposit to confirm</div>
-      <div style="font-size:12px;color:#888;margin-bottom:12px">${svc} · ${day} at ${time} · ${client}</div>
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:3px">${L.depositLabel(depositAmount)}</div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">${L.depositSub(svc,day,time,client)}</div>
       <a href="https://cash.app/${PAY.cashapp}" target="_blank" class="pay-link" style="background:#1a9e3f">
         <span style="font-size:16px;color:#fff;font-weight:700">$</span>
         <div><div style="font-size:13px;font-weight:600;color:#fff">Cash App</div><div style="font-size:11px;color:#a8f0bc">${PAY.cashapp}</div></div>
@@ -167,12 +302,13 @@ function addPayCard(svc,day,time,client){
         <span style="font-size:16px;color:#fff;font-weight:700">Z</span>
         <div><div style="font-size:13px;font-weight:600;color:#fff">Zelle</div><div style="font-size:11px;color:#dbb8f0">${PAY.zelle}</div></div>
       </div>
-      <div style="font-size:11px;color:#aaa;margin-top:10px">Include your name in the memo. Your slot is held for 2 hours pending deposit.</div>
+      <div style="font-size:11px;color:#aaa;margin-top:10px">${L.depositFooter}</div>
     </div>`;
   el.appendChild(w);
   el.scrollTop=el.scrollHeight;
 }
 
+// ── SEND ──────────────────────────────────────────────
 async function send(txt){
   const inp=document.getElementById("inp");
   const t=txt||(inp?inp.value.trim():"");
@@ -181,10 +317,11 @@ async function send(txt){
   addBubble("user",t);
   hist.push({role:"user",content:t});
   busy=true;
+  const L=LANGS[currentLang];
   const typing=document.createElement("div");
   typing.className="bubble-wrap bot";
   typing.id="typing";
-  typing.innerHTML='<div class="bubble-label">Glam AI</div><div class="bubble bot" style="color:#aaa">typing...</div>';
+  typing.innerHTML=`<div class="bubble-label">${L.label}</div><div class="bubble bot" style="color:#aaa">typing...</div>`;
   document.getElementById("chat-body").appendChild(typing);
   document.getElementById("chat-body").scrollTop=9999;
   try{
@@ -203,20 +340,22 @@ async function send(txt){
     if(reply)addBubble("bot",reply);
     if(dm){
       const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
-fetch(BACKEND+"/bookings",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId})
-}).then(r=>{
-  if(r.status===409){
-    const conflictMsg="Sorry, that time slot is already taken! What other day or time works for you?";
-    addBubble("bot", conflictMsg);
-    hist.push({role:"assistant", content: conflictMsg});
-  }
-}).catch(()=>{});
+      fetch(BACKEND+"/bookings",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId,source:"chat",language:currentLang})
+      }).then(r=>{
+        if(r.status===409){
+          const msg=currentLang==="es"
+            ?"¡Lo siento, ese horario ya está ocupado! ¿Qué otro día u hora te funciona?"
+            :"Sorry, that time slot is already taken! What other day or time works for you?";
+          addBubble("bot",msg);
+          hist.push({role:"assistant",content:msg});
+        }
+      }).catch(()=>{});
       if(depositMode==="optional"){
         addPayCard(svc,day,time,client);
-        addBubble("bot","A deposit is optional but helps secure your slot. You can pay above or just show up — we'll do our best to hold it for you!");
+        addBubble("bot",L.optionalMsg);
       } else {
         addPayCard(svc,day,time,client);
       }
@@ -226,17 +365,16 @@ fetch(BACKEND+"/bookings",{
       fetch(BACKEND+"/bookings",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId})
+        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId,source:"chat",language:currentLang})
       }).catch(()=>{});
-      clientBookings.push({client,service:svc,day,time,status:"confirmed",deposit:false,id:Date.now()});
-      addBubble("bot","Your appointment is confirmed! We look forward to seeing you 💅");
+      addBubble("bot",L.confirmedMsg);
     }
   }catch{
     document.getElementById("typing")?.remove();
     const el=document.getElementById("chat-body");
     const w=document.createElement("div");
     w.className="bubble-wrap bot";
-    w.innerHTML=`<div class="bubble-label">Glam AI</div><div class="bubble bot" style="color:#888">Having trouble connecting. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t.replace(/'/g,"\\'")}')">Tap to retry →</span></div>`;
+    w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="bubble bot" style="color:#888">${L.retryMsg(t.replace(/'/g,"\\'"))}</div>`;
     el.appendChild(w);
     el.scrollTop=el.scrollHeight;
     hist.pop();
@@ -244,11 +382,14 @@ fetch(BACKEND+"/bookings",{
   busy=false;
 }
 
-// Booking status check
-let clientBookings=[];
-
+// ── STATUS MODAL ──────────────────────────────────────
 function openStatus(){
+  const L=LANGS[currentLang];
   document.getElementById("status-modal").style.display="flex";
+  document.getElementById("modal-title").textContent=L.modalTitle;
+  document.getElementById("modal-label").textContent=L.modalLabel;
+  document.getElementById("modal-btn").textContent=L.modalBtn;
+  document.getElementById("status-name").placeholder=L.modalPlaceholder;
   document.getElementById("status-name").value="";
   document.getElementById("status-result").style.display="none";
   document.getElementById("status-search").style.display="block";
@@ -261,169 +402,45 @@ function closeStatus(){
 async function checkStatus(){
   const name=document.getElementById("status-name").value.trim();
   if(!name)return;
+  const L=LANGS[currentLang];
   const result=document.getElementById("status-result");
   const search=document.getElementById("status-search");
   search.style.display="none";
   result.style.display="block";
-  result.innerHTML='<div style="text-align:center;padding:20px;color:#aaa;font-size:13px">Looking up your booking...</div>';
-
+  result.innerHTML=`<div style="text-align:center;padding:20px;color:#aaa;font-size:13px">${L.looking}</div>`;
   try{
-    const salonId=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
-
-    const res=await fetch(`${BACKEND}/bookings/search?name=${encodeURIComponent(name)}&salon_id=${salonId}`,{cache:"no-store"});
+    const res=await fetch(`${BACKEND}/bookings/search?name=${encodeURIComponent(name)}&salon_id=${currentSalonId}`,{cache:"no-store"});
     const bookings=await res.json();
-
     if(!Array.isArray(bookings)||bookings.length===0){
       result.innerHTML=`
         <div style="text-align:center;padding:10px 0">
           <div style="font-size:32px;margin-bottom:8px">🔍</div>
-          <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:6px">No booking found</div>
-          <div style="font-size:13px;color:#888;margin-bottom:14px">We couldn't find a booking under that name. Make sure you use the same name you gave when booking.</div>
-          <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">Try again</button>
+          <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:6px">${L.notFound}</div>
+          <div style="font-size:13px;color:#888;margin-bottom:14px">${L.notFoundSub}</div>
+          <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button>
         </div>`;
       return;
     }
-
     const b=bookings[0];
     const statusColor=b.status==="confirmed"?"#0F6E56":"#633806";
     const statusBg=b.status==="confirmed"?"#eafaf1":"#FAEEDA";
+    const statusLabel=b.status==="confirmed"?L.confirmed:L.pendingDeposit;
     result.innerHTML=`
       <div style="text-align:center;padding:10px 0">
         <div style="font-size:32px;margin-bottom:8px">${b.status==="confirmed"?"✅":"⏳"}</div>
         <div style="font-size:15px;font-weight:600;color:#111;margin-bottom:4px">${b.service}</div>
         <div style="font-size:13px;color:#888;margin-bottom:12px">${b.day} at ${b.time||b.hour+"am"} · ${b.client}</div>
-        <span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:${statusBg};color:${statusColor}">${b.status==="confirmed"?"Confirmed ✓":"Pending deposit"}</span>
-        ${b.status==="pending"?`<div style="font-size:12px;color:#888;margin-top:12px">Please send your deposit to confirm your slot.</div>`:""}
-        <button onclick="closeStatus()" style="display:block;width:100%;margin-top:14px;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Close</button>
+        <span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:${statusBg};color:${statusColor}">${statusLabel}</span>
+        ${b.status==="pending"?`<div style="font-size:12px;color:#888;margin-top:12px">${L.pendingMsg}</div>`:""}
+        <button onclick="closeStatus()" style="display:block;width:100%;margin-top:14px;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${L.close}</button>
       </div>`;
   }catch{
     result.innerHTML=`
       <div style="text-align:center;padding:10px 0">
-        <div style="font-size:13px;color:#888">Could not load booking. Try again.</div>
-        <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;margin-top:10px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">Try again</button>
+        <div style="font-size:13px;color:#888">${L.couldNot}</div>
+        <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;margin-top:10px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button>
       </div>`;
   }
-}
-
-// Booking modal
-function showBookingModal(svc, client) {
-  const existing = document.getElementById("booking-modal");
-  if (existing) existing.remove();
-
-  const today = new Date();
-  const modal = document.createElement("div");
-  modal.id = "booking-modal";
-  modal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:flex-end;justify-content:center;padding:0";
-
-  // Generate next 14 days
-  const days = [];
-  for (let i = 1; i <= 14; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    days.push(d);
-  }
-
-  const times = ["9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","12:00 PM","1:00 PM","1:30 PM","2:00 PM","2:30 PM","3:00 PM","3:30 PM","4:00 PM","4:30 PM"];
-
-  modal.innerHTML = `
-    <div style="background:#fff;width:100%;max-width:420px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:15px;font-weight:600;color:#111">Select date & time</div>
-        <button onclick="document.getElementById('booking-modal').remove()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer">×</button>
-      </div>
-      <div style="font-size:13px;color:#888;margin-bottom:14px">${svc} · ${client}</div>
-
-      <div style="font-size:12px;font-weight:600;color:#111;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Select a date</div>
-      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px" id="date-picker">
-        ${days.map((d, i) => `
-          <div onclick="selectDate(${i})" id="date-${i}" style="flex-shrink:0;width:56px;text-align:center;padding:10px 6px;border-radius:12px;border:1px solid #eee;cursor:pointer;background:#fff">
-            <div style="font-size:10px;color:#888;text-transform:uppercase">${d.toLocaleDateString('en-US',{weekday:'short'})}</div>
-            <div style="font-size:18px;font-weight:500;color:#111;margin:2px 0">${d.getDate()}</div>
-            <div style="font-size:10px;color:#888">${d.toLocaleDateString('en-US',{month:'short'})}</div>
-          </div>`).join("")}
-      </div>
-
-      <div style="font-size:12px;font-weight:600;color:#111;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Select a time</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px" id="time-picker">
-        ${times.map((t, i) => `
-          <div onclick="selectTime(${i})" id="time-${i}" style="text-align:center;padding:10px 6px;border-radius:10px;border:1px solid #eee;cursor:pointer;font-size:12px;color:#444;background:#fff">${t}</div>`).join("")}
-      </div>
-
-      <div style="font-size:12px;font-weight:600;color:#111;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Your details</div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
-        <input id="bk-fname" placeholder="First name" style="padding:10px 12px;border:1px solid #eee;border-radius:10px;font-size:13px;outline:none"/>
-        <input id="bk-lname" placeholder="Last name" style="padding:10px 12px;border:1px solid #eee;border-radius:10px;font-size:13px;outline:none"/>
-        <input id="bk-phone" placeholder="Phone number" type="tel" style="padding:10px 12px;border:1px solid #eee;border-radius:10px;font-size:13px;outline:none"/>
-        <input id="bk-email" placeholder="Email address" type="email" style="padding:10px 12px;border:1px solid #eee;border-radius:10px;font-size:13px;outline:none"/>
-      </div>
-
-      <button onclick="confirmModalBooking('${svc}','${client}')" style="width:100%;padding:14px;background:#111;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">Confirm booking</button>
-      <p style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">$35 deposit required to hold your slot</p>
-    </div>`;
-
-  document.body.appendChild(modal);
-}
-
-let selectedDate = null;
-let selectedTime = null;
-
-function selectDate(i) {
-  document.querySelectorAll("[id^='date-']").forEach(el => {
-    el.style.background = "#fff";
-    el.style.borderColor = "#eee";
-    el.querySelector("div:nth-child(2)").style.color = "#111";
-  });
-  const el = document.getElementById("date-" + i);
-  el.style.background = "#111";
-  el.style.borderColor = "#111";
-  el.querySelector("div:nth-child(2)").style.color = "#fff";
-  el.querySelectorAll("div").forEach(d => d.style.color = "#fff");
-  selectedDate = i;
-}
-
-function selectTime(i) {
-  document.querySelectorAll("[id^='time-']").forEach(el => {
-    el.style.background = "#fff";
-    el.style.borderColor = "#eee";
-    el.style.color = "#444";
-  });
-  const el = document.getElementById("time-" + i);
-  el.style.background = "#111";
-  el.style.borderColor = "#111";
-  el.style.color = "#fff";
-  selectedTime = i;
-}
-
-async function confirmModalBooking(svc, client) {
-  const fname = document.getElementById("bk-fname").value.trim();
-  const lname = document.getElementById("bk-lname").value.trim();
-  const phone = document.getElementById("bk-phone").value.trim();
-  const email = document.getElementById("bk-email").value.trim();
-  const times = ["9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","12:00 PM","1:00 PM","1:30 PM","2:00 PM","2:30 PM","3:00 PM","3:30 PM","4:00 PM","4:30 PM"];
-
-  if (selectedDate === null) { alert("Please select a date."); return; }
-  if (selectedTime === null) { alert("Please select a time."); return; }
-  if (!fname || !phone) { alert("Please enter your first name and phone number."); return; }
-
-  const today = new Date();
-  const d = new Date(today);
-  d.setDate(today.getDate() + selectedDate + 1);
-  const dateStr = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
-  const timeStr = times[selectedTime];
-  const fullName = fname + (lname ? " " + lname : "");
-
-  // Save to backend
-  const salonId = window.location.pathname.split("/")[2] || "default";
-  await fetch(BACKEND + "/bookings", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ client: fullName, service: svc, day: dateStr, time: timeStr, amount: 0, salon_id: salonId, phone, email })
-  }).catch(() => {});
-
-  document.getElementById("booking-modal").remove();
-  if(depositMode!=="none") addPayCard(svc, dateStr, timeStr, fullName);
-  else addBubble("bot","Your appointment is confirmed! We look forward to seeing you 💅");
-  clientBookings.push({ client: fullName, service: svc, day: dateStr, time: timeStr, status: "pending", deposit: false });
 }
 
 loadSettings();
