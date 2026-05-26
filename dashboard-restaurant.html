@@ -178,6 +178,11 @@ async function updateOrderStatus(id, status){
   }catch{}
 }
 
+function orderBadge(num){
+  if(!num) return "";
+  return '<span style="font-size:12px;font-weight:700;color:#c17f24;background:#fff8ee;padding:2px 8px;border-radius:6px;border:1px solid #c17f24">#'+num+'</span>';
+}
+
 function renderOrders(){
   const pending=orders.filter(o=>o.status==="pending");
   const active=orders.filter(o=>o.status==="confirmed"||o.status==="ready");
@@ -190,7 +195,10 @@ function renderOrders(){
         <div style="padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid #f0f0f0">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
             <div>
-              <div style="font-size:13px;font-weight:600;color:#111">${o.customer_name}</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="font-size:13px;font-weight:600;color:#111">${o.customer_name}</div>
+                ${orderBadge(o.order_number)}
+              </div>
               <div style="font-size:12px;color:#888">${o.order_type} · ${srcBadge(o.source||"chat")}</div>
               <div style="font-size:13px;color:#c17f24;font-weight:500;margin-top:4px">${o.items}</div>
               <div style="font-size:12px;color:#888">Total: ${o.total} · Est: ${o.estimated_time}</div>
@@ -210,7 +218,10 @@ function renderOrders(){
         <div style="padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid #f0f0f0">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
             <div>
-              <div style="font-size:13px;font-weight:600;color:#111">${o.customer_name}</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="font-size:13px;font-weight:600;color:#111">${o.customer_name}</div>
+                ${orderBadge(o.order_number)}
+              </div>
               <div style="font-size:12px;color:#888">${o.order_type} · ⏱️ ${o.estimated_time}</div>
               <div style="font-size:13px;color:#c17f24;margin-top:2px">${o.items}</div>
             </div>
