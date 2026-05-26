@@ -272,15 +272,20 @@ function addOrderCard(items,total,time,name,type,email){
   const w=document.createElement("div");
   w.className="bw-bot";
   const labels={
-    en:{confirmed:"Order Confirmed!",kitchen:"Sent to kitchen 🍳",ready:"Ready in",footer:"Thank you! We look forward to serving you.",notifyEmail:"📧 We'll email you when it's ready"},
-    fr:{confirmed:"Commande Confirmée!",kitchen:"Envoyée en cuisine 🍳",ready:"Prête dans",footer:"Merci! Nous avons hâte de vous servir.",notifyEmail:"📧 Nous vous enverrons un email quand prête"},
-    wo:{confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",footer:"Jërëjëf! Ñu xam ñu def la.",notifyEmail:"📧 Dinañu yónni email bu sett"}
+    en:{confirmed:"Order Confirmed!",kitchen:"Sent to kitchen 🍳",ready:"Ready in",footer:"Show this number when you pick up.",notifyEmail:"📧 We'll email you when it's ready",orderNum:"Your order number"},
+    fr:{confirmed:"Commande Confirmée!",kitchen:"Envoyée en cuisine 🍳",ready:"Prête dans",footer:"Montrez ce numéro au comptoir.",notifyEmail:"📧 Nous vous enverrons un email quand prête",orderNum:"Votre numéro de commande"},
+    wo:{confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",footer:"Yëgël numéro bi bu nga ñëw.",notifyEmail:"📧 Dinañu yónni email bu sett",orderNum:"Numéro commande bi"}
   };
   const L=labels[currentLang];
+  // Render card with placeholder — real order number filled in after server responds
   w.innerHTML=`
     <div class="bl">${LANGS[currentLang].label}</div>
     <div class="order-card">
       <div style="font-size:14px;font-weight:700;color:#c17f24;margin-bottom:8px">✅ ${L.confirmed}</div>
+      <div style="background:#1a0a00;border-radius:10px;padding:12px;text-align:center;margin-bottom:10px;border:1px solid #c17f24">
+        <div style="font-size:11px;color:#8a6a3a;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">${L.orderNum}</div>
+        <div id="order-num-display" style="font-size:32px;font-weight:700;color:#c17f24;letter-spacing:2px">...</div>
+      </div>
       <div style="font-size:13px;color:#f5e6c8;margin-bottom:4px">🍽️ ${items}</div>
       <div style="font-size:13px;color:#f5e6c8;margin-bottom:4px">💰 Total: ${total}</div>
       <div style="font-size:13px;color:#f5e6c8;margin-bottom:10px">👤 ${name} · ${type}</div>
@@ -298,6 +303,9 @@ function addOrderCard(items,total,time,name,type,email){
     body:JSON.stringify({customer_name:name,customer_email:email||null,items,total:parseFloat(String(total).replace(/[^0-9.]/g,"")),order_type:type,estimated_time:time,salon_id:salonId,source:"chat",language:currentLang,status:"pending"})
   }).then(r=>r.json()).then(d=>{
     if(d&&d.id) startOrderPolling(d.id,name);
+    // Fill in the real order number once server responds
+    const numEl=w.querySelector("#order-num-display");
+    if(numEl) numEl.textContent=d&&d.order_number?"#"+d.order_number:"#"+Math.floor(1000+Math.random()*9000);
   }).catch(e=>console.error("Order error:",e));
 }
 
