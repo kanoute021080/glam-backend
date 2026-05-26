@@ -4,6 +4,32 @@ const path = require("path");
 const app = express();
 
 const RESEND_KEY = process.env.RESEND_KEY;
+const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
+const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+const TWILIO_PHONE = process.env.TWILIO_PHONE;
+
+async function sendSMS(to, body) {
+  if (!TWILIO_SID || !TWILIO_TOKEN || !TWILIO_PHONE) {
+    console.log("[sms] Twilio not configured, skipping");
+    return;
+  }
+  const clean = String(to).replace(/[^0-9+]/g, "");
+  if (!clean) return;
+  try {
+    const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`, {
+      method: "POST",
+      headers: {
+        "Authorization": "Basic " + Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString("base64"),
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({ From: TWILIO_PHONE, To: clean, Body: body }).toString()
+    });
+    const d = await res.json();
+    console.log(`[sms] sent to ${clean} — sid: ${d.sid || d.message}`);
+  } catch (e) {
+    console.error("[sms] error:", e.message);
+  }
+}
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
@@ -103,6 +129,15 @@ app.post("/orders", async (req, res) => {
     supabase("GET", `salon_settings?salon_id=eq.${sid}&limit=1`).then(settings => {
       const ownerEmail = settings?.[0]?.owner_email;
       const restaurantName = settings?.[0]?.salon_name || sid;
+      const kitchenPhone = settings?.[0]?.kitchen_phone;
+
+      // ── Kitchen SMS notification ──
+      if (kitchenPhone) {
+        const orderNum = Array.isArray(data) ? data[0]?.order_number : data?.order_number;
+        const smsBody = `🍽️ NEW ORDER #${orderNum||""}\nCustomer: ${customer_name}\nItems: ${items}\nTotal: $${total}\nType: ${order_type||"takeout"}\nETA: ${estimated_time||"25-30 mins"}`;
+        sendSMS(kitchenPhone, smsBody).catch(e => console.error("[kitchen-sms]", e));
+      }
+
       if (!ownerEmail || !RESEND_KEY) {
         console.log(`[orders] skip email — ownerEmail=${!!ownerEmail} resendKey=${!!RESEND_KEY}`);
         return;
@@ -432,22 +467,31 @@ app.get('/settings/:salon_id', async (req, res) => {
       zelle: salon.zelle,
       phone: salon.phone,
       active_period: salon.active_period,   // ← NEW: dashboard reads this on load
+      kitchen_phone: salon.kitchen_phone,
+      owner_email: salon.owner_email,
     });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// ── CHANGE 3: New PATCH /settings/:salon_id — owner sets active period ──
+// ── CHANGE 3: PATCH /settings/:salon_id — owner updates settings ──
 app.patch('/settings/:salon_id', async (req, res) => {
   const { salon_id } = req.params;
-  const { active_period } = req.body;
-  if (!["breakfast", "lunch", "dinner"].includes(active_period)) {
-    return res.status(400).json({ error: "Invalid period. Must be breakfast, lunch, or dinner." });
+  const { active_period, kitchen_phone, owner_email, phone } = req.body;
+  const update = {};
+  if (active_period && ["breakfast", "lunch", "dinner"].includes(active_period)) {
+    update.active_period = active_period;
+  }
+  if (kitchen_phone !== undefined) update.kitchen_phone = kitchen_phone;
+  if (owner_email !== undefined) update.owner_email = owner_email;
+  if (phone !== undefined) update.phone = phone;
+  if (Object.keys(update).length === 0) {
+    return res.status(400).json({ error: "No valid fields to update." });
   }
   try {
-    await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, { active_period });
-    res.json({ ok: true, active_period });
+    await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, update);
+    res.json({ ok: true, ...update });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
