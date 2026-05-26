@@ -13,6 +13,9 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
 .hdr-name{font-size:14px;font-weight:600;color:#111}
 .hdr-sub{font-size:11px;color:#888}
 .badge-pr{font-size:10px;background:#c2426e;color:#fff;padding:3px 9px;border-radius:20px;font-weight:600}
+.lang-bar{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
+.lang-btn{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid #c2426e;background:transparent;color:#c2426e;cursor:pointer;font-weight:500}
+.lang-btn.active{background:#c2426e;color:#fff}
 .nav{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto}
 .nav button{flex:1;padding:8px 4px;font-size:11px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;font-weight:500;white-space:nowrap}
 .nav button.active{background:#111;color:#fff;border-color:#111;font-weight:600}
@@ -29,16 +32,12 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
 .btn-d{padding:7px 14px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid #fca5a5;background:transparent;color:#dc2626;cursor:pointer}
 .toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:9px 18px;border-radius:10px;font-size:13px;z-index:999;white-space:nowrap;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
 .inp{width:100%;padding:8px 10px;border:1px solid #eee;border-radius:8px;font-size:13px;outline:none;background:#fff}
-.chat-body{height:280px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;background:#f5f5f3;border-radius:8px;margin-bottom:8px}
 .bw-bot{align-items:flex-start;display:flex;flex-direction:column}
 .bw-user{align-items:flex-end;display:flex;flex-direction:column}
 .bl{font-size:10px;color:#aaa;margin-bottom:2px}
 .bb{font-size:13px;line-height:1.6;padding:8px 12px;max-width:82%}
 .bb-bot{background:#fff;color:#111;border:1px solid #eee;border-radius:4px 12px 12px 12px}
 .bb-user{background:#111;color:#f0f0ec;border-radius:12px 4px 12px 12px}
-.pay-link{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;text-decoration:none;margin-bottom:5px}
-
-/* Settings styles */
 .set-section{background:#fff;border:1px solid #eee;border-radius:10px;overflow:hidden;margin-bottom:10px}
 .set-hdr{padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px}
 .set-icon{font-size:14px}
@@ -74,23 +73,28 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
 <div class="app">
   <div class="toast" id="toast"></div>
 
+  <!-- Language toggle -->
+  <div class="lang-bar">
+    <button class="lang-btn active" onclick="setLang('en',this)">🇺🇸 English</button>
+    <button class="lang-btn" onclick="setLang('es',this)">🇪🇸 Español</button>
+  </div>
+
   <div class="hdr">
     <div style="display:flex;align-items:center;gap:8px">
       <div class="av" id="salon-av">HG</div>
       <div>
         <div class="hdr-name" id="salon-name">Hollywood Glam Beauty</div>
-        <div class="hdr-sub">Owner dashboard · Dianke.ai</div>
+        <div class="hdr-sub" id="hdr-sub">Owner dashboard · Dianke.ai</div>
       </div>
     </div>
-    <span class="badge-pr">Premium</span>
+    <span class="badge-pr" id="badge-pr">Premium</span>
   </div>
 
   <div class="nav">
-    <button class="active" onclick="switchTab('home',this)">Home</button>
-    <button onclick="switchTab('bookings',this)" id="tab-bookings">Bookings</button>
-    <button onclick="switchTab('messages',this)" id="tab-messages">Messages</button>
-    
-    <button onclick="switchTab('settings',this)">⚙️ Settings</button>
+    <button class="active" id="nav-home" onclick="switchTab('home',this)">Home</button>
+    <button id="nav-bookings" onclick="switchTab('bookings',this)">Bookings</button>
+    <button id="nav-messages" onclick="switchTab('messages',this)">Messages</button>
+    <button id="nav-settings" onclick="switchTab('settings',this)">⚙️ Settings</button>
   </div>
 
   <div id="home"></div>
@@ -99,35 +103,29 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
     <div id="inbox"></div>
     <div id="thread" style="display:none"></div>
   </div>
- 
+
   <div id="settings" style="display:none;padding-bottom:70px">
-    <!-- Password row -->
     <div class="pw-row">
-      <label>Admin password</label>
+      <label id="lbl-adminpw">Admin password</label>
       <input type="password" id="set-password" placeholder="Enter to save changes"/>
     </div>
-
-    <!-- Deposit Policy -->
     <div class="set-section">
-      <div class="set-hdr">
-        <span class="set-icon">💳</span>
-        <div class="set-title">Deposit Policy</div>
-      </div>
+      <div class="set-hdr"><span class="set-icon">💳</span><div class="set-title" id="lbl-deposit-title">Deposit Policy</div></div>
       <div class="set-body">
         <div class="dep-option" id="opt-required" onclick="setDeposit('required')">
           <div class="radio-dot"></div>
-          <div><div class="dep-label">Required</div><div class="dep-desc">Client must pay deposit before slot is confirmed</div></div>
+          <div><div class="dep-label" id="lbl-required">Required</div><div class="dep-desc" id="desc-required">Client must pay deposit before slot is confirmed</div></div>
         </div>
         <div class="dep-option" id="opt-optional" onclick="setDeposit('optional')">
           <div class="radio-dot"></div>
-          <div><div class="dep-label">Optional</div><div class="dep-desc">AI mentions deposit as a way to secure the slot</div></div>
+          <div><div class="dep-label" id="lbl-optional">Optional</div><div class="dep-desc" id="desc-optional">AI mentions deposit as a way to secure the slot</div></div>
         </div>
         <div class="dep-option" id="opt-none" onclick="setDeposit('none')">
           <div class="radio-dot"></div>
-          <div><div class="dep-label">No deposit</div><div class="dep-desc">Booking confirmed instantly with no payment step</div></div>
+          <div><div class="dep-label" id="lbl-none">No deposit</div><div class="dep-desc" id="desc-none">Booking confirmed instantly with no payment step</div></div>
         </div>
         <div class="amount-row" id="amount-row">
-          <span style="font-size:13px;color:#888">Deposit amount</span>
+          <span style="font-size:13px;color:#888" id="lbl-deposit-amount">Deposit amount</span>
           <div style="display:flex;align-items:center;border:1px solid #eee;border-radius:8px;overflow:hidden">
             <span style="padding:7px 10px;font-size:13px;color:#888;border-right:1px solid #eee;background:#f5f5f3">$</span>
             <input id="deposit-amount" type="number" min="1" max="500" value="35" oninput="markDirty()" style="width:70px;border:none;padding:7px 10px;font-size:13px;outline:none"/>
@@ -135,71 +133,34 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
         </div>
       </div>
     </div>
-
-    <!-- Payment Handles -->
     <div class="set-section" id="payment-section">
-      <div class="set-hdr">
-        <span class="set-icon">💰</span>
-        <div class="set-title">Payment Handles</div>
-      </div>
+      <div class="set-hdr"><span class="set-icon">💰</span><div class="set-title" id="lbl-payment-title">Payment Handles</div></div>
       <div class="set-body">
-        <div class="set-field">
-          <label>Cash App</label>
-          <div class="field-with-prefix"><span class="field-prefix">$</span><input id="s-cashapp" placeholder="YourHandle" oninput="markDirty()"/></div>
-        </div>
-        <div class="set-field">
-          <label>Venmo</label>
-          <div class="field-with-prefix"><span class="field-prefix">@</span><input id="s-venmo" placeholder="YourHandle" oninput="markDirty()"/></div>
-        </div>
-        <div class="set-field">
-          <label>Zelle</label>
-          <div class="field-with-prefix"><span class="field-prefix">📧</span><input id="s-zelle" placeholder="email or phone" oninput="markDirty()"/></div>
-        </div>
+        <div class="set-field"><label>Cash App</label><div class="field-with-prefix"><span class="field-prefix">$</span><input id="s-cashapp" placeholder="YourHandle" oninput="markDirty()"/></div></div>
+        <div class="set-field"><label>Venmo</label><div class="field-with-prefix"><span class="field-prefix">@</span><input id="s-venmo" placeholder="YourHandle" oninput="markDirty()"/></div></div>
+        <div class="set-field"><label>Zelle</label><div class="field-with-prefix"><span class="field-prefix">📧</span><input id="s-zelle" placeholder="email or phone" oninput="markDirty()"/></div></div>
       </div>
     </div>
-
-    <!-- Salon Info -->
     <div class="set-section">
-      <div class="set-hdr">
-        <span class="set-icon">🏪</span>
-        <div class="set-title">Salon Info</div>
-      </div>
+      <div class="set-hdr"><span class="set-icon">🏪</span><div class="set-title" id="lbl-salon-title">Salon Info</div></div>
       <div class="set-body">
         <div class="two-col" style="margin-bottom:10px">
-          <div class="set-field" style="margin-bottom:0">
-            <label>Salon Name</label>
-            <input class="inp" id="s-name" placeholder="My Salon" oninput="markDirty()"/>
-          </div>
-          <div class="set-field" style="margin-bottom:0">
-            <label>Location</label>
-            <input class="inp" id="s-location" placeholder="City, State" oninput="markDirty()"/>
-          </div>
+          <div class="set-field" style="margin-bottom:0"><label id="lbl-sname">Salon Name</label><input class="inp" id="s-name" oninput="markDirty()"/></div>
+          <div class="set-field" style="margin-bottom:0"><label id="lbl-location">Location</label><input class="inp" id="s-location" oninput="markDirty()"/></div>
         </div>
-        <div class="set-field">
-          <label>Business Hours</label>
-          <input class="inp" id="s-hours" placeholder="Tue-Sat 9am-7pm. Closed Sun & Mon." oninput="markDirty()"/>
-        </div>
-        <div class="set-field">
-          <label>Services & Prices</label>
-          <textarea class="inp" id="s-services" rows="3" placeholder="Medium knotless braids $180 4hrs..." oninput="markDirty()"></textarea>
-        </div>
-        <div class="set-field">
-          <label>Availability This Week</label>
-          <input class="inp" id="s-availability" placeholder="Fri fully open, Sat 10am-2pm..." oninput="markDirty()"/>
-        </div>
+        <div class="set-field"><label id="lbl-hours">Business Hours</label><input class="inp" id="s-hours" oninput="markDirty()"/></div>
+        <div class="set-field"><label id="lbl-services">Services & Prices</label><textarea class="inp" id="s-services" rows="3" oninput="markDirty()"></textarea></div>
+        <div class="set-field"><label id="lbl-avail">Availability This Week</label><input class="inp" id="s-availability" oninput="markDirty()"/></div>
+        <div class="set-field"><label id="lbl-email">Notification Email</label><input class="inp" id="s-email" oninput="markDirty()"/></div>
+        <div class="set-field"><label id="lbl-phone">Phone Number</label><input class="inp" id="s-phone" oninput="markDirty()"/></div>
       </div>
     </div>
   </div>
-  <div class="set-field">
-  <label>Notification Email</label>
-  <input class="inp" id="s-email" placeholder="owner@email.com" oninput="markDirty()"/>
-</div>
 
-  <!-- Save bar -->
   <div class="save-bar" id="save-bar">
-    <span style="font-size:12px;color:#888">Unsaved changes</span>
+    <span style="font-size:12px;color:#888" id="lbl-unsaved">Unsaved changes</span>
     <div style="display:flex;gap:8px">
-      <button class="btn-s" onclick="discardSettings()" style="font-size:12px;padding:8px 14px">Discard</button>
+      <button class="btn-s" onclick="discardSettings()" style="font-size:12px;padding:8px 14px" id="btn-discard">Discard</button>
       <button class="btn-p" onclick="saveSettings()" style="font-size:12px;padding:8px 16px" id="save-btn">Save changes</button>
     </div>
   </div>
@@ -208,19 +169,21 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
   <div id="add-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;align-items:flex-end;justify-content:center;padding:0">
     <div style="background:#fff;width:100%;max-width:460px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div style="font-size:15px;font-weight:600;color:#111">Add booking</div>
+        <div style="font-size:15px;font-weight:600;color:#111" id="modal-title">Add booking</div>
         <button type="button" onclick="toggleAddForm()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer">×</button>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <input class="inp" id="m-client" placeholder="Client name"/>
         <input class="inp" id="m-service" placeholder="Service"/>
         <select class="inp" id="m-day">
-          <option value="">Select day</option>
-          <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
-          <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+          <option value="" id="opt-select-day">Select day</option>
+          <option id="opt-mon">Monday</option><option id="opt-tue">Tuesday</option>
+          <option id="opt-wed">Wednesday</option><option id="opt-thu">Thursday</option>
+          <option id="opt-fri">Friday</option><option id="opt-sat">Saturday</option>
+          <option id="opt-sun">Sunday</option>
         </select>
         <select class="inp" id="m-time">
-          <option value="">Select time</option>
+          <option value="" id="opt-select-time">Select time</option>
           <option>9am</option><option>9:30am</option><option>10am</option><option>10:30am</option>
           <option>11am</option><option>11:30am</option><option>12pm</option><option>1pm</option>
           <option>1:30pm</option><option>2pm</option><option>2:30pm</option><option>3pm</option>
@@ -228,17 +191,17 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
         </select>
         <input class="inp" id="m-amount" placeholder="Price (e.g. 180)" type="number"/>
         <select class="inp" id="m-source" onchange="toggleDeposit()">
-          <option value="walkin">🚶 Walk-in</option>
-          <option value="instagram">📱 Instagram</option>
-          <option value="voice">📞 Phone call</option>
-          <option value="chat">💬 Chat</option>
+          <option value="walkin" id="opt-walkin">🚶 Walk-in</option>
+          <option value="instagram" id="opt-instagram">📱 Instagram</option>
+          <option value="voice" id="opt-voice">📞 Phone call</option>
+          <option value="chat" id="opt-chat">💬 Chat</option>
         </select>
         <label id="m-dep-label" style="display:none;align-items:center;gap:8px;font-size:13px;color:#444">
-          <input type="checkbox" id="m-deposit"/> Deposit received ($35)
+          <input type="checkbox" id="m-deposit"/> <span id="lbl-deposit-received">Deposit received ($35)</span>
         </label>
         <div style="display:flex;gap:8px;margin-top:4px">
-          <button type="button" class="btn-p" onclick="saveManual()" style="flex:1;padding:12px">Save booking</button>
-          <button type="button" class="btn-s" onclick="toggleAddForm()" style="padding:12px 16px">Cancel</button>
+          <button type="button" class="btn-p" onclick="saveManual()" style="flex:1;padding:12px" id="btn-save-booking">Save booking</button>
+          <button type="button" class="btn-s" onclick="toggleAddForm()" style="padding:12px 16px" id="btn-cancel-booking">Cancel</button>
         </div>
       </div>
     </div>
@@ -256,9 +219,133 @@ let bookings=[], messages=[
   2:[{from:"client",text:"Do you do feed-in braids?",time:"10:02am",reaction:null}]
 };
 let activeThread=null, chatHistory=[], chatBusy=false;
-let currentDepositMode="required";
-let settingsDirty=false;
+let currentDepositMode="required", settingsDirty=false;
 let PAY={cashapp:"",venmo:"",zelle:""};
+let currentLang="en";
+
+// ── LANGUAGE STRINGS ─────────────────────────────────
+const LANGS={
+  en:{
+    hdrSub:"Owner dashboard · Dianke.ai",
+    navHome:"Home", navBookings:"Bookings", navMessages:"Messages", navSettings:"⚙️ Settings",
+    needsApproval:"Needs approval", thisWeek:"This week", noBookings:"No bookings yet",
+    revenue:"Revenue", deposits:"Deposits collected", balance:"Balance due", confirmed:"Confirmed",
+    confirm:"Confirm", decline:"Decline", cancel:"Cancel", cancelBooking:"Cancel",
+    depositReceived:"✓ Deposit received", depositPending:"⏳ Deposit pending",
+    statusConfirmed:"confirmed", statusPending:"pending",
+    addBooking:"+ Add booking manually", modalTitle:"Add booking",
+    saveBooking:"Save booking", cancelBtn:"Cancel",
+    selectDay:"Select day", selectTime:"Select time",
+    days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+    sources:{walkin:"🚶 Walk-in",instagram:"📱 Instagram",voice:"📞 Phone call",chat:"💬 Chat"},
+    depositReceivedLabel:"Deposit received ($35)",
+    unsaved:"Unsaved changes", discard:"Discard", saveChanges:"Save changes",
+    saving:"Saving...", saved:"✓ Settings saved and live", saveFailed:"Failed to save",
+    enterPw:"Enter your admin password first",
+    adminPw:"Admin password", adminPwPlaceholder:"Enter to save changes",
+    depositTitle:"Deposit Policy",
+    required:"Required", requiredDesc:"Client must pay deposit before slot is confirmed",
+    optional:"Optional", optionalDesc:"AI mentions deposit as a way to secure the slot",
+    noneDeposit:"No deposit", noneDesc:"Booking confirmed instantly with no payment step",
+    depositAmount:"Deposit amount",
+    paymentTitle:"Payment Handles",
+    salonTitle:"Salon Info",
+    salonName:"Salon Name", location:"Location", hours:"Business Hours",
+    services:"Services & Prices", availability:"Availability This Week",
+    notifEmail:"Notification Email", phone:"Phone Number",
+    toastAdded:"Booking added!", toastError:"Error saving. Try again.",
+    toastCancelled:"Cancelled.", toastConfirmed:"Confirmed!",
+    newMsg:"New · tap to reply", tapReply:"Tap to reply",
+    fillFields:"Please fill in all fields.",
+  },
+  es:{
+    hdrSub:"Panel del propietario · Dianke.ai",
+    navHome:"Inicio", navBookings:"Reservas", navMessages:"Mensajes", navSettings:"⚙️ Ajustes",
+    needsApproval:"Necesita aprobación", thisWeek:"Esta semana", noBookings:"Sin reservas aún",
+    revenue:"Ingresos", deposits:"Depósitos cobrados", balance:"Saldo pendiente", confirmed:"Confirmadas",
+    confirm:"Confirmar", decline:"Rechazar", cancel:"Cancelar", cancelBooking:"Cancelar",
+    depositReceived:"✓ Depósito recibido", depositPending:"⏳ Depósito pendiente",
+    statusConfirmed:"confirmada", statusPending:"pendiente",
+    addBooking:"+ Agregar reserva manualmente", modalTitle:"Agregar reserva",
+    saveBooking:"Guardar reserva", cancelBtn:"Cancelar",
+    selectDay:"Seleccionar día", selectTime:"Seleccionar hora",
+    days:["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"],
+    sources:{walkin:"🚶 Sin cita",instagram:"📱 Instagram",voice:"📞 Llamada",chat:"💬 Chat"},
+    depositReceivedLabel:"Depósito recibido ($35)",
+    unsaved:"Cambios sin guardar", discard:"Descartar", saveChanges:"Guardar cambios",
+    saving:"Guardando...", saved:"✓ Ajustes guardados", saveFailed:"Error al guardar",
+    enterPw:"Ingresa tu contraseña de administrador primero",
+    adminPw:"Contraseña de administrador", adminPwPlaceholder:"Ingresa para guardar cambios",
+    depositTitle:"Política de depósito",
+    required:"Requerido", requiredDesc:"El cliente debe pagar el depósito antes de confirmar",
+    optional:"Opcional", optionalDesc:"La IA menciona el depósito para asegurar el turno",
+    noneDeposit:"Sin depósito", noneDesc:"Reserva confirmada al instante sin pago previo",
+    depositAmount:"Monto del depósito",
+    paymentTitle:"Métodos de pago",
+    salonTitle:"Info del salón",
+    salonName:"Nombre del salón", location:"Ubicación", hours:"Horario de atención",
+    services:"Servicios y precios", availability:"Disponibilidad esta semana",
+    notifEmail:"Email de notificaciones", phone:"Número de teléfono",
+    toastAdded:"¡Reserva agregada!", toastError:"Error al guardar. Intenta de nuevo.",
+    toastCancelled:"Cancelada.", toastConfirmed:"¡Confirmada!",
+    newMsg:"Nuevo · toca para responder", tapReply:"Toca para responder",
+    fillFields:"Por favor completa todos los campos.",
+  }
+};
+
+// ── LANGUAGE SWITCH ───────────────────────────────────
+function setLang(lang, btn){
+  currentLang=lang;
+  document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  applyLang();
+  // Re-render current visible tab
+  renderHome();
+  renderBookings();
+  renderInbox();
+  updateNav();
+}
+
+function applyLang(){
+  const L=LANGS[currentLang];
+  document.getElementById("hdr-sub").textContent=L.hdrSub;
+  document.getElementById("nav-home").textContent=L.navHome;
+  document.getElementById("nav-settings").textContent=L.navSettings;
+  document.getElementById("modal-title").textContent=L.modalTitle;
+  document.getElementById("btn-save-booking").textContent=L.saveBooking;
+  document.getElementById("btn-cancel-booking").textContent=L.cancelBtn;
+  document.getElementById("opt-select-day").textContent=L.selectDay;
+  document.getElementById("opt-select-time").textContent=L.selectTime;
+  const dayIds=["opt-mon","opt-tue","opt-wed","opt-thu","opt-fri","opt-sat","opt-sun"];
+  dayIds.forEach((id,i)=>document.getElementById(id).textContent=L.days[i]);
+  document.getElementById("opt-walkin").textContent=L.sources.walkin;
+  document.getElementById("opt-instagram").textContent=L.sources.instagram;
+  document.getElementById("opt-voice").textContent=L.sources.voice;
+  document.getElementById("opt-chat").textContent=L.sources.chat;
+  document.getElementById("lbl-deposit-received").textContent=L.depositReceivedLabel;
+  document.getElementById("lbl-unsaved").textContent=L.unsaved;
+  document.getElementById("btn-discard").textContent=L.discard;
+  document.getElementById("save-btn").textContent=L.saveChanges;
+  document.getElementById("lbl-adminpw").textContent=L.adminPw;
+  document.getElementById("set-password").placeholder=L.adminPwPlaceholder;
+  document.getElementById("lbl-deposit-title").textContent=L.depositTitle;
+  document.getElementById("lbl-required").textContent=L.required;
+  document.getElementById("desc-required").textContent=L.requiredDesc;
+  document.getElementById("lbl-optional").textContent=L.optional;
+  document.getElementById("desc-optional").textContent=L.optionalDesc;
+  document.getElementById("lbl-none").textContent=L.noneDeposit;
+  document.getElementById("desc-none").textContent=L.noneDesc;
+  document.getElementById("lbl-deposit-amount").textContent=L.depositAmount;
+  document.getElementById("lbl-payment-title").textContent=L.paymentTitle;
+  document.getElementById("lbl-salon-title").textContent=L.salonTitle;
+  document.getElementById("lbl-sname").textContent=L.salonName;
+  document.getElementById("lbl-location").textContent=L.location;
+  document.getElementById("lbl-hours").textContent=L.hours;
+  document.getElementById("lbl-services").textContent=L.services;
+  document.getElementById("lbl-avail").textContent=L.availability;
+  document.getElementById("lbl-email").textContent=L.notifEmail;
+  document.getElementById("lbl-phone").textContent=L.phone;
+}
 
 function getSalonId(){
   const slugMap={"theafricancrown":"salon3","freshcut":"salon2"};
@@ -266,6 +353,7 @@ function getSalonId(){
   const slug=parts[0]==="dashboard"?parts[1]:parts[0];
   return slugMap[slug]||slug||"salon1";
 }
+
 function showToast(msg,color){
   const t=document.getElementById("toast");
   t.textContent=msg;
@@ -275,12 +363,18 @@ function showToast(msg,color){
 }
 
 function srcBadge(src){
-  const m={voice:["#fff3e0","#e65100","📞 voice"],walkin:["#f3e5f5","#6a1b9a","🚶 walk-in"],instagram:["#fce4ec","#c2426e","📱 instagram"],chat:["#e8f4ff","#185FA5","💬 chat"]};
-  const [bg,color,label]=m[src]||m.chat;
+  const L=LANGS[currentLang];
+  const m={
+    voice:["#fff3e0","#e65100",L.sources.voice],
+    walkin:["#f3e5f5","#6a1b9a",L.sources.walkin],
+    instagram:["#fce4ec","#c2426e",L.sources.instagram],
+    chat:["#e8f4ff","#185FA5",L.sources.chat]
+  };
+  const[bg,color,label]=m[src]||m.chat;
   return `<span class="badge" style="background:${bg};color:${color}">${label}</span>`;
 }
 
-// ─── SETTINGS ────────────────────────────────────────
+// ── SETTINGS ─────────────────────────────────────────
 async function loadSettings(){
   try{
     const res=await fetch(`${B}/settings/${getSalonId()}`,{cache:'no-store'});
@@ -298,6 +392,7 @@ async function loadSettings(){
     document.getElementById("s-services").value=d.services||"";
     document.getElementById("s-availability").value=d.availability||"";
     document.getElementById("s-email").value=d.owner_email||"";
+    document.getElementById("s-phone").value=d.phone||"";
     if(d.salon_name){
       document.getElementById("salon-name").textContent=d.salon_name;
       const initials=d.salon_name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
@@ -331,10 +426,11 @@ function discardSettings(){
 }
 
 async function saveSettings(){
+  const L=LANGS[currentLang];
   const password=document.getElementById("set-password").value;
-  if(!password){showToast("Enter your admin password first","#c2426e");document.getElementById("set-password").focus();return;}
+  if(!password){showToast(L.enterPw,"#c2426e");document.getElementById("set-password").focus();return;}
   const btn=document.getElementById("save-btn");
-  btn.textContent="Saving...";btn.disabled=true;
+  btn.textContent=L.saving; btn.disabled=true;
   const payload={
     deposit_mode:currentDepositMode,
     deposit_amount:parseInt(document.getElementById("deposit-amount").value)||35,
@@ -346,7 +442,8 @@ async function saveSettings(){
     hours:document.getElementById("s-hours").value.trim(),
     services:document.getElementById("s-services").value.trim(),
     availability:document.getElementById("s-availability").value.trim(),
-    owner_email: document.getElementById("s-email").value.trim(),
+    owner_email:document.getElementById("s-email").value.trim(),
+    phone:document.getElementById("s-phone").value.trim(),
   };
   try{
     const res=await fetch(`${B}/settings/${getSalonId()}/update`,{
@@ -355,18 +452,18 @@ async function saveSettings(){
       body:JSON.stringify(payload)
     });
     const d=await res.json();
-    if(!res.ok) throw new Error(d.error||"Failed");
+    if(!res.ok) throw new Error(d.error||L.saveFailed);
     PAY={cashapp:payload.cashapp,venmo:payload.venmo,zelle:payload.zelle};
     settingsDirty=false;
     document.getElementById("save-bar").classList.remove("visible");
-    showToast("✓ Settings saved and live","#0F6E56");
+    showToast(L.saved,"#0F6E56");
   }catch(err){
-    showToast(err.message||"Failed to save","#c2426e");
+    showToast(err.message||L.saveFailed,"#c2426e");
   }
-  btn.textContent="Save changes";btn.disabled=false;
+  btn.textContent=L.saveChanges; btn.disabled=false;
 }
 
-// ─── BOOKINGS ────────────────────────────────────────
+// ── BOOKINGS ─────────────────────────────────────────
 async function loadBookings(){
   try{
     const res=await fetch(B+"/bookings?salon_id="+getSalonId());
@@ -378,10 +475,11 @@ async function loadBookings(){
 setInterval(loadBookings,15000);
 
 function updateNav(){
+  const L=LANGS[currentLang];
   const pend=bookings.filter(b=>b.status==="pending").length;
   const unrd=messages.filter(m=>!m.read).length;
-  document.getElementById("tab-bookings").textContent=pend?`Bookings (${pend})`:"Bookings";
-  document.getElementById("tab-messages").textContent=unrd?`Messages (${unrd})`:"Messages";
+  document.getElementById("nav-bookings").textContent=pend?`${L.navBookings} (${pend})`:L.navBookings;
+  document.getElementById("nav-messages").textContent=unrd?`${L.navMessages} (${unrd})`:L.navMessages;
 }
 
 function switchTab(name,btn){
@@ -390,60 +488,60 @@ function switchTab(name,btn){
   document.getElementById(name).style.display="block";
   if(btn) btn.classList.add("active");
   if(name==="messages"){activeThread=null;renderInbox();}
- 
   if(name==="settings") document.getElementById("save-bar").classList.toggle("visible",settingsDirty);
   else if(!settingsDirty) document.getElementById("save-bar").classList.remove("visible");
 }
 
 function renderHome(){
+  const L=LANGS[currentLang];
   const rev=bookings.filter(b=>b.status==="confirmed").reduce((s,b)=>s+(parseInt(b.amount)||0),0);
   const deps=bookings.filter(b=>b.deposit).length*35;
   const bal=rev-deps;
   const conf=bookings.filter(b=>b.status==="confirmed").length;
-  const pend=bookings.filter(b=>b.status==="pending").length;
   const pendingB=bookings.filter(b=>b.status==="pending");
   document.getElementById("home").innerHTML=`
     <div class="stat-grid">
-      <div class="stat"><div class="stat-val">$${rev}</div><div class="stat-lbl">Revenue</div></div>
-      <div class="stat"><div class="stat-val">$${deps}</div><div class="stat-lbl">Deposits collected</div></div>
-      <div class="stat"><div class="stat-val">$${bal}</div><div class="stat-lbl">Balance due</div></div>
-      <div class="stat"><div class="stat-val">${conf}</div><div class="stat-lbl">Confirmed</div></div>
+      <div class="stat"><div class="stat-val">$${rev}</div><div class="stat-lbl">${L.revenue}</div></div>
+      <div class="stat"><div class="stat-val">$${deps}</div><div class="stat-lbl">${L.deposits}</div></div>
+      <div class="stat"><div class="stat-val">$${bal}</div><div class="stat-lbl">${L.balance}</div></div>
+      <div class="stat"><div class="stat-val">${conf}</div><div class="stat-lbl">${L.confirmed}</div></div>
     </div>
     ${pendingB.length?`<div class="card">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px">Needs approval</div>
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px">${L.needsApproval}</div>
       ${pendingB.map(b=>`
         <div style="padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid #f0f0f0">
           <div style="display:flex;gap:5px;align-items:center;margin-bottom:2px">
             <span style="font-size:13px;font-weight:600;color:#111">${b.client}</span>
             ${srcBadge(b.source||"chat")}
-            ${!b.deposit?'<span class="badge" style="background:#fcebeb;color:#A32D2D">no deposit</span>':""}
+            ${!b.deposit?`<span class="badge" style="background:#fcebeb;color:#A32D2D">${currentLang==="es"?"sin depósito":"no deposit"}</span>`:""}
           </div>
           <div style="font-size:12px;color:#888;margin-bottom:6px">${b.service} · ${b.day} ${b.time||fmt(b.hour)}</div>
           <div style="display:flex;gap:6px">
-            <button class="btn-p" onclick="confirmB(${b.id})">Confirm</button>
-            <button class="btn-d" onclick="cancelB(${b.id})">Decline</button>
+            <button class="btn-p" onclick="confirmB(${b.id})">${L.confirm}</button>
+            <button class="btn-d" onclick="cancelB(${b.id})">${L.decline}</button>
           </div>
         </div>`).join("")}
     </div>`:""}
     <div class="card">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px">This week</div>
-      ${bookings.length===0?'<div style="font-size:13px;color:#aaa">No bookings yet</div>':''}
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px">${L.thisWeek}</div>
+      ${bookings.length===0?`<div style="font-size:13px;color:#aaa">${L.noBookings}</div>`:""}
       ${bookings.map(b=>`
         <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f5f5f5">
           <div>
             <div style="font-size:13px;color:#111;display:flex;gap:5px;align-items:center">${b.client} ${srcBadge(b.source||"chat")}</div>
             <div style="font-size:11px;color:#888">${b.service} · ${b.day} ${b.time||fmt(b.hour)}</div>
           </div>
-          <span class="badge ${b.status==="confirmed"?"badge-confirmed":"badge-pending"}">${b.status}</span>
+          <span class="badge ${b.status==="confirmed"?"badge-confirmed":"badge-pending"}">${b.status==="confirmed"?L.statusConfirmed:L.statusPending}</span>
         </div>`).join("")}
     </div>`;
 }
 
 function renderBookings(){
+  const L=LANGS[currentLang];
   document.getElementById("bookings").innerHTML=`
     <div class="card">
       <button onclick="toggleAddForm()" style="width:100%;padding:9px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:13px;color:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-        <span style="font-size:16px">+</span> Add booking manually
+        <span style="font-size:16px">+</span> ${L.addBooking.replace("+ ","")}
       </button>
     </div>
     ${bookings.map(b=>`
@@ -455,13 +553,13 @@ function renderBookings(){
               ${srcBadge(b.source||"chat")}
             </div>
             <div style="font-size:12px;color:#888">${b.service} · ${b.day} ${b.time||fmt(b.hour)}</div>
-            <div style="font-size:11px;margin-top:2px;color:${b.deposit?"#0F6E56":"#dc2626"}">${b.deposit?"✓ Deposit received":"⏳ Deposit pending"}</div>
+            <div style="font-size:11px;margin-top:2px;color:${b.deposit?"#0F6E56":"#dc2626"}">${b.deposit?L.depositReceived:L.depositPending}</div>
           </div>
-          <span class="badge ${b.status==="confirmed"?"badge-confirmed":"badge-pending"}">${b.status}</span>
+          <span class="badge ${b.status==="confirmed"?"badge-confirmed":"badge-pending"}">${b.status==="confirmed"?L.statusConfirmed:L.statusPending}</span>
         </div>
         <div style="display:flex;gap:6px">
-          ${b.status==="pending"?`<button class="btn-p" onclick="confirmB(${b.id})">Confirm</button>`:""}
-          <button class="btn-d" onclick="cancelB(${b.id})">${b.status==="pending"?"Decline":"Cancel"}</button>
+          ${b.status==="pending"?`<button class="btn-p" onclick="confirmB(${b.id})">${L.confirm}</button>`:""}
+          <button class="btn-d" onclick="cancelB(${b.id})">${b.status==="pending"?L.decline:L.cancel}</button>
         </div>
       </div>`).join("")}`;
 }
@@ -477,6 +575,7 @@ function toggleDeposit(){
 }
 
 async function saveManual(){
+  const L=LANGS[currentLang];
   const modal=document.getElementById("add-modal");
   const client=modal.querySelector("#m-client").value.trim();
   const service=modal.querySelector("#m-service").value.trim();
@@ -485,7 +584,7 @@ async function saveManual(){
   const amount=parseInt(modal.querySelector("#m-amount").value)||0;
   const source=modal.querySelector("#m-source").value;
   const deposit=source!=="walkin"&&modal.querySelector("#m-deposit").checked;
-  if(!client||!service||!day||!time){alert("Please fill in all fields.");return;}
+  if(!client||!service||!day||!time){alert(L.fillFields);return;}
   const hmap={"9am":9,"10am":10,"11am":11,"12pm":12,"1pm":13,"2pm":14,"3pm":15,"4pm":16};
   const hour=hmap[time.toLowerCase().replace(" ","")]||10;
   try{
@@ -498,27 +597,30 @@ async function saveManual(){
     modal.querySelector("#m-time").value="";
     modal.querySelector("#m-amount").value="";
     modal.querySelector("#m-deposit").checked=false;
-    showToast("Booking added!");
+    showToast(L.toastAdded);
     await loadBookings();
-  }catch{showToast("Error saving. Try again.");}
+  }catch{showToast(L.toastError);}
 }
 
 async function confirmB(id){
+  const L=LANGS[currentLang];
   bookings=bookings.map(b=>b.id===id?{...b,status:"confirmed",deposit:true}:b);
   renderHome();renderBookings();updateNav();
-  showToast("Confirmed!","#0F6E56");
+  showToast(L.toastConfirmed,"#0F6E56");
   await fetch(B+"/bookings/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:"confirmed",deposit:true})});
 }
 
 async function cancelB(id){
+  const L=LANGS[currentLang];
   bookings=bookings.filter(x=>x.id!==id);
   renderHome();renderBookings();updateNav();
-  showToast("Cancelled.");
+  showToast(L.toastCancelled);
   await fetch(B+"/bookings/"+id,{method:"DELETE"});
 }
 
-// ─── MESSAGES ────────────────────────────────────────
+// ── MESSAGES ─────────────────────────────────────────
 function renderInbox(){
+  const L=LANGS[currentLang];
   document.getElementById("inbox").style.display="block";
   document.getElementById("thread").style.display="none";
   document.getElementById("inbox").innerHTML=messages.map(m=>`
@@ -528,7 +630,7 @@ function renderInbox(){
         <span style="font-size:11px;color:#aaa">${m.time}</span>
       </div>
       <div style="font-size:13px;color:#888;margin-top:3px">${m.text}</div>
-      <div style="font-size:11px;margin-top:5px;color:${!m.read?"#c2426e":"#aaa"};font-weight:${!m.read?600:400}">${!m.read?"New · tap to reply":"Tap to reply"}</div>
+      <div style="font-size:11px;margin-top:5px;color:${!m.read?"#c2426e":"#aaa"};font-weight:${!m.read?600:400}">${!m.read?L.newMsg:L.tapReply}</div>
     </div>`).join("");
   updateNav();
 }
@@ -604,88 +706,7 @@ async function sendReply(){
   },1500);
 }
 
-// ─── CHAT ────────────────────────────────────────────
-function buildSys(){
-  const taken=bookings.map(b=>`${b.day} ${b.time||fmt(b.hour)} ${b.service}`).join(", ");
-  return `You are the AI receptionist for a hair salon. Be warm and concise.
-Services: Medium knotless braids $180 4hrs, Large knotless $150 3hrs, Box braids $220 6hrs, Locs $95 2hrs, Silk press $85 1.5hrs, Wig install $120 1hr.
-Hours Tue-Sat 9am-7pm. CLOSED Sun+Mon. Deposit $35. Booked: ${taken||"none"}.
-Remember full conversation. Collect service,day,time,name then output: DEPOSIT_DUE:$35:[service]:[day]:[time]:[name]
-Under 80 words. Plain text only.`;
-}
-
-function renderChat(){
-  const el=document.getElementById("chat");
-  el.innerHTML=`
-    <div style="font-size:11px;color:#888;margin-bottom:8px;padding:7px 10px;background:#fff;border-radius:8px;border:1px solid #eee">Client-facing chat · bookings appear on dashboard instantly</div>
-    <div style="border:1px solid #eee;border-radius:12px;overflow:hidden">
-      <div style="background:#111;padding:10px 14px;display:flex;align-items:center;gap:8px">
-        <div style="width:28px;height:28px;border-radius:50%;background:#c2426e;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px" id="chat-av">HG</div>
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#f0f0ec" id="chat-name">Hollywood Glam Beauty</div>
-          <div style="font-size:10px;color:#7dd9b8;display:flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:#22c98a;display:inline-block"></span>AI receptionist · always open</div>
-        </div>
-      </div>
-      <div style="height:260px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;background:#f5f5f3" id="chat-msgs">
-        <div class="bw-bot"><div class="bl">Glam AI</div><div class="bb bb-bot">Hey! Welcome. How can I help you today?</div></div>
-      </div>
-      <div style="display:flex;gap:8px;padding:9px 12px;background:#fff;border-top:1px solid #eee;align-items:center">
-        <input id="c-inp" style="flex:1;font-size:13px;padding:7px 12px;border-radius:20px;border:1px solid #ddd;background:#f5f5f3;color:#111;outline:none" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()"/>
-        <button onclick="sendChat()" style="width:34px;height:34px;border-radius:50%;background:#111;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="#f0f0ec"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-        </button>
-      </div>
-    </div>`;
-}
-
-function addChatBubble(role,text){
-  const el=document.getElementById("chat-msgs");
-  if(!el) return;
-  const w=document.createElement("div");
-  w.className=role==="bot"?"bw-bot":"bw-user";
-  if(role==="bot"){const l=document.createElement("div");l.className="bl";l.textContent="Glam AI";w.appendChild(l);}
-  const b=document.createElement("div");
-  b.className=`bb ${role==="bot"?"bb-bot":"bb-user"}`;
-  b.textContent=text;
-  w.appendChild(b);
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
-}
-
-async function sendChat(txt){
-  const inp=document.getElementById("c-inp");
-  const t=txt||(inp?inp.value.trim():"");
-  if(!t||chatBusy) return;
-  if(inp) inp.value="";
-  addChatBubble("user",t);
-  chatHistory.push({role:"user",content:t});
-  chatBusy=true;
-  const el=document.getElementById("chat-msgs");
-  if(el){const w=document.createElement("div");w.className="bw-bot";w.id="typing";w.innerHTML='<div class="bl">Glam AI</div><div class="bb bb-bot" style="color:#aaa">typing...</div>';el.appendChild(w);el.scrollTop=9999;}
-  try{
-    const res=await fetch(B+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system:buildSys(),messages:chatHistory})});
-    const d=await res.json();
-    const raw=(d?.content?.[0]?.text||"Try again!").replace(/\*\*(.*?)\*\*/g,"$1");
-    const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([^:]+):([^\n]+)/);
-    const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").trim();
-    document.getElementById("typing")?.remove();
-    chatHistory.push({role:"assistant",content:raw});
-    if(reply) addChatBubble("bot",reply);
-    if(dm){
-      const[,,svc,day,time,client]=dm;
-      await fetch(B+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client:client.trim(),service:svc.trim(),day:day.trim(),time:time.trim(),amount:0,deposit:false,salon_id:getSalonId(),source:"chat"})});
-      await loadBookings();
-      showToast("New booking from "+client.trim()+"!","#0F6E56");
-    }
-  }catch(e){
-    document.getElementById("typing")?.remove();
-    addChatBubble("bot","Connection issue. Try again!");
-    chatHistory.pop();
-  }
-  chatBusy=false;
-}
-
-// ─── INIT ────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────
 loadBookings();
 loadSettings();
 </script>
