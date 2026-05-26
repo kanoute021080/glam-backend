@@ -132,10 +132,13 @@ app.post("/orders", async (req, res) => {
       const kitchenPhone = settings?.[0]?.kitchen_phone;
 
       // ── Kitchen SMS notification ──
+      console.log(`[kitchen-sms] kitchenPhone=${kitchenPhone} TWILIO_SID=${!!TWILIO_SID} TWILIO_TOKEN=${!!TWILIO_TOKEN} TWILIO_PHONE=${TWILIO_PHONE}`);
       if (kitchenPhone) {
         const orderNum = Array.isArray(data) ? data[0]?.order_number : data?.order_number;
-        const smsBody = `🍽️ NEW ORDER #${orderNum||""}\nCustomer: ${customer_name}\nItems: ${items}\nTotal: $${total}\nType: ${order_type||"takeout"}\nETA: ${estimated_time||"25-30 mins"}`;
+        const smsBody = `NEW ORDER #${orderNum||""}\nCustomer: ${customer_name}\nItems: ${items}\nTotal: $${total}\nType: ${order_type||"takeout"}\nETA: ${estimated_time||"25-30 mins"}`;
         sendSMS(kitchenPhone, smsBody).catch(e => console.error("[kitchen-sms]", e));
+      } else {
+        console.log("[kitchen-sms] no kitchen_phone set in settings");
       }
 
       if (!ownerEmail || !RESEND_KEY) {
