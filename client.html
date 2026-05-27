@@ -92,7 +92,7 @@ let PAY={cashapp:"",venmo:"",zelle:""};
 let depositMode="required", depositAmount=35, SYS="", salonData={};
 let clientBookings=[];
 
-const slugMap={"theafricancrown":"salon3","freshcut":"salon2"};
+const slugMap={"theafricancrown":"salon3","freshcut":"salon2","hollywoodglam":"hollywoodglam"};
 const rawSlug=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
 const currentSalonId=slugMap[rawSlug]||rawSlug;
 
@@ -126,7 +126,7 @@ const LANGS={
     confirmedMsg:"Your appointment is confirmed! We look forward to seeing you 💅",
     retryMsg:(t)=>`Having trouble connecting. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t}')">Tap to retry →</span>`,
     system:(d,slots,depositText,depositInstruction)=>`You are the AI receptionist for ${d.salon_name||"this salon"} in ${d.location||"the local area"}. Be warm, friendly and concise. Reply in English.
-Services: ${d.services||"Ask the stylist for current services and pricing."}
+Services offered: ${d.services||"Ask the stylist for current services and pricing."}. ONLY mention these exact services — never invent or suggest services not listed here.
 Hours: ${d.hours||"Call us for current hours."} ${depositText} Come with clean detangled hair.
 Availability: ${d.availability||"Contact us to check availability."} Already booked: ${slots}
 Remember the full conversation. Never restart. Collect service, day, time (use format like 9am, 10am, 2pm), client name. ${depositInstruction}
@@ -160,7 +160,7 @@ Keep replies under 80 words. Plain text only. No asterisks.`
     confirmedMsg:"¡Tu cita está confirmada! Con gusto te atenderemos 💅",
     retryMsg:(t)=>`Problema de conexión. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t}')">Toca para reintentar →</span>`,
     system:(d,slots,depositText,depositInstruction)=>`Eres la recepcionista IA de ${d.salon_name||"este salón"} en ${d.location||"el área local"}. Sé cálida, amigable y concisa. Responde siempre en español.
-Servicios: ${d.services||"Consulta con la estilista los servicios y precios actuales."}
+Servicios ofrecidos: ${d.services||"Consulta con la estilista los servicios y precios actuales."}. SOLO menciona estos servicios exactos — nunca inventes ni sugieras servicios que no estén listados aquí.
 Horarios: ${d.hours||"Llámanos para conocer los horarios."} ${depositText} Ven con el cabello limpio y desenredado.
 Disponibilidad: ${d.availability||"Contáctanos para verificar disponibilidad."} Ya reservado: ${slots}
 Recuerda toda la conversación. No reinicies. Solicita: servicio, día, hora (formato como 9am, 10am, 2pm), nombre del cliente. ${depositInstruction}
