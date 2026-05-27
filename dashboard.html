@@ -494,10 +494,10 @@ function switchTab(name,btn){
 
 function renderHome(){
   const L=LANGS[currentLang];
-  const rev=bookings.filter(b=>b.status==="confirmed").reduce((s,b)=>s+(parseInt(b.amount)||0),0);
-  const deps=bookings.filter(b=>b.deposit).length*35;
-  const bal=Math.max(0,rev-deps);
   const conf=bookings.filter(b=>b.status==="confirmed").length;
+  const deps=bookings.filter(b=>b.deposit).reduce((s,b)=>s+(parseInt(b.deposit_amount)||35),0);
+  const rev=bookings.filter(b=>b.status==="confirmed").reduce((s,b)=>s+(parseInt(b.amount)||0),0);
+  const bal=Math.max(0,rev-deps);
   const pendingB=bookings.filter(b=>b.status==="pending");
   document.getElementById("home").innerHTML=`
     <div class="stat-grid">
