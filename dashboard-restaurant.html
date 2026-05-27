@@ -81,17 +81,18 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
       <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:12px">🍽️ Restaurant Info</div>
       <div style="margin-bottom:10px">
         <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#888;display:block;margin-bottom:5px">Kitchen Phone (SMS notifications)</label>
-        <input class="inp" id="s-kitchen" placeholder="+1XXXXXXXXXX" oninput="markSettingsDirty()"/>
+        <input class="inp" id="s-kitchen" placeholder="+1XXXXXXXXXX"/>
         <div style="font-size:11px;color:#aaa;margin-top:4px">This number gets an SMS every time a new order comes in</div>
       </div>
       <div style="margin-bottom:10px">
         <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#888;display:block;margin-bottom:5px">Owner Email (order notifications)</label>
-        <input class="inp" id="s-owner-email" placeholder="owner@email.com" oninput="markSettingsDirty()"/>
+        <input class="inp" id="s-owner-email" placeholder="owner@email.com"/>
       </div>
       <div style="margin-bottom:10px">
         <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#888;display:block;margin-bottom:5px">Restaurant Phone (for clients)</label>
-        <input class="inp" id="s-phone" placeholder="+1XXXXXXXXXX" oninput="markSettingsDirty()"/>
+        <input class="inp" id="s-phone" placeholder="+1XXXXXXXXXX"/>
       </div>
+      <button onclick="saveRestaurantSettings()" style="width:100%;padding:12px;background:#c17f24;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer" id="settings-save-btn">💾 Save Settings</button>
     </div>
   </div>
 
