@@ -340,10 +340,12 @@ async function send(txt){
     if(reply)addBubble("bot",reply);
     if(dm){
       const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
+      const priceMatch=reply.match(/\$([0-9]+)/);
+      const serviceAmount=priceMatch?parseInt(priceMatch[1]):0;
       fetch(BACKEND+"/bookings",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId,source:"chat",language:currentLang})
+        body:JSON.stringify({client,service:svc,day,time,amount:serviceAmount,salon_id:currentSalonId,source:"chat",language:currentLang})
       }).then(r=>{
         if(r.status===409){
           const msg=currentLang==="es"
