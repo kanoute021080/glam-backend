@@ -496,7 +496,7 @@ function renderHome(){
   const L=LANGS[currentLang];
   const rev=bookings.filter(b=>b.status==="confirmed").reduce((s,b)=>s+(parseInt(b.amount)||0),0);
   const deps=bookings.filter(b=>b.deposit).length*35;
-  const bal=rev-deps;
+  const bal=Math.max(0,rev-deps);
   const conf=bookings.filter(b=>b.status==="confirmed").length;
   const pendingB=bookings.filter(b=>b.status==="pending");
   document.getElementById("home").innerHTML=`
