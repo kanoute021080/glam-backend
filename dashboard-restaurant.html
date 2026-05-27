@@ -143,20 +143,26 @@ async function saveRestaurantSettings(){
   const btn = document.getElementById("settings-save-btn");
   btn.textContent = "Saving..."; btn.disabled = true;
   try{
-    await fetch(B+"/settings/"+salonId, {
+    const payload = {
+      kitchen_phone: document.getElementById("s-kitchen").value.trim(),
+      owner_email: document.getElementById("s-owner-email").value.trim(),
+      phone: document.getElementById("s-phone").value.trim()
+    };
+    console.log("[settings] saving:", JSON.stringify(payload));
+    const res = await fetch(B+"/settings/"+salonId, {
       method:"PATCH",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        kitchen_phone: document.getElementById("s-kitchen").value.trim(),
-        owner_email: document.getElementById("s-owner-email").value.trim(),
-        phone: document.getElementById("s-phone").value.trim()
-      })
+      body:JSON.stringify(payload)
     });
+    const d = await res.json();
+    console.log("[settings] response:", JSON.stringify(d));
+    if(!res.ok) throw new Error(d.error||"Failed");
     settingsDirty = false;
     document.getElementById("settings-save-bar").style.transform = "translateY(100%)";
     showToast("Settings saved!");
-  }catch{
-    showToast("Error saving settings.");
+  }catch(e){
+    showToast("Error: "+e.message);
+    console.error("[settings] save error:", e);
   }
   btn.textContent = "Save"; btn.disabled = false;
 }
