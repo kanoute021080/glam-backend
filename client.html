@@ -366,7 +366,7 @@ async function send(txt){
         addPayCard(svc,day,time,client);
       });
     }
-    if(bc){
+    if(bc&&!dm){
       const svc=bc[1].trim(), day=bc[2].trim(), time=bc[3].trim(), client=bc[4].trim();
       fetch(BACKEND+"/bookings",{
         method:"POST",
