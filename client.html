@@ -337,7 +337,8 @@ async function send(txt){
     const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").replace(/BOOKING_CONFIRMED:[^\n]*/,"").trim();
     document.getElementById("typing")?.remove();
     hist.push({role:"assistant",content:raw});
-    if(reply)addBubble("bot",reply);
+    // Only show reply immediately if no booking confirmation — booking reply shown after conflict check
+    if(reply&&!dm)addBubble("bot",reply);
     if(dm){
       const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
       const priceMatch=reply.match(/\$([0-9]+)/);
@@ -354,7 +355,8 @@ async function send(txt){
           addBubble("bot",msg);
           hist.push({role:"assistant",content:msg});
         } else {
-          // Slot confirmed free — show deposit card
+          // Slot confirmed free — show AI reply then deposit card
+          if(reply) addBubble("bot",reply);
           if(depositMode==="optional"){
             addPayCard(svc,day,time,client);
             addBubble("bot",L.optionalMsg);
