@@ -33,6 +33,11 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
 .pay-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-top:4px;max-width:88%}
 .pay-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;text-decoration:none;margin-bottom:6px}
 .footer{text-align:center;font-size:11px;color:#aaa;margin-top:10px}
+.svc-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;max-width:92%}
+.svc-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1.5px solid #eee;border-radius:10px;cursor:pointer;margin-bottom:6px;transition:all .15s}
+.svc-item:active{background:#fff5f8;border-color:#c2426e}
+.svc-name{font-size:13px;font-weight:500;color:#111}
+.svc-price{font-size:13px;font-weight:700;color:#c2426e}
 </style>
 </head>
 <body>
@@ -91,6 +96,62 @@ let hist=[], busy=false, currentLang="en";
 let PAY={cashapp:"",venmo:"",zelle:""};
 let depositMode="required", depositAmount=35, SYS="", salonData={};
 let clientBookings=[];
+let parsedServices=[]; // [{name, price}]
+
+function parseServices(servicesStr){
+  if(!servicesStr) return [];
+  const services=[];
+  // Match patterns like "Service Name $XXX" or "Service Name: $XXX"
+  const lines = servicesStr.split(/[,.]/).map(s=>s.trim()).filter(Boolean);
+  for(const line of lines){
+    const match = line.match(/^([^$]+?)\s*[-:]\s*\$?([0-9]+(?:-[0-9]+)?)/);
+    if(match){
+      const name = match[1].trim().replace(/^\W+|\W+$/g,'');
+      const price = match[2].trim();
+      if(name.length>2) services.push({name, price:"$"+price});
+    }
+  }
+  return services;
+}
+
+function showServicePicker(){
+  if(!parsedServices.length) return false;
+  const L=LANGS[currentLang];
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.className="bubble-wrap bot";
+  const title=currentLang==="es"?"Elige tu servicio:":"Choose your service:";
+  const items=parsedServices.map((s,i)=>
+    `<div class="svc-item" onclick="selectService(${i})">
+      <span class="svc-name">${s.name}</span>
+      <span class="svc-price">${s.price}</span>
+    </div>`
+  ).join("");
+  w.innerHTML=`
+    <div class="bubble-label">${L.label}</div>
+    <div class="svc-card">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">${title}</div>
+      ${items}
+    </div>`;
+  el.appendChild(w);
+  el.scrollTop=el.scrollHeight;
+  return true;
+}
+
+function selectService(idx){
+  const svc=parsedServices[idx];
+  if(!svc) return;
+  // Remove the service picker card
+  const chatBody=document.getElementById("chat-body");
+  const cards=chatBody.querySelectorAll(".svc-card");
+  cards.forEach(c=>c.closest(".bubble-wrap")?.remove());
+  // Send as user selection
+  const msg=`${svc.name} (${svc.price})`;
+  addBubble("user",msg);
+  hist.push({role:"user",content:msg});
+  // Continue with AI
+  sendToAI();
+}
 
 const slugMap={"theafricancrown":"salon3","freshcut":"salon2","hollywoodglam":"hollywoodglam"};
 const rawSlug=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
@@ -249,6 +310,7 @@ async function loadSettings(){
     depositMode=d.deposit_mode||"required";
     depositAmount=d.deposit_amount||35;
     PAY={cashapp:d.cashapp||"",venmo:d.venmo||"",zelle:d.zelle||""};
+    parsedServices=parseServices(d.services||"");
     await rebuildSystem(d);
     renderQuickBtns();
     addBubble("bot", LANGS[currentLang].welcome(d.salon_name||"our salon"));
@@ -309,15 +371,10 @@ function addPayCard(svc,day,time,client){
 }
 
 // ── SEND ──────────────────────────────────────────────
-async function send(txt){
-  const inp=document.getElementById("inp");
-  const t=txt||(inp?inp.value.trim():"");
-  if(!t||busy)return;
-  if(inp)inp.value="";
-  addBubble("user",t);
-  hist.push({role:"user",content:t});
-  busy=true;
+async function sendToAI(){
+  // Core AI call — used after service selection too
   const L=LANGS[currentLang];
+  busy=true;
   const typing=document.createElement("div");
   typing.className="bubble-wrap bot";
   typing.id="typing";
@@ -337,7 +394,6 @@ async function send(txt){
     const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").replace(/BOOKING_CONFIRMED:[^\n]*/,"").trim();
     document.getElementById("typing")?.remove();
     hist.push({role:"assistant",content:raw});
-    // Only show reply immediately if no booking confirmation — booking reply shown after conflict check
     if(reply&&!dm)addBubble("bot",reply);
     if(dm){
       const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
@@ -355,7 +411,6 @@ async function send(txt){
           addBubble("bot",msg);
           hist.push({role:"assistant",content:msg});
         } else {
-          // Slot confirmed free — show AI reply then deposit card
           if(reply) addBubble("bot",reply);
           if(depositMode==="optional"){
             addPayCard(svc,day,time,client);
@@ -382,12 +437,36 @@ async function send(txt){
     const el=document.getElementById("chat-body");
     const w=document.createElement("div");
     w.className="bubble-wrap bot";
-    w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="bubble bot" style="color:#888">${L.retryMsg(t.replace(/'/g,"\\'"))}</div>`;
+    w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="bubble bot" style="color:#888">${L.retryMsg("retry")}</div>`;
     el.appendChild(w);
     el.scrollTop=el.scrollHeight;
     hist.pop();
   }
   busy=false;
+}
+
+async function send(txt){
+  const inp=document.getElementById("inp");
+  const t=txt||(inp?inp.value.trim():"");
+  if(!t||busy)return;
+  if(inp)inp.value="";
+
+  // Show service picker for booking intent
+  const bookingIntent=/book|appointment|reserve|schedule|réserver|cita|rendez/i.test(t);
+  if(bookingIntent && parsedServices.length>0 && hist.length<=2){
+    addBubble("user",t);
+    hist.push({role:"user",content:t});
+    const pickerLabel=currentLang==="es"
+      ?"¡Claro! ¿Qué servicio te interesa?"
+      :"Of course! Which service are you interested in?";
+    addBubble("bot",pickerLabel);
+    showServicePicker();
+    return;
+  }
+
+  addBubble("user",t);
+  hist.push({role:"user",content:t});
+  await sendToAI();
 }
 
 // ── STATUS MODAL ──────────────────────────────────────
