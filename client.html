@@ -100,18 +100,36 @@ let parsedServices=[]; // [{name, price}]
 
 function parseServices(servicesStr){
   if(!servicesStr) return [];
-  const services=[];
-  // Match patterns like "Service Name $XXX" or "Service Name: $XXX"
-  const lines = servicesStr.split(/[,.]/).map(s=>s.trim()).filter(Boolean);
-  for(const line of lines){
-    const match = line.match(/^([^$]+?)\s*[-:]\s*\$?([0-9]+(?:-[0-9]+)?)/);
-    if(match){
-      const name = match[1].trim().replace(/^\W+|\W+$/g,'');
-      const price = match[2].trim();
-      if(name.length>2) services.push({name, price:"$"+price});
+  const results=[];
+  // Split into sentences
+  const sentences=servicesStr.split(/\.\s+/);
+  for(const sentence of sentences){
+    // Category with size variants: "Knotless braids: XL $150, L $190"
+    const catMatch=sentence.match(/^([^:$]+):\s*(.+)/);
+    if(catMatch){
+      const category=catMatch[1].trim();
+      const rest=catMatch[2];
+      const pairs=[...rest.matchAll(/(XL|X Larger?|Large|L\b|Medium|M\b|Small|S\b|XS)\s+\$([0-9]+)/gi)];
+      if(pairs.length){
+        for(const p of pairs) results.push({name:`${category} - ${p[1]}`,price:"$"+p[2]});
+        continue;
+      }
+      // Single price after colon
+      const pm=sentence.match(/\$([0-9]+)/);
+      if(pm) results.push({name:category,price:"$"+pm[1]+"+"});
+    } else {
+      // Comma-separated items: "quick weave $180, 2 braids $40"
+      const items=sentence.split(/,\s*/);
+      for(const item of items){
+        const m=item.trim().match(/^([^$]+?)\s+\$([0-9]+)/);
+        if(m){
+          const name=m[1].trim().replace(/^[-+\s]+|[-+\s]+$/g,'');
+          if(name.length>2&&!/tracks|track/.test(name)) results.push({name,price:"$"+m[2]});
+        }
+      }
     }
   }
-  return services;
+  return results;
 }
 
 function showServicePicker(){
@@ -534,3 +552,4 @@ loadSettings();
 </script>
 </body>
 </html>
+
