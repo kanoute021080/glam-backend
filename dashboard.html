@@ -513,7 +513,7 @@ function renderHome(){
           <div style="display:flex;gap:5px;align-items:center;margin-bottom:2px">
             <span style="font-size:13px;font-weight:600;color:#111">${b.client}</span>
             ${srcBadge(b.source||"chat")}
-            ${!b.deposit?`<span class="badge" style="background:#fcebeb;color:#A32D2D">${currentLang==="es"?"sin depósito":"no deposit"}</span>`:""}
+            ${!b.deposit?`<span class="badge" style="background:#fff3e0;color:#e65100">${currentLang==="es"?"⚠️ verificar pago":"⚠️ verify payment"}</span>`:""}
           </div>
           <div style="font-size:12px;color:#888;margin-bottom:6px">${b.service} · ${b.day} ${b.time||fmt(b.hour)}</div>
           <div style="display:flex;gap:6px">
