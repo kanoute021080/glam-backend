@@ -396,7 +396,7 @@ app.post("/bookings", async (req, res) => {
 
 app.patch("/bookings/:id", async (req, res) => {
   try {
-    const { status, deposit, amount } = req.body;
+    const { status, deposit, amount, stylist } = req.body;
     const svcPrices = {"silk press":85,"locs maintenance":95,"knotless braids":180,"large knotless":150,"box braids":220,"wig install":120,"medium knotless braids":180,"large knotless braids":150};
     const existing = await supabase("GET", "bookings?id=eq." + req.params.id);
     const current = Array.isArray(existing) ? existing[0] : {};
@@ -406,6 +406,7 @@ app.patch("/bookings/:id", async (req, res) => {
     if (status) update.status = status;
     if (deposit !== undefined) update.deposit = deposit;
     if (amount !== undefined) update.amount = amount;
+    if (stylist !== undefined) update.stylist = stylist;
     if (!current.amount || current.amount === 0) {
       update.amount = serviceKey ? svcPrices[serviceKey] : 0;
     }
@@ -474,6 +475,7 @@ app.get('/settings/:salon_id', async (req, res) => {
       active_period: salon.active_period,   // ← NEW: dashboard reads this on load
       kitchen_phone: salon.kitchen_phone,
       owner_email: salon.owner_email,
+      stylists: salon.stylists,
     });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
@@ -491,6 +493,7 @@ app.patch('/settings/:salon_id', async (req, res) => {
   if (kitchen_phone !== undefined) update.kitchen_phone = kitchen_phone;
   if (owner_email !== undefined) update.owner_email = owner_email;
   if (phone !== undefined) update.phone = phone;
+  if (req.body.stylists !== undefined) update.stylists = req.body.stylists;
   if (Object.keys(update).length === 0) {
     return res.status(400).json({ error: "No valid fields to update." });
   }
