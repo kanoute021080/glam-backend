@@ -603,6 +603,7 @@ function renderBookings(){
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${b.status==="pending"?`<button class="btn-p" onclick="confirmB(${b.id})">${L.confirm}</button>`:""}
+          ${b.status==="confirmed"?`<button class="btn-p" onclick="markDone(${b.id})" style="background:#0F6E56">✅ Done</button>`:""}
           <button class="btn-d" onclick="cancelB(${b.id})">${b.status==="pending"?L.decline:L.cancel}</button>
           <button class="btn-s" onclick="assignStylist(${b.id})" style="font-size:11px;padding:5px 10px">✂️ Assign</button>
         </div>
@@ -653,6 +654,14 @@ async function confirmB(id){
   renderHome();renderBookings();updateNav();
   showToast(L.toastConfirmed,"#0F6E56");
   await fetch(B+"/bookings/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:"confirmed",deposit:true})});
+}
+
+async function markDone(id){
+  const L=LANGS[currentLang];
+  bookings=bookings.map(b=>b.id===id?{...b,status:"done"}:b);
+  renderHome();renderBookings();updateNav();
+  showToast("✅ Marked as done — review request sent!","#0F6E56");
+  await fetch(B+"/bookings/"+id+"/done",{method:"PATCH",headers:{"Content-Type":"application/json"}});
 }
 
 async function cancelB(id){
