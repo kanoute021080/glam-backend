@@ -1,4 +1,4 @@
-const express = require("express");
+  const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const app = express();
@@ -65,6 +65,7 @@ app.get("/demo/restaurant", (req, res) => res.sendFile(path.join(__dirname, "dem
 app.get("/client/restaurant1", (req, res) => res.sendFile(path.join(__dirname, "client-restaurant.html")));
 app.get("/dashboard/restaurant1", (req, res) => res.sendFile(path.join(__dirname, "dashboard-restaurant.html")));
 app.get("/client/hollywoodglam", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
+app.get("/review/:salonId", (req, res) => res.sendFile(path.join(__dirname, "review.html")));
 app.get("/dashboard/hollywoodglam", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
 app.get("/demo/salon", (req, res) => res.sendFile(path.join(__dirname, "demo-salon.html")));
 app.get("/demo/autorepair", (req, res) => res.sendFile(path.join(__dirname, "demo-autorepair.html")));
@@ -421,6 +422,46 @@ app.delete("/bookings/:id", async (req, res) => {
   try {
     await supabase("DELETE", "bookings?id=eq." + req.params.id);
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── MARK DONE + SEND REVIEW REQUEST ─────────────────
+app.patch("/bookings/:id/done", async (req, res) => {
+  try {
+    await supabase("PATCH", "orders?id=eq." + req.params.id, { status: "done" });
+    // Get booking details
+    const bookingRows = await supabase("GET", "bookings?id=eq." + req.params.id + "&limit=1");
+    const booking = Array.isArray(bookingRows) ? bookingRows[0] : null;
+    if (!booking) return res.json({ ok: true });
+
+    await supabase("PATCH", "bookings?id=eq." + req.params.id, { status: "done" });
+
+    // Send review request email if client has email
+    if (booking.email && RESEND_KEY) {
+      const settings = await supabase("GET", `salon_settings?salon_id=eq.${booking.salon_id}&limit=1`);
+      const salonName = settings?.[0]?.salon_name || booking.salon_id;
+      const reviewLink = `https://dianke.ai/review/${booking.salon_id}?booking=${booking.id}&name=${encodeURIComponent(booking.client||"")}`;
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
+        body: JSON.stringify({
+          from: "Dianke.ai <onboarding@resend.dev>",
+          to: booking.email,
+          subject: `How was your experience at ${salonName}? ⭐`,
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+              <h2 style="color:#111;margin-bottom:6px">How was your experience? ⭐</h2>
+              <p style="color:#555;font-size:14px;margin-bottom:18px">Hi ${booking.client||"there"}! We hope you loved your ${booking.service} at ${salonName}. We'd love to hear your feedback!</p>
+              <a href="${reviewLink}" style="display:block;text-align:center;background:#c2426e;color:#fff;padding:14px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">Leave a Review ⭐</a>
+              <p style="color:#aaa;font-size:12px;margin-top:16px;text-align:center">Sent by ${salonName} via Dianke.ai</p>
+            </div>
+          `
+        })
+      }).catch(e => console.error("[review-email]", e));
+    }
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
