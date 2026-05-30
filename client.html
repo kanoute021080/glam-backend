@@ -37,6 +37,17 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
 .star{font-size:22px;cursor:pointer;opacity:.3;transition:opacity .15s}
 .star.active{opacity:1}
 .svc-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;max-width:92%}
+.date-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;max-width:96%}
+.date-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px}
+.date-cell{text-align:center;padding:6px 2px;border-radius:8px;cursor:pointer;font-size:12px}
+.date-cell.active{background:#c2426e;color:#fff;font-weight:600}
+.date-cell.disabled{opacity:.3;cursor:default}
+.date-cell.today{border:1px solid #c2426e;color:#c2426e;font-weight:600}
+.date-cell:not(.disabled):not(.active):hover{background:#fff0f5}
+.time-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.time-slot{padding:6px 12px;border:1px solid #eee;border-radius:20px;font-size:12px;cursor:pointer;color:#444}
+.time-slot.active{background:#c2426e;color:#fff;border-color:#c2426e}
+.time-slot.taken{opacity:.3;cursor:default;text-decoration:line-through}
 .svc-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1.5px solid #eee;border-radius:10px;cursor:pointer;margin-bottom:6px;transition:all .15s}
 .svc-item:active{background:#fff5f8;border-color:#c2426e}
 .svc-name{font-size:13px;font-weight:500;color:#111}
@@ -159,18 +170,122 @@ function showServicePicker(){
   return true;
 }
 
+let selectedServiceIdx=null, selectedDate=null, selectedTimeSlot=null;
+
 function selectService(idx){
   const svc=parsedServices[idx];
   if(!svc) return;
-  // Remove the service picker card
+  selectedServiceIdx=idx;
+  selectedDate=null;
+  selectedTimeSlot=null;
+  // Remove service picker
   const chatBody=document.getElementById("chat-body");
-  const cards=chatBody.querySelectorAll(".svc-card");
-  cards.forEach(c=>c.closest(".bubble-wrap")?.remove());
-  // Send as user selection
-  const msg=`${svc.name} (${svc.price})`;
+  chatBody.querySelectorAll(".svc-card").forEach(c=>c.closest(".bubble-wrap")?.remove());
+  // Show as user choice
+  addBubble("user",`${svc.name} (${svc.price})`);
+  // Show date picker
+  showDatePicker();
+}
+
+function showDatePicker(){
+  const L=LANGS[currentLang];
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.id="date-picker-card";
+  w.className="bubble-wrap bot";
+  const title=currentLang==="es"?"Elige una fecha:":"Choose a date:";
+  const today=new Date();
+  // Generate next 30 days
+  const days=[];
+  for(let i=1;i<=30;i++){
+    const d=new Date(today);
+    d.setDate(today.getDate()+i);
+    days.push(d);
+  }
+  const dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const monthNames=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  // Group by week
+  const cells=days.map((d,i)=>{
+    const dateStr=d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+    return `<div class="date-cell" onclick="selectDate('${dateStr}',this,${d.getDate()})">
+      <div style="font-size:9px;color:inherit;opacity:.7">${dayNames[d.getDay()]}</div>
+      <div style="font-size:13px;font-weight:500">${d.getDate()}</div>
+      <div style="font-size:9px;color:inherit;opacity:.7">${monthNames[d.getMonth()]}</div>
+    </div>`;
+  }).join("");
+  w.innerHTML=`
+    <div class="bubble-label">${L.label}</div>
+    <div class="date-card">
+      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">${title}</div>
+      <div class="date-grid">${cells}</div>
+      <div id="time-picker-section" style="display:none">
+        <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px" id="time-picker-title">Choose a time:</div>
+        <div class="time-grid" id="time-slots"></div>
+        <button onclick="confirmDateTime()" id="confirm-dt-btn" style="display:none;width:100%;padding:10px;background:#c2426e;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">
+          ${currentLang==="es"?"Confirmar →":"Continue →"}
+        </button>
+      </div>
+    </div>`;
+  el.appendChild(w);
+  el.scrollTop=el.scrollHeight;
+}
+
+async function selectDate(dateStr, cell, dateNum){
+  // Highlight selected date
+  document.querySelectorAll(".date-cell").forEach(c=>c.classList.remove("active"));
+  cell.classList.add("active");
+  selectedDate=dateStr;
+  selectedTimeSlot=null;
+  // Load taken slots from server
+  const taken=await getTakenSlots(dateStr);
+  // Show time slots
+  const times=["9am","9:30am","10am","10:30am","11am","11:30am","12pm","1pm","1:30pm","2pm","2:30pm","3pm","3:30pm","4pm","4:30pm","5pm","5:30pm","6pm"];
+  const section=document.getElementById("time-picker-section");
+  const grid=document.getElementById("time-slots");
+  const title=document.getElementById("time-picker-title");
+  if(title) title.textContent=currentLang==="es"?"Elige un horario:":"Choose a time:";
+  grid.innerHTML=times.map(t=>{
+    const isTaken=taken.includes(t);
+    return `<div class="time-slot${isTaken?" taken":""}" onclick="${isTaken?"":"selectTime('"+t+"',this)"}">${t}${isTaken?" ✗":""}</div>`;
+  }).join("");
+  section.style.display="block";
+  document.getElementById("chat-body").scrollTop=9999;
+}
+
+async function getTakenSlots(dateStr){
+  try{
+    const res=await fetch(`${BACKEND}/bookings?salon_id=${currentSalonId}&status=in.(confirmed,pending)`,{cache:"no-store"});
+    const data=await res.json();
+    if(!Array.isArray(data)) return [];
+    const dayLower=dateStr.toLowerCase();
+    return data
+      .filter(b=>(b.day||"").toLowerCase().includes(dayLower.split(",")[0].toLowerCase())||dayLower.includes((b.day||"").toLowerCase().split(" ")[0]))
+      .map(b=>b.time||"")
+      .filter(Boolean);
+  }catch{return [];}
+}
+
+function selectTime(time, cell){
+  document.querySelectorAll(".time-slot").forEach(c=>c.classList.remove("active"));
+  cell.classList.add("active");
+  selectedTimeSlot=time;
+  const btn=document.getElementById("confirm-dt-btn");
+  if(btn) btn.style.display="block";
+  document.getElementById("chat-body").scrollTop=9999;
+}
+
+function confirmDateTime(){
+  if(!selectedDate||!selectedTimeSlot) return;
+  const svc=parsedServices[selectedServiceIdx];
+  // Remove date picker
+  document.getElementById("date-picker-card")?.remove();
+  // Format the day nicely
+  const d=new Date(selectedDate);
+  const dayFormatted=d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  // Send to AI with pre-filled info
+  const msg=`${dayFormatted} at ${selectedTimeSlot}`;
   addBubble("user",msg);
   hist.push({role:"user",content:msg});
-  // Continue with AI
   sendToAI();
 }
 
