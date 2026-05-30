@@ -488,10 +488,13 @@ async function sendToAI(){
       const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
       const priceMatch=reply.match(/\$([0-9]+)/);
       const serviceAmount=priceMatch?parseInt(priceMatch[1]):0;
+      // Try to extract email from conversation history
+      const emailMatch=hist.map(h=>h.content).join(" ").match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      const clientEmail=emailMatch?emailMatch[0]:null;
       fetch(BACKEND+"/bookings",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:serviceAmount,salon_id:currentSalonId,source:"chat",language:currentLang})
+        body:JSON.stringify({client,service:svc,day,time,amount:serviceAmount,salon_id:currentSalonId,source:"chat",language:currentLang,client_email:clientEmail})
       }).then(r=>{
         if(r.status===409){
           const msg=currentLang==="es"
