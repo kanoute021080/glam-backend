@@ -328,16 +328,33 @@ app.post("/bookings", async (req, res) => {
     const durations = {
       "knotless braids": 4, "medium knotless braids": 4, "large knotless braids": 3,
       "box braids": 6, "locs maintenance": 2, "silk press": 1.5, "wig install": 1,
-      "crochet braids": 3, "feed-in braids": 3
+      "crochet braids": 3, "feed-in braids": 3, "boho": 5, "crochet": 3,
+      "bora bora": 6, "micro links": 2, "sew-in": 3, "weave": 3
     };
-    const dayBookings = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&day=eq.${day}&status=in.(confirmed,pending)`);
-    if (Array.isArray(dayBookings) && dayBookings.length > 0) {
-      const newHour = parseInt(time) || 10;
+
+    // Parse hour correctly from time string like "10am", "2pm"
+    const parseHour = (t) => {
+      if (!t) return 10;
+      const s = String(t).toLowerCase().replace(" ","");
+      if (s.includes("pm")) { const h=parseInt(s); return h===12?12:h+12; }
+      return parseInt(s) || 10;
+    };
+
+    // Query bookings for same day — handle both "Monday" and "Monday June 2nd" formats
+    const dayLower = (day||"").toLowerCase();
+    const allDayBookings = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&status=in.(confirmed,pending)`);
+    const dayBookings = Array.isArray(allDayBookings) ? allDayBookings.filter(b => {
+      const bDay = (b.day||"").toLowerCase();
+      return bDay === dayLower || bDay.startsWith(dayLower.split(" ")[0]) && dayLower.startsWith(bDay.split(" ")[0]);
+    }) : [];
+
+    if (dayBookings.length > 0) {
+      const newHour = parseHour(time);
       const newService = (service || "").toLowerCase();
       const newKey = Object.keys(durations).find(k => newService.includes(k));
       const newEnd = newHour + (newKey ? durations[newKey] : 2);
       const conflict = dayBookings.find(b => {
-        const existHour = b.hour || 10;
+        const existHour = parseHour(b.time) || b.hour || 10;
         const existService = (b.service || "").toLowerCase();
         const existKey = Object.keys(durations).find(k => existService.includes(k));
         const existEnd = existHour + (existKey ? durations[existKey] : 2);
