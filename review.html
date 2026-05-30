@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Leave a Review</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:#f5f5f3;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:400px;box-shadow:0 2px 20px rgba(0,0,0,0.08)}
+.salon-name{font-size:18px;font-weight:700;color:#111;margin-bottom:4px;text-align:center}
+.subtitle{font-size:13px;color:#888;text-align:center;margin-bottom:24px}
+.stars{display:flex;justify-content:center;gap:10px;margin-bottom:20px}
+.star{font-size:36px;cursor:pointer;opacity:.25;transition:opacity .15s;user-select:none}
+.star.active{opacity:1}
+.inp{width:100%;padding:12px;border:1px solid #eee;border-radius:10px;font-size:14px;outline:none;resize:none;font-family:inherit;line-height:1.5;margin-bottom:14px}
+.inp:focus{border-color:#c2426e}
+.btn{width:100%;padding:14px;background:#c2426e;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+.btn:disabled{opacity:.5}
+.success{text-align:center;padding:20px 0}
+.success-icon{font-size:48px;margin-bottom:12px}
+.success-title{font-size:18px;font-weight:700;color:#111;margin-bottom:6px}
+.success-sub{font-size:14px;color:#888}
+.powered{text-align:center;font-size:11px;color:#aaa;margin-top:16px}
+.powered a{color:#c2426e;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="form-view">
+    <div class="salon-name" id="salon-name">Loading...</div>
+    <div class="subtitle" id="subtitle">How was your experience?</div>
+    <div class="stars" id="stars">
+      <span class="star" onclick="setRating(1)" id="s1">★</span>
+      <span class="star" onclick="setRating(2)" id="s2">★</span>
+      <span class="star" onclick="setRating(3)" id="s3">★</span>
+      <span class="star" onclick="setRating(4)" id="s4">★</span>
+      <span class="star" onclick="setRating(5)" id="s5">★</span>
+    </div>
+    <textarea class="inp" id="review-text" rows="4" placeholder="Share your experience..."></textarea>
+    <button class="btn" id="submit-btn" onclick="submitReview()">Send Review ⭐</button>
+  </div>
+  <div id="success-view" style="display:none">
+    <div class="success">
+      <div class="success-icon">🙏</div>
+      <div class="success-title">Thank you!</div>
+      <div class="success-sub">Your review means the world to us.</div>
+    </div>
+  </div>
+  <div class="powered">Powered by <a href="https://dianke.ai">Dianke.ai</a></div>
+</div>
+
+<script>
+const BACKEND="https://glam-backend-rxdf.onrender.com";
+const params=new URLSearchParams(window.location.search);
+const salonId=window.location.pathname.split("/")[2]||"";
+const bookingId=params.get("booking")||"";
+const clientName=params.get("name")||"";
+let rating=0;
+
+async function loadSalon(){
+  try{
+    const res=await fetch(`${BACKEND}/settings/${salonId}`);
+    const d=await res.json();
+    document.getElementById("salon-name").textContent=d.salon_name||"Our Salon";
+    document.getElementById("subtitle").textContent=`How was your ${clientName?"experience, "+clientName+"?":"experience?"}`;
+  }catch{
+    document.getElementById("salon-name").textContent="Our Salon";
+  }
+}
+
+function setRating(n){
+  rating=n;
+  for(let i=1;i<=5;i++){
+    document.getElementById("s"+i).classList.toggle("active",i<=n);
+  }
+}
+
+async function submitReview(){
+  const text=document.getElementById("review-text").value.trim();
+  if(!rating&&!text){
+    alert("Please add a star rating or write a review.");
+    return;
+  }
+  const btn=document.getElementById("submit-btn");
+  btn.disabled=true;
+  btn.textContent="Sending...";
+  try{
+    await fetch(BACKEND+"/reviews",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        salon_id:salonId,
+        customer_name:clientName||"Anonymous",
+        review:text,
+        rating:rating||0,
+        booking_id:bookingId||null
+      })
+    });
+    document.getElementById("form-view").style.display="none";
+    document.getElementById("success-view").style.display="block";
+  }catch{
+    btn.disabled=false;
+    btn.textContent="Send Review ⭐";
+    alert("Couldn't send review. Please try again.");
+  }
+}
+
+loadSalon();
+</script>
+</body>
+</html>
