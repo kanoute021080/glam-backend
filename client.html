@@ -604,7 +604,14 @@ async function sendToAI(){
     const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").replace(/BOOKING_CONFIRMED:[^\n]*/,"").trim();
     document.getElementById("typing")?.remove();
     hist.push({role:"assistant",content:raw});
-    if(reply&&!dm)addBubble("bot",reply);
+    if(reply&&!dm){
+      addBubble("bot",reply);
+      // Show service picker if AI is asking about services and client hasn't picked one yet
+      const bookingIntent=/service|appointment|book|what.*style|which.*service|interested in|help.*book|réserver|servicio/i.test(reply);
+      if(bookingIntent && parsedServices.length>0 && !dm && !bc && selectedServiceIdx===null){
+        setTimeout(()=>showServicePicker(),400);
+      }
+    }
     if(dm){
       const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
       const priceMatch=reply.match(/\$([0-9]+)/);
