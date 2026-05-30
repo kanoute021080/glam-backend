@@ -13,8 +13,11 @@ async function sendSMS(to, body) {
     console.log("[sms] Twilio not configured, skipping");
     return;
   }
-  const clean = String(to).replace(/[^0-9+]/g, "");
+  let clean = String(to).replace(/[^0-9+]/g, "");
   if (!clean) return;
+  // Add +1 if it's a 10-digit US number without country code
+  if (clean.length === 10) clean = "+1" + clean;
+  else if (clean.length === 11 && !clean.startsWith("+")) clean = "+" + clean;
   try {
     const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`, {
       method: "POST",
