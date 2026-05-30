@@ -282,10 +282,10 @@ function confirmDateTime(){
   // Format the day nicely
   const d=new Date(selectedDate);
   const dayFormatted=d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
-  // Send to AI with pre-filled info
-  const msg=`${dayFormatted} at ${selectedTimeSlot}`;
-  addBubble("user",msg);
-  hist.push({role:"user",content:msg});
+  // Build complete context message so AI knows service + date + time
+  const contextMsg=`I want to book ${svc.name} (${svc.price}) on ${dayFormatted} at ${selectedTimeSlot}.`;
+  addBubble("user",contextMsg);
+  hist=[{role:"user",content:contextMsg}];
   sendToAI();
 }
 
