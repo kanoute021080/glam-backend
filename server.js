@@ -426,6 +426,26 @@ app.delete("/bookings/:id", async (req, res) => {
   }
 });
 
+// ── REVIEWS ──────────────────────────────────────────
+app.post("/reviews", async (req, res) => {
+  try {
+    const { salon_id, customer_name, review, rating } = req.body;
+    const data = await supabase("POST", "reviews", { salon_id, customer_name, review, rating });
+    res.json(Array.isArray(data) ? data[0] : data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/reviews/:salonId", async (req, res) => {
+  try {
+    const data = await supabase("GET", `reviews?salon_id=eq.${req.params.salonId}&order=created_at.desc`);
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post("/chat", async (req, res) => {
   const { messages, system } = req.body;
   if (!messages || !system) return res.status(400).json({ error: "Missing messages or system" });
