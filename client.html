@@ -334,7 +334,7 @@ Services offered: ${d.services||"Ask the stylist for current services and pricin
 Hours: ${d.hours||"Call us for current hours."} ${depositText} Come with clean detangled hair.
 Availability: ${d.availability||"Contact us to check availability."} Already booked: ${slots}
 Stylists available: ${d.stylists||"any available stylist"}. Ask client if they have a preferred stylist after they select a service.
-Remember the full conversation. Never restart. Collect service, stylist preference, day, time (use format like 9am, 10am, 2pm), client name. ${depositInstruction}
+Remember the full conversation. Never restart. Collect service, stylist preference, day, time (use format like 9am, 10am, 2pm), client name, and phone number for reminders. ${depositInstruction}
 Keep replies under 80 words. Plain text only. No asterisks.`
   },
   es:{
@@ -370,7 +370,7 @@ Servicios ofrecidos: ${d.services||"Consulta con la estilista los servicios y pr
 Horarios: ${d.hours||"Llámanos para conocer los horarios."} ${depositText} Ven con el cabello limpio y desenredado.
 Disponibilidad: ${d.availability||"Contáctanos para verificar disponibilidad."} Ya reservado: ${slots}
 Estilistas disponibles: ${d.stylists||"cualquier estilista disponible"}. Pregunta al cliente si tiene una estilista preferida después de seleccionar el servicio.
-Recuerda toda la conversación. No reinicies. Solicita: servicio, preferencia de estilista, día, hora (formato como 9am, 10am, 2pm), nombre del cliente. ${depositInstruction}
+Recuerda toda la conversación. No reinicies. Solicita: servicio, preferencia de estilista, día, hora (formato como 9am, 10am, 2pm), nombre del cliente y número de teléfono para recordatorios. ${depositInstruction}
 Respuestas de menos de 80 palabras. Solo texto simple. Sin asteriscos.`
   }
 };
@@ -616,13 +616,16 @@ async function sendToAI(){
       const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
       const priceMatch=reply.match(/\$([0-9]+)/);
       const serviceAmount=priceMatch?parseInt(priceMatch[1]):0;
-      // Try to extract email from conversation history
-      const emailMatch=hist.map(h=>h.content).join(" ").match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      // Try to extract email and phone from conversation history
+      const convText=hist.map(h=>h.content).join(" ");
+      const emailMatch=convText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
       const clientEmail=emailMatch?emailMatch[0]:null;
+      const phoneMatch=convText.match(/\b(\+?1?[-.]?\(?[0-9]{3}\)?[-.]?[0-9]{3}[-.]?[0-9]{4})\b/);
+      const clientPhone=phoneMatch?phoneMatch[0].replace(/[^0-9+]/g,""):null;
       fetch(BACKEND+"/bookings",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:serviceAmount,salon_id:currentSalonId,source:"chat",language:currentLang,client_email:clientEmail})
+        body:JSON.stringify({client,service:svc,day,time,amount:serviceAmount,salon_id:currentSalonId,source:"chat",language:currentLang,client_email:clientEmail,client_phone:clientPhone})
       }).then(r=>{
         if(r.status===409){
           const msg=currentLang==="es"
