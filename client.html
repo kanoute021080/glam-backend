@@ -507,8 +507,7 @@ async function sendToAI(){
           } else {
             addPayCard(svc,day,time,client);
           }
-          // Show review prompt 3 seconds after booking confirmed
-          setTimeout(()=>addReviewCard(client), 3000);
+
         }
       }).catch(()=>{
         addPayCard(svc,day,time,client);
