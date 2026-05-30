@@ -321,7 +321,7 @@ app.get("/bookings/search", async (req, res) => {
 
 app.post("/bookings", async (req, res) => {
   try {
-    const { client, service, day, time, amount, salon_id, source, client_email } = req.body;
+    const { client, service, day, time, amount, salon_id, source, client_email, client_phone } = req.body;
     const hmap = { "9am":9, "10am":10, "10:30am":10, "11am":11, "11:30am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
     const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
 
@@ -371,7 +371,8 @@ app.post("/bookings", async (req, res) => {
       salon_id: salon_id || "default",
       new_from_chat: true,
       source: source || "chat",
-      client_email: client_email || null
+      client_email: client_email || null,
+      client_phone: client_phone || null
     });
 
     supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`).then(settings => {
@@ -621,6 +622,98 @@ app.get("*", (req, res) => {
 setInterval(function() {
   fetch("https://glam-backend-rxdf.onrender.com").catch(function() {});
 }, 14 * 60 * 1000);
+
+// ── APPOINTMENT REMINDERS ─────────────────────────────
+// Runs every hour — sends SMS 24hrs before appointment
+async function sendReminders(){
+  try{
+    console.log("[reminders] checking...");
+    const tomorrow=new Date();
+    tomorrow.setDate(tomorrow.getDate()+1);
+    const tomorrowDay=tomorrow.toLocaleDateString("en-US",{weekday:"long"});
+    const tomorrowFull=tomorrow.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+
+    // Get all confirmed bookings
+    const bookings=await supabase("GET","bookings?status=eq.confirmed&reminder_sent=is.false");
+    if(!Array.isArray(bookings)||bookings.length===0){
+      console.log("[reminders] no bookings to remind");
+      return;
+    }
+
+    for(const b of bookings){
+      const bDay=(b.day||"").toLowerCase();
+      const isTomorrow=bDay.includes(tomorrowDay.toLowerCase())||
+        bDay.startsWith(tomorrowDay.toLowerCase().slice(0,3));
+      if(!isTomorrow) continue;
+
+      // Get salon info
+      const settings=await supabase("GET",`salon_settings?salon_id=eq.${b.salon_id}&limit=1`);
+      const salonName=settings?.[0]?.salon_name||b.salon_id;
+      const phone=b.client_phone||null;
+
+      // Send SMS if phone available
+      if(phone&&TWILIO_SID&&TWILIO_TOKEN&&TWILIO_PHONE){
+        const lang=b.language||"en";
+        let msg;
+        if(lang==="es"){
+          msg=`Hola ${b.client}! Recordatorio: tu cita de ${b.service} en ${salonName} es mañana a las ${b.time||b.hour+"am"}. ¡Te esperamos! 💅`;
+        } else {
+          msg=`Hi ${b.client}! Reminder: your ${b.service} appointment at ${salonName} is tomorrow at ${b.time||b.hour+"am"}. See you then! 💅`;
+        }
+        await sendSMS(phone, msg);
+        console.log(`[reminders] SMS sent to ${b.client} at ${phone}`);
+      }
+
+      // Send email reminder if email available
+      const email=b.client_email||null;
+      if(email&&RESEND_KEY){
+        const settings2=settings||await supabase("GET",`salon_settings?salon_id=eq.${b.salon_id}&limit=1`);
+        const sName=settings2?.[0]?.salon_name||b.salon_id;
+        const sPhone=settings2?.[0]?.phone||"";
+        fetch("https://api.resend.com/emails",{
+          method:"POST",
+          headers:{"Content-Type":"application/json","Authorization":`Bearer ${RESEND_KEY}`},
+          body:JSON.stringify({
+            from:"Dianke.ai <onboarding@resend.dev>",
+            to:email,
+            subject:`Reminder: Your appointment tomorrow at ${sName} 💅`,
+            html:`
+              <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+                <h2 style="color:#c2426e;margin-bottom:6px">📅 Appointment Reminder</h2>
+                <p style="color:#555;font-size:14px;margin-bottom:18px">Hi ${b.client}! Just a reminder about your upcoming appointment.</p>
+                <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                  <div style="font-size:13px;color:#888;margin-bottom:4px">Service</div>
+                  <div style="font-size:15px;font-weight:600;color:#111">${b.service}</div>
+                </div>
+                <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                  <div style="font-size:13px;color:#888;margin-bottom:4px">When</div>
+                  <div style="font-size:15px;font-weight:600;color:#111">Tomorrow · ${b.time||b.hour+"am"}</div>
+                </div>
+                <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                  <div style="font-size:13px;color:#888;margin-bottom:4px">Where</div>
+                  <div style="font-size:15px;font-weight:600;color:#111">${sName}</div>
+                </div>
+                ${sPhone?`<a href="tel:${sPhone.replace(/[^0-9+]/g,"")}" style="display:block;text-align:center;background:#c2426e;color:#fff;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin-bottom:8px">📞 Call us</a>`:""}
+                <p style="color:#aaa;font-size:12px;text-align:center">See you soon! · ${sName} via Dianke.ai</p>
+              </div>
+            `
+          })
+        }).catch(e=>console.error("[reminder-email]",e));
+        console.log(`[reminders] email sent to ${b.client} at ${email}`);
+      }
+
+      // Mark reminder as sent
+      await supabase("PATCH",`bookings?id=eq.${b.id}`,{reminder_sent:true});
+    }
+  }catch(e){
+    console.error("[reminders] error:",e.message);
+  }
+}
+
+// Run reminders every hour
+setInterval(sendReminders, 60*60*1000);
+// Also run on startup after 30 seconds
+setTimeout(sendReminders, 30000);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, function() {
