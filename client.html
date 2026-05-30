@@ -30,6 +30,9 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
 .input-row{display:flex;gap:8px;padding:10px 12px;background:#fff;border:1px solid #eee;border-top:none;border-radius:0 0 12px 12px;align-items:center}
 .inp{flex:1;font-size:14px;padding:9px 14px;border-radius:20px;border:1px solid #ddd;background:#f5f5f3;color:#111;outline:none}
 .send-btn{width:38px;height:38px;border-radius:50%;background:#c2426e;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mic-btn{width:38px;height:38px;border-radius:50%;background:#f5f5f3;border:1px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#888;transition:all .2s}
+.mic-btn.listening{background:#c2426e;border-color:#c2426e;color:#fff;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .pay-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-top:4px;max-width:88%}
 .pay-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;text-decoration:none;margin-bottom:6px}
 .footer{text-align:center;font-size:11px;color:#aaa;margin-top:10px}
@@ -76,7 +79,10 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
   <div class="quick-btns" id="quick-btns"></div>
 
   <div class="input-row">
-    <input class="inp" id="inp" placeholder="Type a message..." onkeydown="if(event.key==='Enter')send()"/>
+    <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="Voice input">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm-1 3a1 1 0 0 1 2 0v8a1 1 0 0 1-2 0V4zm-4 8a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.92V21h-2v-2.08A7 7 0 0 1 5 12H7z"/></svg>
+    </button>
+    <input class="inp" id="inp" placeholder="Type or tap 🎤..." onkeydown="if(event.key==='Enter')send()"/>
     <button class="send-btn" onclick="send()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
     </button>
@@ -376,7 +382,7 @@ function setLang(lang, btn){
   btn.classList.add("active");
   const L=LANGS[lang];
   document.getElementById("status-text").textContent=L.status;
-  document.getElementById("inp").placeholder=L.placeholder;
+  document.getElementById("inp").placeholder=currentLang==="es"?"Escribe o toca 🎤...":"Type or tap 🎤...";
   document.getElementById("check-link").textContent=L.checkLink;
   document.getElementById("modal-title").textContent=L.modalTitle;
   document.getElementById("modal-label").textContent=L.modalLabel;
@@ -736,6 +742,63 @@ async function checkStatus(){
         <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;margin-top:10px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button>
       </div>`;
   }
+}
+
+// ── VOICE INPUT ──────────────────────────────────────
+let recognition=null, isListening=false;
+
+function toggleVoice(){
+  if(!("webkitSpeechRecognition" in window||"SpeechRecognition" in window)){
+    const msg=currentLang==="es"
+      ?"Lo sentimos, tu navegador no soporta voz. Intenta con Chrome."
+      :"Sorry, your browser doesn't support voice. Try Chrome.";
+    addBubble("bot",msg);
+    return;
+  }
+  if(isListening){
+    stopVoice();
+  } else {
+    startVoice();
+  }
+}
+
+function startVoice(){
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SpeechRecognition();
+  recognition.continuous=false;
+  recognition.interimResults=true;
+  recognition.lang=currentLang==="es"?"es-US":"en-US";
+  recognition.onstart=()=>{
+    isListening=true;
+    document.getElementById("mic-btn").classList.add("listening");
+    document.getElementById("inp").placeholder=currentLang==="es"?"Escuchando...":"Listening...";
+  };
+  recognition.onresult=(e)=>{
+    const transcript=Array.from(e.results).map(r=>r[0].transcript).join("");
+    document.getElementById("inp").value=transcript;
+  };
+  recognition.onend=()=>{
+    stopVoice();
+    // Auto-send if we got something
+    const val=document.getElementById("inp").value.trim();
+    if(val) setTimeout(()=>send(),300);
+  };
+  recognition.onerror=(e)=>{
+    stopVoice();
+    if(e.error!=="no-speech"){
+      addBubble("bot",currentLang==="es"?"No pude escucharte. Intenta de nuevo.":"Couldn't hear you. Please try again.");
+    }
+  };
+  recognition.start();
+}
+
+function stopVoice(){
+  isListening=false;
+  const btn=document.getElementById("mic-btn");
+  if(btn) btn.classList.remove("listening");
+  const inp=document.getElementById("inp");
+  if(inp) inp.placeholder=currentLang==="es"?"Escribe o toca 🎤...":"Type or tap 🎤...";
+  try{ recognition?.stop(); }catch{}
 }
 
 loadSettings();
