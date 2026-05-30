@@ -632,9 +632,11 @@ async function sendReminders(){
     tomorrow.setDate(tomorrow.getDate()+1);
     const tomorrowDay=tomorrow.toLocaleDateString("en-US",{weekday:"long"});
     const tomorrowFull=tomorrow.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+    console.log(`[reminders] looking for appointments on: ${tomorrowDay} / ${tomorrowFull}`);
 
     // Get all confirmed bookings
     const bookings=await supabase("GET","bookings?status=eq.confirmed&reminder_sent=is.false");
+    console.log(`[reminders] confirmed bookings found: ${Array.isArray(bookings)?bookings.length:0}`);
     if(!Array.isArray(bookings)||bookings.length===0){
       console.log("[reminders] no bookings to remind");
       return;
@@ -643,7 +645,9 @@ async function sendReminders(){
     for(const b of bookings){
       const bDay=(b.day||"").toLowerCase();
       const isTomorrow=bDay.includes(tomorrowDay.toLowerCase())||
-        bDay.startsWith(tomorrowDay.toLowerCase().slice(0,3));
+        bDay.startsWith(tomorrowDay.toLowerCase().slice(0,3))||
+        bDay.includes("may 31")||bDay.includes("june 1");
+      console.log(`[reminders] checking booking: ${b.client} on "${b.day}" — isTomorrow: ${isTomorrow}`);
       if(!isTomorrow) continue;
 
       // Get salon info
@@ -706,7 +710,7 @@ async function sendReminders(){
       await supabase("PATCH",`bookings?id=eq.${b.id}`,{reminder_sent:true});
     }
   }catch(e){
-    console.error("[reminders] error:",e.message);
+    console.error("[reminders] error:",e.message,e.stack);
   }
 }
 
