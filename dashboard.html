@@ -94,6 +94,7 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
     <button class="active" id="nav-home" onclick="switchTab('home',this)">Home</button>
     <button id="nav-bookings" onclick="switchTab('bookings',this)">Bookings</button>
     <button id="nav-messages" onclick="switchTab('messages',this)">Messages</button>
+    <button id="nav-reviews" onclick="switchTab('reviews',this)">⭐ Reviews</button>
     <button id="nav-settings" onclick="switchTab('settings',this)">⚙️ Settings</button>
   </div>
 
@@ -103,6 +104,8 @@ body{background:#f5f5f3;min-height:100vh;overflow-x:hidden}
     <div id="inbox"></div>
     <div id="thread" style="display:none"></div>
   </div>
+
+  <div id="reviews" style="display:none"></div>
 
   <div id="settings" style="display:none;padding-bottom:70px">
     <div class="pw-row">
@@ -521,13 +524,14 @@ function updateNav(){
 }
 
 function switchTab(name,btn){
-  ["home","bookings","messages","settings"].forEach(t=>document.getElementById(t).style.display="none");
+  ["home","bookings","messages","reviews","settings"].forEach(t=>document.getElementById(t).style.display="none");
   document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
   document.getElementById(name).style.display="block";
   if(btn) btn.classList.add("active");
   if(name==="messages"){activeThread=null;renderInbox();}
   if(name==="settings") document.getElementById("save-bar").classList.toggle("visible",settingsDirty);
   else if(!settingsDirty) document.getElementById("save-bar").classList.remove("visible");
+  if(name==="reviews") loadReviews();
 }
 
 function renderHome(){
@@ -745,6 +749,40 @@ async function sendReply(){
       renderThreadMsgs();updateNav();
     }catch{}
   },1500);
+}
+
+// ── REVIEWS ──────────────────────────────────────────
+async function loadReviews(){
+  try{
+    const res=await fetch(B+"/reviews/"+getSalonId());
+    const data=await res.json();
+    const el=document.getElementById("reviews");
+    if(!Array.isArray(data)||data.length===0){
+      el.innerHTML=`<div class="card" style="text-align:center;padding:30px">
+        <div style="font-size:32px;margin-bottom:8px">⭐</div>
+        <div style="font-size:14px;color:#888">No reviews yet</div>
+        <div style="font-size:12px;color:#aaa;margin-top:4px">Reviews from clients will appear here</div>
+      </div>`;
+      return;
+    }
+    const avg=(data.reduce((s,r)=>s+(r.rating||0),0)/data.filter(r=>r.rating).length).toFixed(1);
+    el.innerHTML=`
+      <div class="card" style="text-align:center;margin-bottom:8px">
+        <div style="font-size:32px;font-weight:700;color:#111">${avg} ⭐</div>
+        <div style="font-size:12px;color:#888">${data.length} review${data.length!==1?"s":""}</div>
+      </div>
+      ${data.map(r=>`
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <div style="font-size:13px;font-weight:600;color:#111">${r.customer_name||"Anonymous"}</div>
+            <div style="font-size:12px;color:#c2426e">${"★".repeat(r.rating||0)}${"☆".repeat(5-(r.rating||0))}</div>
+          </div>
+          <div style="font-size:13px;color:#444;line-height:1.5">${r.review||""}</div>
+          <div style="font-size:11px;color:#aaa;margin-top:6px">${new Date(r.created_at).toLocaleDateString()}</div>
+        </div>`).join("")}`;
+  }catch{
+    document.getElementById("reviews").innerHTML=`<div class="card" style="text-align:center;color:#888;font-size:13px;padding:20px">Could not load reviews.</div>`;
+  }
 }
 
 // ── INIT ─────────────────────────────────────────────
