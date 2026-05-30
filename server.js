@@ -1,629 +1,611 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>Crown & Glory Beauty</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;overflow-x:hidden}
-.wrap{width:100%;max-width:420px}
-.lang-bar{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
-.lang-btn{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid #c2426e;background:transparent;color:#c2426e;cursor:pointer;font-weight:500}
-.lang-btn.active{background:#c2426e;color:#fff}
-.chat-hdr{background:#111;padding:12px 16px;display:flex;align-items:center;gap:10px;border-radius:12px 12px 0 0}
-.av{width:36px;height:36px;border-radius:50%;background:#c2426e;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
-.hdr-name{font-size:14px;font-weight:600;color:#f0f0ec}
-.hdr-status{font-size:11px;color:#7dd9b8;display:flex;align-items:center;gap:5px;margin-top:2px}
-.dot{width:6px;height:6px;border-radius:50%;background:#22c98a;display:inline-block}
-.chat-body{height:420px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#f5f5f3;border:1px solid #eee;border-top:none}
-.bubble-wrap{display:flex;flex-direction:column}
-.bubble-wrap.bot{align-items:flex-start}
-.bubble-wrap.user{align-items:flex-end}
-.bubble-label{font-size:10px;color:#aaa;margin-bottom:2px}
-.bubble{font-size:14px;line-height:1.6;padding:10px 14px;max-width:85%}
-.bubble.bot{background:#fff;color:#111;border:1px solid #eee;border-radius:4px 14px 14px 14px}
-.bubble.user{background:#111;color:#f0f0ec;border-radius:14px 4px 14px 14px}
-.quick-btns{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;background:#f5f5f3;border:1px solid #eee;border-top:none}
-.qbtn{font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#444;cursor:pointer}
-.qbtn:active{background:#eee}
-.input-row{display:flex;gap:8px;padding:10px 12px;background:#fff;border:1px solid #eee;border-top:none;border-radius:0 0 12px 12px;align-items:center}
-.inp{flex:1;font-size:14px;padding:9px 14px;border-radius:20px;border:1px solid #ddd;background:#f5f5f3;color:#111;outline:none}
-.send-btn{width:38px;height:38px;border-radius:50%;background:#c2426e;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.pay-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-top:4px;max-width:88%}
-.pay-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;text-decoration:none;margin-bottom:6px}
-.footer{text-align:center;font-size:11px;color:#aaa;margin-top:10px}
-.review-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;max-width:92%;margin-top:4px}
-.star{font-size:22px;cursor:pointer;opacity:.3;transition:opacity .15s}
-.star.active{opacity:1}
-.svc-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;max-width:92%}
-.svc-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1.5px solid #eee;border-radius:10px;cursor:pointer;margin-bottom:6px;transition:all .15s}
-.svc-item:active{background:#fff5f8;border-color:#c2426e}
-.svc-name{font-size:13px;font-weight:500;color:#111}
-.svc-price{font-size:13px;font-weight:700;color:#c2426e}
-</style>
-</head>
-<body>
-<div class="wrap">
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
+const app = express();
 
-  <!-- Language toggle -->
-  <div class="lang-bar">
-    <button class="lang-btn active" id="btn-en" onclick="setLang('en',this)">🇺🇸 English</button>
-    <button class="lang-btn" id="btn-es" onclick="setLang('es',this)">🇪🇸 Español</button>
-  </div>
+const RESEND_KEY = process.env.RESEND_KEY;
+const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
+const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+const TWILIO_PHONE = process.env.TWILIO_PHONE;
 
-  <div class="chat-hdr">
-    <div class="av" id="salon-av">CG</div>
-    <div>
-      <div class="hdr-name" id="salon-name">Crown & Glory Beauty</div>
-      <div class="hdr-status"><span class="dot"></span><span id="status-text">AI receptionist · always open</span></div>
-    </div>
-  </div>
-
-  <div class="chat-body" id="chat-body"></div>
-
-  <div class="quick-btns" id="quick-btns"></div>
-
-  <div class="input-row">
-    <input class="inp" id="inp" placeholder="Type a message..." onkeydown="if(event.key==='Enter')send()"/>
-    <button class="send-btn" onclick="send()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-    </button>
-  </div>
-
-  <div class="footer">
-    Powered by AutoPilot Reception ·
-    <span onclick="openStatus()" style="color:#c2426e;cursor:pointer;font-weight:600" id="check-link">Check my booking →</span>
-  </div>
-
-  <!-- Booking status modal -->
-  <div id="status-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;padding:20px">
-    <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:380px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:15px;font-weight:600;color:#111" id="modal-title">Check booking status</div>
-        <button onclick="closeStatus()" style="background:none;border:none;font-size:20px;color:#aaa;cursor:pointer">×</button>
-      </div>
-      <div id="status-search">
-        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px" id="modal-label">Your name</label>
-        <input id="status-name" placeholder="Enter the name used to book" style="width:100%;font-size:14px;padding:9px 12px;border:1px solid #ddd;border-radius:8px;outline:none;margin-bottom:10px"/>
-        <button onclick="checkStatus()" style="width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer" id="modal-btn">Check status</button>
-      </div>
-      <div id="status-result" style="display:none"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-const BACKEND="https://glam-backend-rxdf.onrender.com";
-let hist=[], busy=false, currentLang="en";
-let PAY={cashapp:"",venmo:"",zelle:""};
-let depositMode="required", depositAmount=35, SYS="", salonData={};
-let clientBookings=[];
-let parsedServices=[]; // [{name, price}]
-
-function parseServices(servicesStr){
-  if(!servicesStr) return [];
-  const results=[];
-  // Split into sentences
-  const sentences=servicesStr.split(/\.\s+/);
-  for(const sentence of sentences){
-    // Category with size variants: "Knotless braids: XL $150, L $190"
-    const catMatch=sentence.match(/^([^:$]+):\s*(.+)/);
-    if(catMatch){
-      const category=catMatch[1].trim();
-      const rest=catMatch[2];
-      const pairs=[...rest.matchAll(/(XL|X Larger?|Large|L\b|Medium|M\b|Small|S\b|XS)\s+\$([0-9]+)/gi)];
-      if(pairs.length){
-        for(const p of pairs) results.push({name:`${category} - ${p[1]}`,price:"$"+p[2]});
-        continue;
-      }
-      // Single price after colon
-      const pm=sentence.match(/\$([0-9]+)/);
-      if(pm) results.push({name:category,price:"$"+pm[1]+"+"});
-    } else {
-      // Comma-separated items: "quick weave $180, 2 braids $40"
-      const items=sentence.split(/,\s*/);
-      for(const item of items){
-        const m=item.trim().match(/^([^$]+?)\s+\$([0-9]+)/);
-        if(m){
-          const name=m[1].trim().replace(/^[-+\s]+|[-+\s]+$/g,'');
-          if(name.length>2&&!/tracks|track/.test(name)) results.push({name,price:"$"+m[2]});
-        }
-      }
-    }
-  }
-  return results;
-}
-
-function showServicePicker(){
-  if(!parsedServices.length) return false;
-  const L=LANGS[currentLang];
-  const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className="bubble-wrap bot";
-  const title=currentLang==="es"?"Elige tu servicio:":"Choose your service:";
-  const items=parsedServices.map((s,i)=>
-    `<div class="svc-item" onclick="selectService(${i})">
-      <span class="svc-name">${s.name}</span>
-      <span class="svc-price">${s.price}</span>
-    </div>`
-  ).join("");
-  w.innerHTML=`
-    <div class="bubble-label">${L.label}</div>
-    <div class="svc-card">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">${title}</div>
-      ${items}
-    </div>`;
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
-  return true;
-}
-
-function selectService(idx){
-  const svc=parsedServices[idx];
-  if(!svc) return;
-  // Remove the service picker card
-  const chatBody=document.getElementById("chat-body");
-  const cards=chatBody.querySelectorAll(".svc-card");
-  cards.forEach(c=>c.closest(".bubble-wrap")?.remove());
-  // Send as user selection
-  const msg=`${svc.name} (${svc.price})`;
-  addBubble("user",msg);
-  hist.push({role:"user",content:msg});
-  // Continue with AI
-  sendToAI();
-}
-
-const slugMap={"theafricancrown":"salon3","freshcut":"salon2","hollywoodglam":"hollywoodglam"};
-const rawSlug=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
-const currentSalonId=slugMap[rawSlug]||rawSlug;
-
-// ── LANGUAGE STRINGS ─────────────────────────────────
-const LANGS={
-  en:{
-    status:"AI receptionist · always open",
-    placeholder:"Type a message...",
-    label:"Glam AI",
-    checkLink:"Check my booking →",
-    modalTitle:"Check booking status",
-    modalLabel:"Your name",
-    modalBtn:"Check status",
-    modalPlaceholder:"Enter the name used to book",
-    notFound:"No booking found",
-    notFoundSub:"We couldn't find a booking under that name. Make sure you use the same name you gave when booking.",
-    tryAgain:"Try again",
-    confirmed:"Confirmed ✓",
-    pendingDeposit:"Pending deposit",
-    pendingMsg:"Please send your deposit to confirm your slot.",
-    close:"Close",
-    looking:"Looking up your booking...",
-    couldNot:"Could not load booking. Try again.",
-    quick:["📅 Book appointment","💰 Prices","📆 Availability","⏱ Duration"],
-    quickMsgs:["Book an appointment","What are your prices?","Are you free Friday?","How long for braids?"],
-    welcome:(name)=>`Hey! Welcome to ${name}. I can help you book an appointment, check availability, or answer any questions. What can I do for you today?`,
-    depositLabel:(amt)=>`Send $${amt} deposit to confirm`,
-    depositSub:(svc,day,time,client)=>`${svc} · ${day} at ${time} · ${client}`,
-    depositFooter:"Include your name in the memo. Your slot is held for 2 hours pending deposit.",
-    optionalMsg:"A deposit is optional but helps secure your slot. You can pay above or just show up — we'll do our best to hold it for you!",
-    confirmedMsg:"Your appointment is confirmed! We look forward to seeing you 💅",
-    retryMsg:(t)=>`Having trouble connecting. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t}')">Tap to retry →</span>`,
-    system:(d,slots,depositText,depositInstruction)=>`You are the AI receptionist for ${d.salon_name||"this salon"} in ${d.location||"the local area"}. Be warm, friendly and concise. Reply in English.
-Today is ${new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}. Use this to calculate "tomorrow", "this weekend", "next Friday" etc accurately.
-Services offered: ${d.services||"Ask the stylist for current services and pricing."}. ONLY mention these exact services — never invent or suggest services not listed here.
-Hours: ${d.hours||"Call us for current hours."} ${depositText} Come with clean detangled hair.
-Availability: ${d.availability||"Contact us to check availability."} Already booked: ${slots}
-Stylists available: ${d.stylists||"any available stylist"}. Ask client if they have a preferred stylist after they select a service.
-Remember the full conversation. Never restart. Collect service, stylist preference, day, time (use format like 9am, 10am, 2pm), client name. ${depositInstruction}
-Keep replies under 80 words. Plain text only. No asterisks.`
-  },
-  es:{
-    status:"Recepcionista IA · siempre disponible",
-    placeholder:"Escribe un mensaje...",
-    label:"Glam IA",
-    checkLink:"Ver mi reserva →",
-    modalTitle:"Verificar reserva",
-    modalLabel:"Tu nombre",
-    modalBtn:"Verificar",
-    modalPlaceholder:"Ingresa el nombre usado al reservar",
-    notFound:"Reserva no encontrada",
-    notFoundSub:"No encontramos una reserva con ese nombre. Asegúrate de usar el mismo nombre que diste al reservar.",
-    tryAgain:"Intentar de nuevo",
-    confirmed:"Confirmada ✓",
-    pendingDeposit:"Depósito pendiente",
-    pendingMsg:"Por favor envía tu depósito para confirmar tu cita.",
-    close:"Cerrar",
-    looking:"Buscando tu reserva...",
-    couldNot:"No se pudo cargar la reserva. Intenta de nuevo.",
-    quick:["📅 Reservar cita","💰 Precios","📆 Disponibilidad","⏱ Duración"],
-    quickMsgs:["Quiero reservar una cita","¿Cuáles son sus precios?","¿Hay disponibilidad el viernes?","¿Cuánto tiempo toman las trenzas?"],
-    welcome:(name)=>`¡Hola! Bienvenida a ${name}. Puedo ayudarte a reservar una cita, revisar disponibilidad o responder tus preguntas. ¿En qué te puedo ayudar hoy?`,
-    depositLabel:(amt)=>`Envía $${amt} de depósito para confirmar`,
-    depositSub:(svc,day,time,client)=>`${svc} · ${day} a las ${time} · ${client}`,
-    depositFooter:"Incluye tu nombre en el memo. Tu cita queda reservada por 2 horas mientras se confirma el depósito.",
-    optionalMsg:"El depósito es opcional pero ayuda a asegurar tu cita. Puedes pagar arriba o simplemente llegar — haremos lo posible por guardarte el turno.",
-    confirmedMsg:"¡Tu cita está confirmada! Con gusto te atenderemos 💅",
-    retryMsg:(t)=>`Problema de conexión. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t}')">Toca para reintentar →</span>`,
-    system:(d,slots,depositText,depositInstruction)=>`Eres la recepcionista IA de ${d.salon_name||"este salón"} en ${d.location||"el área local"}. Sé cálida, amigable y concisa. Responde siempre en español.
-Hoy es ${new Date().toLocaleDateString("es-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}. Usa esto para calcular "mañana", "este fin de semana", "el próximo viernes" con precisión.
-Servicios ofrecidos: ${d.services||"Consulta con la estilista los servicios y precios actuales."}. SOLO menciona estos servicios exactos — nunca inventes ni sugieras servicios que no estén listados aquí.
-Horarios: ${d.hours||"Llámanos para conocer los horarios."} ${depositText} Ven con el cabello limpio y desenredado.
-Disponibilidad: ${d.availability||"Contáctanos para verificar disponibilidad."} Ya reservado: ${slots}
-Estilistas disponibles: ${d.stylists||"cualquier estilista disponible"}. Pregunta al cliente si tiene una estilista preferida después de seleccionar el servicio.
-Recuerda toda la conversación. No reinicies. Solicita: servicio, preferencia de estilista, día, hora (formato como 9am, 10am, 2pm), nombre del cliente. ${depositInstruction}
-Respuestas de menos de 80 palabras. Solo texto simple. Sin asteriscos.`
-  }
-};
-
-// ── LANGUAGE SWITCH ───────────────────────────────────
-function setLang(lang, btn){
-  currentLang=lang;
-  document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  const L=LANGS[lang];
-  document.getElementById("status-text").textContent=L.status;
-  document.getElementById("inp").placeholder=L.placeholder;
-  document.getElementById("check-link").textContent=L.checkLink;
-  document.getElementById("modal-title").textContent=L.modalTitle;
-  document.getElementById("modal-label").textContent=L.modalLabel;
-  document.getElementById("modal-btn").textContent=L.modalBtn;
-  document.getElementById("status-name").placeholder=L.modalPlaceholder;
-  renderQuickBtns();
-  // Reload system prompt in new language and restart chat
-  if(Object.keys(salonData).length>0){
-    rebuildSystem(salonData).then(()=>{
-      document.getElementById("chat-body").innerHTML="";
-      hist=[];
-      addBubble("bot", L.welcome(salonData.salon_name||"our salon"));
-    });
-  }
-}
-
-function renderQuickBtns(){
-  const L=LANGS[currentLang];
-  document.getElementById("quick-btns").innerHTML=L.quick.map((label,i)=>
-    `<button class="qbtn" onclick="send('${L.quickMsgs[i].replace(/'/g,"\\'")}')">${label}</button>`
-  ).join("");
-}
-
-// ── SETTINGS & SYSTEM PROMPT ─────────────────────────
-async function getBookedSlots(){
-  try{
-    const res=await fetch(`${BACKEND}/bookings?salon_id=${currentSalonId}`,{cache:'no-store'});
-    const bookings=await res.json();
-    if(!Array.isArray(bookings)||bookings.length===0) return "none";
-    return bookings.map(b=>`${b.day} ${b.time} (${b.service})`).join(", ");
-  }catch{return "none";}
-}
-
-async function rebuildSystem(d){
-  const slots=await getBookedSlots();
-  const lang=currentLang;
-  const amt=depositAmount;
-  let depositText, depositInstruction;
-  if(depositMode==="none"){
-    depositText= lang==="es"?"No se requiere depósito para reservar.":"No deposit required to book.";
-    depositInstruction= lang==="es"
-      ?`Una vez confirmada toda la info di exactamente: BOOKING_CONFIRMED:[servicio]:[día]:[hora]:[nombre]`
-      :`Once all info confirmed say exactly: BOOKING_CONFIRMED:[service]:[day]:[time]:[name]`;
-  } else if(depositMode==="optional"){
-    depositText= lang==="es"
-      ?`Un depósito de $${amt} es opcional pero recomendado para asegurar tu turno.`
-      :`A $${amt} deposit is optional but recommended to secure your slot.`;
-    depositInstruction= lang==="es"
-      ?`Una vez confirmada toda la info di exactamente: DEPOSIT_DUE:$${amt}:[servicio]:[día]:[hora]:[nombre]`
-      :`Once all info confirmed say exactly: DEPOSIT_DUE:$${amt}:[service]:[day]:[time]:[name]`;
-  } else {
-    depositText= lang==="es"
-      ?`Se requiere un depósito de $${amt} para asegurar tu turno.`
-      :`A $${amt} deposit is required to secure your slot.`;
-    depositInstruction= lang==="es"
-      ?`Una vez confirmada toda la info di exactamente: DEPOSIT_DUE:$${amt}:[servicio]:[día]:[hora]:[nombre]`
-      :`Once all info confirmed say exactly: DEPOSIT_DUE:$${amt}:[service]:[day]:[time]:[name]`;
-  }
-  SYS=LANGS[lang].system(d, slots, depositText, depositInstruction);
-}
-
-async function loadSettings(){
-  try{
-    const res=await fetch(`${BACKEND}/settings/${currentSalonId}`);
-    if(!res.ok) throw new Error();
-    const d=await res.json();
-    salonData=d;
-    document.getElementById("salon-name").textContent=d.salon_name||"Our Salon";
-    const initials=(d.salon_name||"GS").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-    document.getElementById("salon-av").textContent=initials;
-    depositMode=d.deposit_mode||"required";
-    depositAmount=d.deposit_amount||35;
-    PAY={cashapp:d.cashapp||"",venmo:d.venmo||"",zelle:d.zelle||""};
-    parsedServices=parseServices(d.services||"");
-    salonData.stylists=d.stylists||"";
-    await rebuildSystem(d);
-    renderQuickBtns();
-    addBubble("bot", LANGS[currentLang].welcome(d.salon_name||"our salon"));
-  }catch{
-    depositMode="required";
-    depositAmount=35;
-    SYS=`You are an AI receptionist for a hair salon. Be warm and helpful. Collect service, day, time, and client name. Once confirmed say: DEPOSIT_DUE:$35:[service]:[day]:[time]:[name]. Keep replies under 80 words. Plain text only.`;
-    renderQuickBtns();
-    addBubble("bot", LANGS[currentLang].welcome("our salon"));
-  }
-}
-
-// ── BUBBLES ───────────────────────────────────────────
-function addBubble(role,text){
-  const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className=`bubble-wrap ${role}`;
-  if(role==="bot"){
-    const l=document.createElement("div");
-    l.className="bubble-label";
-    l.textContent=LANGS[currentLang].label;
-    w.appendChild(l);
-  }
-  const b=document.createElement("div");
-  b.className=`bubble ${role}`;
-  b.textContent=text;
-  w.appendChild(b);
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
-}
-
-function addPayCard(svc,day,time,client){
-  const L=LANGS[currentLang];
-  const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className="bubble-wrap bot";
-  w.innerHTML=`
-    <div class="bubble-label">${L.label}</div>
-    <div class="pay-card">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:3px">${L.depositLabel(depositAmount)}</div>
-      <div style="font-size:12px;color:#888;margin-bottom:12px">${L.depositSub(svc,day,time,client)}</div>
-      <a href="https://cash.app/${PAY.cashapp}" target="_blank" class="pay-link" style="background:#1a9e3f">
-        <span style="font-size:16px;color:#fff;font-weight:700">$</span>
-        <div><div style="font-size:13px;font-weight:600;color:#fff">Cash App</div><div style="font-size:11px;color:#a8f0bc">${PAY.cashapp}</div></div>
-      </a>
-      <a href="https://venmo.com/${PAY.venmo.replace("@","")}" target="_blank" class="pay-link" style="background:#3d95ce">
-        <span style="font-size:16px;color:#fff;font-weight:700">V</span>
-        <div><div style="font-size:13px;font-weight:600;color:#fff">Venmo</div><div style="font-size:11px;color:#b8dff5">${PAY.venmo}</div></div>
-      </a>
-      <div class="pay-link" style="background:#6B2D8B">
-        <span style="font-size:16px;color:#fff;font-weight:700">Z</span>
-        <div><div style="font-size:13px;font-weight:600;color:#fff">Zelle</div><div style="font-size:11px;color:#dbb8f0">${PAY.zelle}</div></div>
-      </div>
-      <div style="font-size:11px;color:#aaa;margin-top:10px">${L.depositFooter}</div>
-    </div>`;
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
-}
-
-// ── REVIEW CARD ──────────────────────────────────────
-let selectedRating=0;
-
-function addReviewCard(clientName){
-  const L=LANGS[currentLang];
-  const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className="bubble-wrap bot";
-  const title=currentLang==="es"?"¿Cómo fue tu experiencia?":"How was your experience?";
-  const placeholder=currentLang==="es"?"Comparte tu opinión...":"Share your thoughts...";
-  const btnLabel=currentLang==="es"?"Enviar reseña":"Send review";
-  const skipLabel=currentLang==="es"?"Ahora no":"Not now";
-  w.innerHTML=`
-    <div class="bubble-label">${L.label}</div>
-    <div class="review-card">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">⭐ ${title}</div>
-      <div style="display:flex;gap:6px;margin-bottom:10px" id="star-row">
-        ${[1,2,3,4,5].map(i=>`<span class="star" onclick="setRating(${i})" id="star-${i}">★</span>`).join("")}
-      </div>
-      <textarea id="review-text" placeholder="${placeholder}" style="width:100%;padding:9px 12px;border:1px solid #eee;border-radius:8px;font-size:13px;outline:none;resize:none;height:70px;font-family:inherit"></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button onclick="submitReview('${clientName}')" style="flex:1;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${btnLabel}</button>
-        <button onclick="this.closest('.bubble-wrap').remove()" style="padding:9px 12px;background:transparent;border:1px solid #ddd;border-radius:8px;font-size:13px;color:#888;cursor:pointer">${skipLabel}</button>
-      </div>
-    </div>`;
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
-}
-
-function setRating(n){
-  selectedRating=n;
-  for(let i=1;i<=5;i++){
-    const s=document.getElementById("star-"+i);
-    if(s) s.classList.toggle("active",i<=n);
-  }
-}
-
-async function submitReview(clientName){
-  const text=document.getElementById("review-text")?.value.trim();
-  if(!text&&!selectedRating) return;
-  try{
-    await fetch(BACKEND+"/reviews",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        salon_id:currentSalonId,
-        customer_name:clientName||"Anonymous",
-        review:text||"",
-        rating:selectedRating||0
-      })
-    });
-    const thankyou=currentLang==="es"
-      ?"¡Gracias por tu reseña! 🙏"
-      :"Thank you for your review! 🙏";
-    // Remove review card and show thank you
-    document.querySelectorAll(".review-card").forEach(c=>c.closest(".bubble-wrap")?.remove());
-    addBubble("bot",thankyou);
-    selectedRating=0;
-  }catch{
-    addBubble("bot","Couldn't send review. Please try again.");
-  }
-}
-
-// ── SEND ──────────────────────────────────────────────
-async function sendToAI(){
-  // Core AI call — used after service selection too
-  const L=LANGS[currentLang];
-  busy=true;
-  const typing=document.createElement("div");
-  typing.className="bubble-wrap bot";
-  typing.id="typing";
-  typing.innerHTML=`<div class="bubble-label">${L.label}</div><div class="bubble bot" style="color:#aaa">typing...</div>`;
-  document.getElementById("chat-body").appendChild(typing);
-  document.getElementById("chat-body").scrollTop=9999;
-  try{
-    const res=await fetch(BACKEND+"/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({system:SYS,messages:hist})
-    });
-    const d=await res.json();
-    const raw=(d?.content?.[0]?.text||"Try again!").replace(/\*\*(.*?)\*\*/g,"$1");
-    const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([\d:apm]+[apm]):(.+)/i);
-    const bc=raw.match(/BOOKING_CONFIRMED:([^:]+):([^:]+):([\d:apm]+[apm]):([^\n]+)/i);
-    const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").replace(/BOOKING_CONFIRMED:[^\n]*/,"").trim();
-    document.getElementById("typing")?.remove();
-    hist.push({role:"assistant",content:raw});
-    if(reply&&!dm)addBubble("bot",reply);
-    if(dm){
-      const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
-      const priceMatch=reply.match(/\$([0-9]+)/);
-      const serviceAmount=priceMatch?parseInt(priceMatch[1]):0;
-      // Try to extract email from conversation history
-      const emailMatch=hist.map(h=>h.content).join(" ").match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-      const clientEmail=emailMatch?emailMatch[0]:null;
-      fetch(BACKEND+"/bookings",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:serviceAmount,salon_id:currentSalonId,source:"chat",language:currentLang,client_email:clientEmail})
-      }).then(r=>{
-        if(r.status===409){
-          const msg=currentLang==="es"
-            ?"¡Lo siento, ese horario ya está ocupado! ¿Qué otro día u hora te funciona?"
-            :"Sorry, that time slot is already taken! What other day or time works for you?";
-          addBubble("bot",msg);
-          hist.push({role:"assistant",content:msg});
-        } else {
-          if(reply) addBubble("bot",reply);
-          if(depositMode==="optional"){
-            addPayCard(svc,day,time,client);
-            addBubble("bot",L.optionalMsg);
-          } else {
-            addPayCard(svc,day,time,client);
-          }
-
-        }
-      }).catch(()=>{
-        addPayCard(svc,day,time,client);
-      });
-    }
-    if(bc&&!dm){
-      const svc=bc[1].trim(), day=bc[2].trim(), time=bc[3].trim(), client=bc[4].trim();
-      fetch(BACKEND+"/bookings",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId,source:"chat",language:currentLang})
-      }).catch(()=>{});
-      addBubble("bot",L.confirmedMsg);
-    }
-  }catch{
-    document.getElementById("typing")?.remove();
-    const el=document.getElementById("chat-body");
-    const w=document.createElement("div");
-    w.className="bubble-wrap bot";
-    w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="bubble bot" style="color:#888">${L.retryMsg("retry")}</div>`;
-    el.appendChild(w);
-    el.scrollTop=el.scrollHeight;
-    hist.pop();
-  }
-  busy=false;
-}
-
-async function send(txt){
-  const inp=document.getElementById("inp");
-  const t=txt||(inp?inp.value.trim():"");
-  if(!t||busy)return;
-  if(inp)inp.value="";
-
-  // Show service picker for booking intent
-  const bookingIntent=/book|appointment|reserve|schedule|réserver|cita|rendez/i.test(t);
-  if(bookingIntent && parsedServices.length>0 && hist.length<=2){
-    addBubble("user",t);
-    hist.push({role:"user",content:t});
-    const pickerLabel=currentLang==="es"
-      ?"¡Claro! ¿Qué servicio te interesa?"
-      :"Of course! Which service are you interested in?";
-    addBubble("bot",pickerLabel);
-    showServicePicker();
+async function sendSMS(to, body) {
+  if (!TWILIO_SID || !TWILIO_TOKEN || !TWILIO_PHONE) {
+    console.log("[sms] Twilio not configured, skipping");
     return;
   }
-
-  addBubble("user",t);
-  hist.push({role:"user",content:t});
-  await sendToAI();
-}
-
-// ── STATUS MODAL ──────────────────────────────────────
-function openStatus(){
-  const L=LANGS[currentLang];
-  document.getElementById("status-modal").style.display="flex";
-  document.getElementById("modal-title").textContent=L.modalTitle;
-  document.getElementById("modal-label").textContent=L.modalLabel;
-  document.getElementById("modal-btn").textContent=L.modalBtn;
-  document.getElementById("status-name").placeholder=L.modalPlaceholder;
-  document.getElementById("status-name").value="";
-  document.getElementById("status-result").style.display="none";
-  document.getElementById("status-search").style.display="block";
-}
-
-function closeStatus(){
-  document.getElementById("status-modal").style.display="none";
-}
-
-async function checkStatus(){
-  const name=document.getElementById("status-name").value.trim();
-  if(!name)return;
-  const L=LANGS[currentLang];
-  const result=document.getElementById("status-result");
-  const search=document.getElementById("status-search");
-  search.style.display="none";
-  result.style.display="block";
-  result.innerHTML=`<div style="text-align:center;padding:20px;color:#aaa;font-size:13px">${L.looking}</div>`;
-  try{
-    const res=await fetch(`${BACKEND}/bookings/search?name=${encodeURIComponent(name)}&salon_id=${currentSalonId}`,{cache:"no-store"});
-    const bookings=await res.json();
-    if(!Array.isArray(bookings)||bookings.length===0){
-      result.innerHTML=`
-        <div style="text-align:center;padding:10px 0">
-          <div style="font-size:32px;margin-bottom:8px">🔍</div>
-          <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:6px">${L.notFound}</div>
-          <div style="font-size:13px;color:#888;margin-bottom:14px">${L.notFoundSub}</div>
-          <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button>
-        </div>`;
-      return;
-    }
-    const b=bookings[0];
-    const statusColor=b.status==="confirmed"?"#0F6E56":"#633806";
-    const statusBg=b.status==="confirmed"?"#eafaf1":"#FAEEDA";
-    const statusLabel=b.status==="confirmed"?L.confirmed:L.pendingDeposit;
-    result.innerHTML=`
-      <div style="text-align:center;padding:10px 0">
-        <div style="font-size:32px;margin-bottom:8px">${b.status==="confirmed"?"✅":"⏳"}</div>
-        <div style="font-size:15px;font-weight:600;color:#111;margin-bottom:4px">${b.service}</div>
-        <div style="font-size:13px;color:#888;margin-bottom:12px">${b.day} at ${b.time||b.hour+"am"} · ${b.client}</div>
-        <span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:${statusBg};color:${statusColor}">${statusLabel}</span>
-        ${b.status==="pending"?`<div style="font-size:12px;color:#888;margin-top:12px">${L.pendingMsg}</div>`:""}
-        <button onclick="closeStatus()" style="display:block;width:100%;margin-top:14px;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${L.close}</button>
-      </div>`;
-  }catch{
-    result.innerHTML=`
-      <div style="text-align:center;padding:10px 0">
-        <div style="font-size:13px;color:#888">${L.couldNot}</div>
-        <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;margin-top:10px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button>
-      </div>`;
+  const clean = String(to).replace(/[^0-9+]/g, "");
+  if (!clean) return;
+  try {
+    const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`, {
+      method: "POST",
+      headers: {
+        "Authorization": "Basic " + Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString("base64"),
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({ From: TWILIO_PHONE, To: clean, Body: body }).toString()
+    });
+    const d = await res.json();
+    console.log(`[sms] sent to ${clean} — sid: ${d.sid || d.message}`);
+  } catch (e) {
+    console.error("[sms] error:", e.message);
   }
 }
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
-loadSettings();
-</script>
-</body>
-</html>
+app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], allowedHeaders: ["Content-Type", "x-admin-password"] }));
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, x-admin-password");
+  res.sendStatus(204);
+});
+app.use(express.json());
+
+async function supabase(method, path, body) {
+  const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
+    method: method,
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer " + SUPABASE_KEY,
+      "Prefer": method === "POST" ? "return=representation" : ""
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const text = await res.text();
+  return text ? JSON.parse(text) : {};
+}
+
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
+app.get("/test", (req, res) => res.json({ status: "Backend is working!", timestamp: new Date().toISOString() }));
+app.get("/dashboard", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
+app.get("/client", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
+app.get("/demo/restaurant", (req, res) => res.sendFile(path.join(__dirname, "demo-restaurant.html")));
+app.get("/client/restaurant1", (req, res) => res.sendFile(path.join(__dirname, "client-restaurant.html")));
+app.get("/dashboard/restaurant1", (req, res) => res.sendFile(path.join(__dirname, "dashboard-restaurant.html")));
+app.get("/client/hollywoodglam", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
+app.get("/review/:salonId", (req, res) => res.sendFile(path.join(__dirname, "review.html")));
+app.get("/dashboard/hollywoodglam", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
+app.get("/demo/salon", (req, res) => res.sendFile(path.join(__dirname, "demo-salon.html")));
+app.get("/demo/autorepair", (req, res) => res.sendFile(path.join(__dirname, "demo-autorepair.html")));
+app.get("/client/:salonId", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
+app.get("/theafricancrown", (req, res) => res.sendFile(path.join(__dirname, "client.html")));
+app.get("/theafricancrown/dashboard", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
+app.get("/dashboard/:salonId", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
+app.get("/portal", (req, res) => res.sendFile(path.join(__dirname, "admin.html")));
+
+// ── CHANGE 1: Read active_period from settings instead of guessing by clock ──
+app.get("/menu/:salonId", async (req, res) => {
+  try {
+    const requested = (req.query.period || "").toLowerCase();
+    let period;
+    if (["breakfast", "lunch", "dinner"].includes(requested)) {
+      // Explicit ?period=xxx from the dashboard menu browser — honour it
+      period = requested;
+    } else {
+      // No period specified — read what the owner set as active
+      const settings = await supabase("GET", `salon_settings?salon_id=eq.${req.params.salonId}&limit=1`);
+      const saved = settings?.[0]?.active_period;
+      if (["breakfast", "lunch", "dinner"].includes(saved)) {
+        period = saved;
+      } else {
+        // Fallback to time-based if column not yet set in DB
+        const hour = new Date().getHours();
+        period = hour < 11 ? "breakfast" : hour < 18 ? "lunch" : "dinner";
+      }
+    }
+    const data = await supabase("GET", "menu_items?salon_id=eq." + req.params.salonId + "&available=eq.true&or=(meal_period.eq." + period + ",meal_period.eq.all)&order=meal_period.asc,category.asc");
+    res.json({ period, items: Array.isArray(data) ? data : [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/orders", async (req, res) => {
+  try {
+    const { customer_name, customer_email, items, total, order_type, estimated_time, salon_id, source, language, status } = req.body;
+    const sid = salon_id || "restaurant1";
+
+    // ── Generate order number: highest existing + 1, starting at 1000 ──
+    let order_number = 1000;
+    try {
+      const existing = await supabase("GET", "orders?select=order_number&order_number=not.is.null&order=order_number.desc&limit=1");
+      const last = Array.isArray(existing) && existing.length > 0 && existing[0]?.order_number;
+      order_number = last ? parseInt(last) + 1 : 1000;
+    } catch (e) {
+      order_number = 1000 + (Date.now() % 9000);
+    }
+
+    const data = await supabase("POST", "orders", {
+      customer_name,
+      customer_email: customer_email || null,
+      items, total, order_type,
+      estimated_time: estimated_time || "25-30 mins",
+      salon_id: sid,
+      source: source || "chat",
+      language: language || "en",
+      status: status || "pending",
+      order_number
+    });
+
+    supabase("GET", `salon_settings?salon_id=eq.${sid}&limit=1`).then(settings => {
+      const ownerEmail = settings?.[0]?.owner_email;
+      const restaurantName = settings?.[0]?.salon_name || sid;
+      const kitchenPhone = settings?.[0]?.kitchen_phone;
+
+      // ── Kitchen SMS notification ──
+      console.log(`[kitchen-sms] kitchenPhone=${kitchenPhone} TWILIO_SID=${!!TWILIO_SID} TWILIO_TOKEN=${!!TWILIO_TOKEN} TWILIO_PHONE=${TWILIO_PHONE}`);
+      if (kitchenPhone) {
+        const orderNum = Array.isArray(data) ? data[0]?.order_number : data?.order_number;
+        const smsBody = `NEW ORDER #${orderNum||""}\nCustomer: ${customer_name}\nItems: ${items}\nTotal: $${total}\nType: ${order_type||"takeout"}\nETA: ${estimated_time||"25-30 mins"}`;
+        sendSMS(kitchenPhone, smsBody).catch(e => console.error("[kitchen-sms]", e));
+      } else {
+        console.log("[kitchen-sms] no kitchen_phone set in settings");
+      }
+
+      if (!ownerEmail || !RESEND_KEY) {
+        console.log(`[orders] skip email — ownerEmail=${!!ownerEmail} resendKey=${!!RESEND_KEY}`);
+        return;
+      }
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
+        body: JSON.stringify({
+          from: "Dianke.ai <onboarding@resend.dev>",
+          to: ownerEmail,
+          subject: `New order — ${customer_name} · $${total}`,
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+              <h2 style="color:#111;margin-bottom:4px">New order received 🍽️</h2>
+              <p style="color:#888;font-size:13px;margin-bottom:20px">Via Dianke.ai · ${restaurantName}</p>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Customer</div>
+                <div style="font-size:15px;font-weight:600;color:#111">${customer_name}</div>
+              </div>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Items</div>
+                <div style="font-size:15px;font-weight:600;color:#111">${items}</div>
+              </div>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Total · Type · ETA</div>
+                <div style="font-size:15px;font-weight:600;color:#111">$${total} · ${order_type || "takeout"} · ${estimated_time || "25-30 mins"}</div>
+              </div>
+              <a href="https://dianke.ai/dashboard/${sid}" style="display:block;text-align:center;background:#c17f24;color:#fff;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">Open dashboard →</a>
+            </div>
+          `
+        })
+      }).then(r => r.text()).then(t => console.log(`[orders] resend response: ${t.slice(0, 200)}`)).catch(e => console.error("[orders] email error:", e));
+    }).catch(e => console.error("[orders] settings lookup failed:", e));
+
+    res.json(Array.isArray(data) ? data[0] : data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/orders/search", async (req, res) => {
+  const { name, salon_id } = req.query;
+  if (!name) return res.status(400).json({ error: "Name required" });
+  try {
+    const data = await supabase("GET", `orders?salon_id=eq.${salon_id || "restaurant1"}&customer_name=ilike.*${encodeURIComponent(name)}*&order=created_at.desc&limit=5`);
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/orders-list/:salonId", async (req, res) => {
+  try {
+    const data = await supabase("GET", "orders?salon_id=eq." + req.params.salonId + "&order=created_at.desc");
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/orders/:id", async (req, res) => {
+  try {
+    const { status } = req.body;
+    const data = await supabase("PATCH", "orders?id=eq." + req.params.id, { status });
+
+    if (status === "ready") {
+      (async () => {
+        try {
+          const orderRows = await supabase("GET", "orders?id=eq." + req.params.id + "&limit=1");
+          const order = Array.isArray(orderRows) ? orderRows[0] : null;
+          if (!order || !order.customer_email || !RESEND_KEY) {
+            console.log(`[ready-email] skip — email=${!!(order && order.customer_email)} resendKey=${!!RESEND_KEY}`);
+            return;
+          }
+          const settings = await supabase("GET", `salon_settings?salon_id=eq.${order.salon_id}&limit=1`);
+          const restaurantName = settings?.[0]?.salon_name || order.salon_id;
+          const restaurantPhone = settings?.[0]?.phone || "";
+          const lang = order.language || "en";
+          const copy = {
+            en: { subject: `Your order is ready at ${restaurantName} 🍽️`, heading: "Your order is ready!", body: "Come pick it up at the counter.", labelOrder: "Order", labelName: "Name", labelPhone: "Restaurant phone" },
+            fr: { subject: `Votre commande est prête chez ${restaurantName} 🍽️`, heading: "Votre commande est prête!", body: "Venez la chercher au comptoir.", labelOrder: "Commande", labelName: "Nom", labelPhone: "Téléphone du restaurant" },
+            wo: { subject: `Sa commande sett na ci ${restaurantName} 🍽️`, heading: "Sa commande sett na!", body: "Ñëw ko jëlël ci comptoir bi.", labelOrder: "Commande", labelName: "Tur", labelPhone: "Téléphone restaurant bi" }
+          };
+          const t = copy[lang] || copy.en;
+          fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
+            body: JSON.stringify({
+              from: "Dianke.ai <onboarding@resend.dev>",
+              to: order.customer_email,
+              subject: t.subject,
+              html: `
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+                  <h2 style="color:#22c98a;margin-bottom:6px">🔔 ${t.heading}</h2>
+                  <p style="color:#555;font-size:14px;margin-bottom:18px">${t.body}</p>
+                  <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                    <div style="font-size:13px;color:#888;margin-bottom:4px">${t.labelOrder}</div>
+                    <div style="font-size:15px;font-weight:600;color:#111">${order.items || ""}</div>
+                  </div>
+                  <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                    <div style="font-size:13px;color:#888;margin-bottom:4px">${t.labelName}</div>
+                    <div style="font-size:15px;font-weight:600;color:#111">${order.customer_name || ""}</div>
+                  </div>
+                  ${restaurantPhone ? `<div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
+                    <div style="font-size:13px;color:#888;margin-bottom:4px">${t.labelPhone}</div>
+                    <div style="font-size:15px;font-weight:600;color:#111"><a href="tel:${restaurantPhone.replace(/[^0-9+]/g,"")}" style="color:#c17f24;text-decoration:none">${restaurantPhone}</a></div>
+                  </div>` : ""}
+                  <p style="color:#888;font-size:12px;margin-top:16px;text-align:center">Sent by ${restaurantName} via Dianke.ai</p>
+                </div>
+              `
+            })
+          }).then(r => r.text()).then(t => console.log(`[ready-email] resend response: ${t.slice(0, 200)}`)).catch(e => console.error("[ready-email] error:", e));
+        } catch (e) {
+          console.error("[ready-email] lookup failed:", e);
+        }
+      })();
+    }
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/menu-period/:salonId", async (req, res) => {
+  try {
+    const period = req.query.period || "lunch";
+    const data = await supabase("GET", "menu_items?salon_id=eq." + req.params.salonId + "&meal_period=eq." + period);
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/menu-items", async (req, res) => {
+  try {
+    const { salon_id, name, price, category, meal_period, available } = req.body;
+    const data = await supabase("POST", "menu_items", { salon_id, name, price, category, meal_period, available });
+    res.json(Array.isArray(data) ? data[0] : data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/menu-items/:id", async (req, res) => {
+  try {
+    const { available } = req.body;
+    const data = await supabase("PATCH", "menu_items?id=eq." + req.params.id, { available });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/bookings", async (req, res) => {
+  try {
+    const salonId = req.query.salon_id || "default";
+    const data = await supabase("GET", "bookings?salon_id=eq." + salonId + "&order=created_at.desc");
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/bookings/search", async (req, res) => {
+  const { name, salon_id } = req.query;
+  if (!name) return res.status(400).json({ error: "Name required" });
+  try {
+    const data = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&client=ilike.*${encodeURIComponent(name)}*&order=created_at.desc&limit=5`);
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/bookings", async (req, res) => {
+  try {
+    const { client, service, day, time, amount, salon_id, source, client_email } = req.body;
+    const hmap = { "9am":9, "10am":10, "10:30am":10, "11am":11, "11:30am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
+    const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
+
+    const durations = {
+      "knotless braids": 4, "medium knotless braids": 4, "large knotless braids": 3,
+      "box braids": 6, "locs maintenance": 2, "silk press": 1.5, "wig install": 1,
+      "crochet braids": 3, "feed-in braids": 3
+    };
+    const dayBookings = await supabase("GET", `bookings?salon_id=eq.${salon_id || "default"}&day=eq.${day}&status=in.(confirmed,pending)`);
+    if (Array.isArray(dayBookings) && dayBookings.length > 0) {
+      const newHour = parseInt(time) || 10;
+      const newService = (service || "").toLowerCase();
+      const newKey = Object.keys(durations).find(k => newService.includes(k));
+      const newEnd = newHour + (newKey ? durations[newKey] : 2);
+      const conflict = dayBookings.find(b => {
+        const existHour = b.hour || 10;
+        const existService = (b.service || "").toLowerCase();
+        const existKey = Object.keys(durations).find(k => existService.includes(k));
+        const existEnd = existHour + (existKey ? durations[existKey] : 2);
+        return newHour < existEnd && newEnd > existHour;
+      });
+      if (conflict) return res.status(409).json({ error: "Time slot conflicts with existing booking" });
+    }
+
+    const data = await supabase("POST", "bookings", {
+      client, service, day, time, hour,
+      amount: amount || 0,
+      status: "pending",
+      deposit: false,
+      salon_id: salon_id || "default",
+      new_from_chat: true,
+      source: source || "chat",
+      client_email: client_email || null
+    });
+
+    supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`).then(settings => {
+      const ownerEmail = settings?.[0]?.owner_email;
+      if (!ownerEmail) return;
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
+        body: JSON.stringify({
+          from: "Dianke.ai <onboarding@resend.dev>",
+          to: ownerEmail,
+          subject: `New booking — ${client} · ${service}`,
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+              <h2 style="color:#111;margin-bottom:4px">New booking received 📅</h2>
+              <p style="color:#888;font-size:13px;margin-bottom:20px">Via Dianke.ai · ${salon_id}</p>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Client</div>
+                <div style="font-size:15px;font-weight:600;color:#111">${client}</div>
+              </div>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Service</div>
+                <div style="font-size:15px;font-weight:600;color:#111">${service}</div>
+              </div>
+              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:16px">
+                <div style="font-size:13px;color:#888;margin-bottom:4px">Date & Time</div>
+                <div style="font-size:15px;font-weight:600;color:#111">${day} at ${time}</div>
+              </div>
+              <a href="https://dianke.ai/dashboard/${salon_id}" style="display:block;text-align:center;background:#111;color:#fff;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">View on dashboard →</a>
+            </div>
+          `
+        })
+      }).catch(() => {});
+    }).catch(() => {});
+
+    res.json(Array.isArray(data) ? data[0] : data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/bookings/:id", async (req, res) => {
+  try {
+    const { status, deposit, amount, stylist } = req.body;
+    const svcPrices = {"silk press":85,"locs maintenance":95,"knotless braids":180,"large knotless":150,"box braids":220,"wig install":120,"medium knotless braids":180,"large knotless braids":150};
+    const existing = await supabase("GET", "bookings?id=eq." + req.params.id);
+    const current = Array.isArray(existing) ? existing[0] : {};
+    const serviceName = (current.service || "").toLowerCase();
+    const serviceKey = Object.keys(svcPrices).find(k => serviceName.includes(k));
+    const update = {};
+    if (status) update.status = status;
+    if (deposit !== undefined) update.deposit = deposit;
+    if (amount !== undefined) update.amount = amount;
+    if (stylist !== undefined) update.stylist = stylist;
+    if (!current.amount || current.amount === 0) {
+      update.amount = serviceKey ? svcPrices[serviceKey] : 0;
+    }
+    const data = await supabase("PATCH", "bookings?id=eq." + req.params.id, update);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/bookings/:id", async (req, res) => {
+  try {
+    await supabase("DELETE", "bookings?id=eq." + req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── MARK DONE + SEND REVIEW REQUEST ─────────────────
+app.patch("/bookings/:id/done", async (req, res) => {
+  try {
+    // Get booking details first
+    const bookingRows = await supabase("GET", "bookings?id=eq." + req.params.id + "&limit=1");
+    const booking = Array.isArray(bookingRows) ? bookingRows[0] : null;
+    if (!booking) return res.json({ ok: true });
+
+    // Mark booking as done
+    await supabase("PATCH", "bookings?id=eq." + req.params.id, { status: "done" });
+
+    // Send review request email — check both email field names
+    const clientEmail = booking.email || booking.client_email || null;
+    console.log(`[done] booking=${req.params.id} client=${booking.client} email=${clientEmail}`);
+    if (clientEmail && RESEND_KEY) {
+      const settings = await supabase("GET", `salon_settings?salon_id=eq.${booking.salon_id}&limit=1`);
+      const salonName = settings?.[0]?.salon_name || booking.salon_id;
+      const reviewLink = `https://dianke.ai/review/${booking.salon_id}?booking=${booking.id}&name=${encodeURIComponent(booking.client||"")}`;
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
+        body: JSON.stringify({
+          from: "Dianke.ai <onboarding@resend.dev>",
+          to: clientEmail,
+          subject: `How was your experience at ${salonName}? ⭐`,
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+              <h2 style="color:#111;margin-bottom:6px">How was your experience? ⭐</h2>
+              <p style="color:#555;font-size:14px;margin-bottom:18px">Hi ${booking.client||"there"}! We hope you loved your ${booking.service} at ${salonName}. We'd love to hear your feedback!</p>
+              <a href="${reviewLink}" style="display:block;text-align:center;background:#c2426e;color:#fff;padding:14px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">Leave a Review ⭐</a>
+              <p style="color:#aaa;font-size:12px;margin-top:16px;text-align:center">Sent by ${salonName} via Dianke.ai</p>
+            </div>
+          `
+        })
+      }).catch(e => console.error("[review-email]", e));
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── REVIEWS ──────────────────────────────────────────
+app.post("/reviews", async (req, res) => {
+  try {
+    const { salon_id, customer_name, review, rating } = req.body;
+    const data = await supabase("POST", "reviews", { salon_id, customer_name, review, rating });
+    res.json(Array.isArray(data) ? data[0] : data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/reviews/:salonId", async (req, res) => {
+  try {
+    const data = await supabase("GET", `reviews?salon_id=eq.${req.params.salonId}&order=created_at.desc`);
+    res.json(Array.isArray(data) ? data : []);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/chat", async (req, res) => {
+  const { messages, system } = req.body;
+  if (!messages || !system) return res.status(400).json({ error: "Missing messages or system" });
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 150, system, messages })
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── CHANGE 2: Expose active_period in the public settings response ──
+app.get('/settings/:salon_id', async (req, res) => {
+  const { salon_id } = req.params;
+  const adminPassword = req.headers['x-admin-password'];
+  res.set('Cache-Control', 'no-store');
+  try {
+    const data = await supabase("GET", `salon_settings?salon_id=eq.${salon_id}&limit=1`);
+    if (!data || data.length === 0) return res.status(404).json({ error: 'Salon not found' });
+    const salon = data[0];
+    if (adminPassword) {
+      if (adminPassword !== salon.admin_password) return res.status(401).json({ error: 'Unauthorized' });
+      const { admin_password, ...safeData } = salon;
+      return res.json(safeData);
+    }
+    return res.json({
+      salon_name: salon.salon_name,
+      location: salon.location,
+      hours: salon.hours,
+      services: salon.services,
+      availability: salon.availability,
+      deposit_mode: salon.deposit_mode,
+      deposit_amount: salon.deposit_amount,
+      cashapp: salon.cashapp,
+      venmo: salon.venmo,
+      zelle: salon.zelle,
+      phone: salon.phone,
+      active_period: salon.active_period,   // ← NEW: dashboard reads this on load
+      kitchen_phone: salon.kitchen_phone,
+      owner_email: salon.owner_email,
+      stylists: salon.stylists,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── CHANGE 3: PATCH /settings/:salon_id — owner updates settings ──
+app.patch('/settings/:salon_id', async (req, res) => {
+  const { salon_id } = req.params;
+  const { active_period, kitchen_phone, owner_email, phone } = req.body;
+  const update = {};
+  if (active_period && ["breakfast", "lunch", "dinner"].includes(active_period)) {
+    update.active_period = active_period;
+  }
+  if (kitchen_phone !== undefined) update.kitchen_phone = kitchen_phone;
+  if (owner_email !== undefined) update.owner_email = owner_email;
+  if (phone !== undefined) update.phone = phone;
+  if (req.body.stylists !== undefined) update.stylists = req.body.stylists;
+  if (Object.keys(update).length === 0) {
+    return res.status(400).json({ error: "No valid fields to update." });
+  }
+  try {
+    await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, update);
+    res.json({ ok: true, ...update });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/settings/:salon_id/update', async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, x-admin-password");
+  const { salon_id } = req.params;
+  const adminPassword = req.headers['x-admin-password'];
+  if (!adminPassword) return res.status(401).json({ error: 'Password required' });
+  try {
+    const existing = await supabase("GET", `salon_settings?salon_id=eq.${salon_id}&limit=1`);
+    if (!existing || existing.length === 0) return res.status(404).json({ error: 'Salon not found' });
+    if (adminPassword !== existing[0].admin_password) return res.status(401).json({ error: 'Unauthorized' });
+    const { deposit_mode, deposit_amount, cashapp, venmo, zelle, salon_name, location, hours, services, availability, owner_email, phone } = req.body;
+    await supabase("PATCH", `salon_settings?salon_id=eq.${salon_id}`, {
+      deposit_mode, deposit_amount, cashapp, venmo, zelle,
+      salon_name, location, hours, services, availability, owner_email, phone,
+      updated_at: new Date().toISOString()
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Settings update error:', err);
+    res.status(500).json({ error: err.message || 'Server error' });
+  }
+});
+
+app.get("*", (req, res) => {
+  if (req.path.startsWith("/dashboard")) {
+    res.sendFile(path.join(__dirname, "dashboard.html"));
+  } else {
+    res.sendFile(path.join(__dirname, "client.html"));
+  }
+});
+
+setInterval(function() {
+  fetch("https://glam-backend-rxdf.onrender.com").catch(function() {});
+}, 14 * 60 * 1000);
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, function() {
+  console.log("Dianke.ai server running on port " + PORT);
+});
