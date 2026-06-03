@@ -380,6 +380,7 @@ app.post("/bookings", async (req, res) => {
 
     supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`).then(settings => {
       const ownerEmail = settings?.[0]?.owner_email;
+      console.log(`[bookings] owner_email=${ownerEmail||"none"} salon_id=${salon_id}`);
       if (!ownerEmail) return;
       fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -408,8 +409,8 @@ app.post("/bookings", async (req, res) => {
             </div>
           `
         })
-      }).catch(() => {});
-    }).catch(() => {});
+      }).then(r=>r.text()).then(t=>console.log(`[bookings] email response: ${t.slice(0,100)}`)).catch(e=>console.error("[bookings] email error:",e));
+    }).catch(e=>console.error("[bookings] settings error:",e));
 
     res.json(Array.isArray(data) ? data[0] : data);
   } catch (err) {
