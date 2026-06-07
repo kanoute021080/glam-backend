@@ -464,10 +464,25 @@ app.patch("/bookings/:id/done", async (req, res) => {
     // Send review request email — check both email field names
     const clientEmail = booking.email || booking.client_email || null;
     console.log(`[done] booking=${req.params.id} client=${booking.client} email=${clientEmail}`);
+
     if (clientEmail && RESEND_KEY) {
-      const settings = await supabase("GET", `salon_settings?salon_id=eq.${booking.salon_id}&limit=1`);
-      const salonName = settings?.[0]?.salon_name || booking.salon_id;
+      const settingsRows = await supabase("GET", `salon_settings?salon_id=eq.${booking.salon_id}&limit=1`);
+      const settings = settingsRows?.[0] || null;
+      const salonName = settings?.salon_name || booking.salon_id;
+      const googleReviewUrl = settings?.google_review_url || null;
+
       const reviewLink = `https://dianke.ai/review/${booking.salon_id}?booking=${booking.id}&name=${encodeURIComponent(booking.client||"")}`;
+
+      const googleReviewButton = googleReviewUrl ? `
+        <div style="text-align:center;margin-top:16px;">
+          <p style="color:#555;font-size:13px;margin-bottom:10px;">Enjoyed your visit? It would mean the world to us!</p>
+          <a href="${googleReviewUrl}"
+             style="display:inline-block;background:#4285F4;color:#fff;padding:12px 28px;
+                    border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">
+            ⭐ Leave us a Google Review
+          </a>
+        </div>` : '';
+
       fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
@@ -479,19 +494,20 @@ app.patch("/bookings/:id/done", async (req, res) => {
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
               <h2 style="color:#111;margin-bottom:6px">How was your experience? ⭐</h2>
               <p style="color:#555;font-size:14px;margin-bottom:18px">Hi ${booking.client||"there"}! We hope you loved your ${booking.service} at ${salonName}. We'd love to hear your feedback!</p>
-              <a href="${reviewLink}" style="display:block;text-align:center;background:#c2426e;color:#fff;padding:14px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">Leave a Review ⭐</a>
+              <a href="${reviewLink}" style="display:block;text-align:center;background:#c2426e;color:#fff;padding:14px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px">Leave a Review on Dianke ⭐</a>
+              ${googleReviewButton}
               <p style="color:#aaa;font-size:12px;margin-top:16px;text-align:center">Sent by ${salonName} via Dianke.ai</p>
             </div>
           `
         })
       }).catch(e => console.error("[review-email]", e));
     }
+
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-
 // ── REVIEWS ──────────────────────────────────────────
 app.post("/reviews", async (req, res) => {
   try {
