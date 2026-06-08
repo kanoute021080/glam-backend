@@ -134,10 +134,10 @@ app.post("/orders", async (req, res) => {
       order_number
     });
 
-    supabase("GET", `salon_settings?salon_id=eq.${sid}&limit=1`).then(settings => {
+    supabase("GET", `restaurants?salon_id=eq.${sid}&limit=1`).then(settings => {
       const ownerEmail = settings?.[0]?.owner_email;
-      const restaurantName = settings?.[0]?.salon_name || sid;
-      const kitchenPhone = settings?.[0]?.kitchen_phone;
+const restaurantName = settings?.[0]?.name || sid;
+const kitchenPhone = settings?.[0]?.kitchen_phone;
 
       // ── Kitchen SMS notification ──
       console.log(`[kitchen-sms] kitchenPhone=${kitchenPhone} TWILIO_SID=${!!TWILIO_SID} TWILIO_TOKEN=${!!TWILIO_TOKEN} TWILIO_PHONE=${TWILIO_PHONE}`);
