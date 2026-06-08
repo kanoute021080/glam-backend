@@ -202,9 +202,25 @@ app.get("/orders/search", async (req, res) => {
 // Restaurant settings - GET
 app.get("/settings/:salonId", async (req, res) => {
   try {
-    const rows = await supabase("GET", `restaurants?salon_id=eq.${req.params.salonId}&limit=1`);
-    const r = rows?.[0] || {};
-    res.json({ ok: true, kitchen_phone: r.kitchen_phone || "", owner_email: r.owner_email || "", phone: r.client_phone || "" });
+    const rows = await supabase("GET", `salon_settings?salon_id=eq.${req.params.salonId}&limit=1`);
+    const salon = rows?.[0];
+    if (!salon) return res.status(404).json({ error: "Salon not found" });
+    res.json({
+      salon_name: salon.salon_name,
+      location: salon.location,
+      hours: salon.hours,
+      services: salon.services,
+      availability: salon.availability,
+      deposit_mode: salon.deposit_mode,
+      deposit_amount: salon.deposit_amount,
+      cashapp: salon.cashapp,
+      venmo: salon.venmo,
+      zelle: salon.zelle,
+      owner_email: salon.owner_email,
+      phone: salon.phone,
+      kitchen_phone: salon.kitchen_phone,
+      stylists: salon.stylists
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
