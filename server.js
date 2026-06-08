@@ -199,7 +199,33 @@ app.get("/orders/search", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// Restaurant settings - GET
+app.get("/settings/:salonId", async (req, res) => {
+  try {
+    const rows = await supabase("GET", `restaurants?salon_id=eq.${req.params.salonId}&limit=1`);
+    const r = rows?.[0] || {};
+    res.json({ ok: true, kitchen_phone: r.kitchen_phone || "", owner_email: r.owner_email || "", phone: r.client_phone || "" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
+// Restaurant settings - POST
+app.post("/settings/:salonId", async (req, res) => {
+  try {
+    const { kitchen_phone, owner_email, phone } = req.body;
+    await supabase("PATCH", `restaurants?salon_id=eq.${req.params.salonId}`, {
+      kitchen_phone: kitchen_phone || null,
+      owner_email: owner_email || null,
+      client_phone: phone || null
+    });
+    res.json({ ok: true, kitchen_phone, owner_email, phone });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/orders-list/:salonId", async (req, res) => {
 app.get("/orders-list/:salonId", async (req, res) => {
   try {
     const data = await supabase("GET", "orders?salon_id=eq." + req.params.salonId + "&order=created_at.desc");
