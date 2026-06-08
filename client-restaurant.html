@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>Teranga Restaurant — Order Online</title>
+<title>Afghan Kababs & Grill — Order Online</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 body{background:#1a0a00;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;overflow-x:hidden}
@@ -47,7 +47,7 @@ body{background:#1a0a00;min-height:100vh;display:flex;flex-direction:column;alig
     <div class="av">TR</div>
     <div style="flex:1">
       <div style="display:flex;align-items:center">
-        <div class="hdr-name" id="restaurant-name">Teranga Restaurant</div>
+        <div class="hdr-name" id="restaurant-name">Afghan Kababs & Grill</div>
         <span class="period-badge" id="period-badge">Lunch</span>
       </div>
       <div class="hdr-status"><span class="dot"></span><span id="status-text">AI assistant · always open</span></div>
@@ -102,7 +102,7 @@ const LANGS={
   fr:{
     status:"Assistant IA · toujours disponible",
     placeholder:"Tapez votre commande...",
-    label:"Teranga IA",
+    label:"Afghan Kababs IA",
     periods:{breakfast:"Petit-déjeuner",lunch:"Déjeuner",dinner:"Dîner"},
     quick:["📋 Voir le menu","🛵 Livraison?","⏱️ Délai d'attente?","📞 Nous appeler"],
   },
@@ -124,17 +124,17 @@ const ORDER_LABELS={
 function buildSystem(menu, period){
   const items=menu.map(i=>`${i.name}: $${i.price}`).join(", ");
   const periodName=LANGS[currentLang].periods[period]||period;
-  if(currentLang==="fr") return `Tu es l'assistant IA du Restaurant Teranga. Sois chaleureux en français.\nMenu ${periodName}: ${items}\nHoraires: 11h-22h. À emporter: 20-30 min. Livraison disponible. Sur place bienvenu.\nQuand client commande: confirme articles, total, temps estimé, demande nom, type (sur place/à emporter/livraison), et demande son email pour être prévenu quand prêt (optionnel — accepte s'il refuse). Puis: ORDER_CONFIRMED:[articles]:[total]:[temps]:[nom]:[type]:[email-ou-vide]\nMoins de 90 mots. Texte simple.`;
-  if(currentLang==="wo") return `Yaa ngi représente Restaurant Teranga ci Wolof.\nMenu ${periodName}: ${items}\nWaxtu: 11h-22h. À emporter: 20-30 min. Livraison am na.\nBu client bi commande: xalaat li, prix, waxtu, laaj tur, loolu (sur place/à emporter/livraison), ak laaj email pour yëgël ko bu sett (optionnel). Ci kanam: ORDER_CONFIRMED:[articles]:[total]:[waxtu]:[tur]:[loolu]:[email-walla-tuuti]\nMots yu amul solo. Texte simple.`;
-  return `You are the AI order assistant for Teranga Restaurant. Be warm in English.\n${periodName} Menu: ${items}\nHours: 11am-10pm. Takeout: 20-30 mins. Delivery available. Dine-in welcome.\nWhen customer orders: confirm items, total, estimated time, ask name, order type (dine-in/takeout/delivery), and ask for an email so we can notify them when ready (optional — accept "no thanks" gracefully). Then: ORDER_CONFIRMED:[items]:[total]:[time]:[name]:[type]:[email-or-empty]\nIf the customer declines email, leave the email segment empty (still output the trailing colon). Under 90 words. Plain text only.`;
+  if(currentLang==="fr") return `Tu es l'assistant IA du Restaurant Afghan Kababs. Sois chaleureux en français.\nMenu ${periodName}: ${items}\nHoraires: 11h-22h. À emporter: 20-30 min. Livraison disponible. Sur place bienvenu.\nQuand client commande: confirme articles, total, temps estimé, demande nom, type (sur place/à emporter/livraison), et demande son email pour être prévenu quand prêt (optionnel — accepte s'il refuse). Puis: ORDER_CONFIRMED:[articles]:[total]:[temps]:[nom]:[type]:[email-ou-vide]\nMoins de 90 mots. Texte simple.`;
+  if(currentLang==="wo") return `Yaa ngi représente Restaurant Afghan Kababs ci Wolof.\nMenu ${periodName}: ${items}\nWaxtu: 11h-22h. À emporter: 20-30 min. Livraison am na.\nBu client bi commande: xalaat li, prix, waxtu, laaj tur, loolu (sur place/à emporter/livraison), ak laaj email pour yëgël ko bu sett (optionnel). Ci kanam: ORDER_CONFIRMED:[articles]:[total]:[waxtu]:[tur]:[loolu]:[email-walla-tuuti]\nMots yu amul solo. Texte simple.`;
+  return `You are the AI order assistant for Afghan Kababs & Grill. Be warm in English.\n${periodName} Menu: ${items}\nHours: 11am-10pm. Takeout: 20-30 mins. Delivery available. Dine-in welcome.\nWhen customer orders: confirm items, total, estimated time, ask name, order type (dine-in/takeout/delivery), and ask for an email so we can notify them when ready (optional — accept "no thanks" gracefully). Then: ORDER_CONFIRMED:[items]:[total]:[time]:[name]:[type]:[email-or-empty]\nIf the customer declines email, leave the email segment empty (still output the trailing colon). Under 90 words. Plain text only.`;
 }
 
 function buildWelcome(menu, period){
   const periodName=LANGS[currentLang].periods[period]||period;
   const featured=menu.slice(0,3).map(i=>i.name).join(", ");
-  if(currentLang==="fr") return `Bienvenue au Restaurant Teranga! 🍽️ Nous servons notre menu ${periodName}. En vedette: ${featured}. Comment puis-je vous aider?`;
-  if(currentLang==="wo") return `Dalal jaam ci Restaurant Teranga! 🍽️ Lëndëm ${periodName} la ñu def tëy. Ci kanam: ${featured}. Lan nga bëgg?`;
-  return `Welcome to Teranga Restaurant! 🍽️ We're currently serving our ${periodName} menu. Featured: ${featured}. How can I help you?`;
+  if(currentLang==="fr") return `Bienvenue au Restaurant Afghan Kababs! 🍽️ Nous servons notre menu ${periodName}. En vedette: ${featured}. Comment puis-je vous aider?`;
+  if(currentLang==="wo") return `Dalal jaam ci Restaurant Afghan Kababs! 🍽️ Lëndëm ${periodName} la ñu def tëy. Ci kanam: ${featured}. Lan nga bëgg?`;
+  return `Welcome to Afghan Kababs & Grill! 🍽️ We're currently serving our ${periodName} menu. Featured: ${featured}. How can I help you?`;
 }
 
 // Loads the active period from the server — no period arg means server decides
@@ -152,7 +152,7 @@ async function loadMenu(){
     addBubble("bot",buildWelcome(d.items,d.period));
     renderQuick();
   }catch(e){
-    addBubble("bot","Welcome to Teranga Restaurant! How can I help you today?");
+    addBubble("bot","Welcome to Afghan Kababs & Grill! How can I help you today?");
   }
 }
 
