@@ -157,7 +157,7 @@ const kitchenPhone = settings?.[0]?.kitchen_phone;
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
         body: JSON.stringify({
-          from: "Dianke.ai <onboarding@resend.dev>",
+          from: "Dianke.ai <hello@dianke.ai>",
           to: ownerEmail,
           subject: `New order — ${customer_name} · $${total}`,
           html: `
@@ -273,7 +273,7 @@ app.patch("/orders/:id", async (req, res) => {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
             body: JSON.stringify({
-              from: "Dianke.ai <onboarding@resend.dev>",
+              from: "Dianke.ai <hello@dianke.ai>",
               to: order.customer_email,
               subject: t.subject,
               html: `
@@ -424,7 +424,7 @@ app.post("/bookings", async (req, res) => {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
         body: JSON.stringify({
-          from: "Dianke.ai <onboarding@resend.dev>",
+          from: "Dianke.ai <hello@dianke.ai>",
           to: ownerEmail,
           subject: `New booking — ${client} · ${service}`,
           html: `
@@ -525,7 +525,7 @@ app.patch("/bookings/:id/done", async (req, res) => {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
         body: JSON.stringify({
-          from: "Dianke.ai <onboarding@resend.dev>",
+          from: "Dianke.ai <hello@dianke.ai>",
           to: clientEmail,
           subject: `How was your experience at ${salonName}? ⭐`,
           html: `
