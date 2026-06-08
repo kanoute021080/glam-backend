@@ -226,7 +226,6 @@ app.post("/settings/:salonId", async (req, res) => {
 });
 
 app.get("/orders-list/:salonId", async (req, res) => {
-app.get("/orders-list/:salonId", async (req, res) => {
   try {
     const data = await supabase("GET", "orders?salon_id=eq." + req.params.salonId + "&order=created_at.desc");
     res.json(Array.isArray(data) ? data : []);
