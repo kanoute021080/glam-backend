@@ -214,11 +214,22 @@ app.get("/settings/:salonId", async (req, res) => {
 app.post("/settings/:salonId", async (req, res) => {
   try {
     const { kitchen_phone, owner_email, phone } = req.body;
-    await supabase("PATCH", `restaurants?salon_id=eq.${req.params.salonId}`, {
-      kitchen_phone: kitchen_phone || null,
-      owner_email: owner_email || null,
-      client_phone: phone || null
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/restaurants?salon_id=eq.${req.params.salonId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify({
+        kitchen_phone: kitchen_phone || null,
+        owner_email: owner_email || null,
+        client_phone: phone || null
+      })
     });
+    const text = await response.text();
+    console.log("[settings PATCH]", response.status, text);
     res.json({ ok: true, kitchen_phone, owner_email, phone });
   } catch (err) {
     res.status(500).json({ error: err.message });
