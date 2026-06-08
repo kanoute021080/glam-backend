@@ -60,9 +60,9 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
 <body>
 <div class="wrap">
 
-  <!-- Language toggle -->
   <div class="lang-bar">
     <button class="lang-btn active" id="btn-en" onclick="setLang('en',this)">🇺🇸 English</button>
+    <button class="lang-btn" id="btn-fr" onclick="setLang('fr',this)">🇫🇷 Français</button>
     <button class="lang-btn" id="btn-es" onclick="setLang('es',this)">🇪🇸 Español</button>
   </div>
 
@@ -75,7 +75,6 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
   </div>
 
   <div class="chat-body" id="chat-body"></div>
-
   <div class="quick-btns" id="quick-btns"></div>
 
   <div class="input-row">
@@ -93,7 +92,6 @@ body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;alig
     <span onclick="openStatus()" style="color:#c2426e;cursor:pointer;font-weight:600" id="check-link">Check my booking →</span>
   </div>
 
-  <!-- Booking status modal -->
   <div id="status-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;padding:20px">
     <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:380px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -115,37 +113,26 @@ const BACKEND="https://glam-backend-rxdf.onrender.com";
 let hist=[], busy=false, currentLang="en";
 let PAY={cashapp:"",venmo:"",zelle:""};
 let depositMode="required", depositAmount=35, SYS="", salonData={};
-let clientBookings=[];
-let parsedServices=[]; // [{name, price}]
+let parsedServices=[];
 
 function parseServices(servicesStr){
   if(!servicesStr) return [];
   const results=[];
-  // Split into sentences
   const sentences=servicesStr.split(/\.\s+/);
   for(const sentence of sentences){
-    // Category with size variants: "Knotless braids: XL $150, L $190"
     const catMatch=sentence.match(/^([^:$]+):\s*(.+)/);
     if(catMatch){
       const category=catMatch[1].trim();
       const rest=catMatch[2];
       const pairs=[...rest.matchAll(/(XL|X Larger?|Large|L\b|Medium|M\b|Small|S\b|XS)\s+\$([0-9]+)/gi)];
-      if(pairs.length){
-        for(const p of pairs) results.push({name:`${category} - ${p[1]}`,price:"$"+p[2]});
-        continue;
-      }
-      // Single price after colon
+      if(pairs.length){for(const p of pairs) results.push({name:`${category} - ${p[1]}`,price:"$"+p[2]});continue;}
       const pm=sentence.match(/\$([0-9]+)/);
       if(pm) results.push({name:category,price:"$"+pm[1]+"+"});
     } else {
-      // Comma-separated items: "quick weave $180, 2 braids $40"
       const items=sentence.split(/,\s*/);
       for(const item of items){
         const m=item.trim().match(/^([^$]+?)\s+\$([0-9]+)/);
-        if(m){
-          const name=m[1].trim().replace(/^[-+\s]+|[-+\s]+$/g,'');
-          if(name.length>2&&!/tracks|track/.test(name)) results.push({name,price:"$"+m[2]});
-        }
+        if(m){const name=m[1].trim().replace(/^[-+\s]+|[-+\s]+$/g,'');if(name.length>2&&!/tracks|track/.test(name))results.push({name,price:"$"+m[2]});}
       }
     }
   }
@@ -158,38 +145,21 @@ function showServicePicker(){
   const el=document.getElementById("chat-body");
   const w=document.createElement("div");
   w.className="bubble-wrap bot";
-  const title=currentLang==="es"?"Elige tu servicio:":"Choose your service:";
-  const items=parsedServices.map((s,i)=>
-    `<div class="svc-item" onclick="selectService(${i})">
-      <span class="svc-name">${s.name}</span>
-      <span class="svc-price">${s.price}</span>
-    </div>`
-  ).join("");
-  w.innerHTML=`
-    <div class="bubble-label">${L.label}</div>
-    <div class="svc-card">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">${title}</div>
-      ${items}
-    </div>`;
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
+  const title=currentLang==="es"?"Elige tu servicio:":currentLang==="fr"?"Choisissez votre service :":"Choose your service:";
+  const items=parsedServices.map((s,i)=>`<div class="svc-item" onclick="selectService(${i})"><span class="svc-name">${s.name}</span><span class="svc-price">${s.price}</span></div>`).join("");
+  w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="svc-card"><div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">${title}</div>${items}</div>`;
+  el.appendChild(w);el.scrollTop=el.scrollHeight;
   return true;
 }
 
 let selectedServiceIdx=null, selectedDate=null, selectedTimeSlot=null;
 
 function selectService(idx){
-  const svc=parsedServices[idx];
-  if(!svc) return;
-  selectedServiceIdx=idx;
-  selectedDate=null;
-  selectedTimeSlot=null;
-  // Remove service picker
-  const chatBody=document.getElementById("chat-body");
-  chatBody.querySelectorAll(".svc-card").forEach(c=>c.closest(".bubble-wrap")?.remove());
-  // Show as user choice
+  const svc=parsedServices[idx];if(!svc)return;
+  selectedServiceIdx=idx;selectedDate=null;selectedTimeSlot=null;
+  document.getElementById("chat-body").querySelectorAll(".svc-card").forEach(c=>c.closest(".bubble-wrap")?.remove());
+  document.getElementById("quick-btns").style.display="none";
   addBubble("user",`${svc.name} (${svc.price})`);
-  // Show date picker
   showDatePicker();
 }
 
@@ -197,128 +167,72 @@ function showDatePicker(){
   const L=LANGS[currentLang];
   const el=document.getElementById("chat-body");
   const w=document.createElement("div");
-  w.id="date-picker-card";
-  w.className="bubble-wrap bot";
-  const title=currentLang==="es"?"Elige una fecha:":"Choose a date:";
+  w.id="date-picker-card";w.className="bubble-wrap bot";
+  const title=currentLang==="es"?"Elige una fecha:":currentLang==="fr"?"Choisissez une date :":"Choose a date:";
   const today=new Date();
-  // Generate next 30 days
-  const days=[];
-  for(let i=1;i<=30;i++){
-    const d=new Date(today);
-    d.setDate(today.getDate()+i);
-    days.push(d);
-  }
+  const days=[];for(let i=1;i<=30;i++){const d=new Date(today);d.setDate(today.getDate()+i);days.push(d);}
   const dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const monthNames=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  // Group by week
-  const cells=days.map((d,i)=>{
+  const cells=days.map(d=>{
     const dateStr=d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
-    return `<div class="date-cell" onclick="selectDate('${dateStr}',this,${d.getDate()})">
-      <div style="font-size:9px;color:inherit;opacity:.7">${dayNames[d.getDay()]}</div>
-      <div style="font-size:13px;font-weight:500">${d.getDate()}</div>
-      <div style="font-size:9px;color:inherit;opacity:.7">${monthNames[d.getMonth()]}</div>
-    </div>`;
+    return `<div class="date-cell" onclick="selectDate('${dateStr}',this,${d.getDate()})"><div style="font-size:9px;color:inherit;opacity:.7">${dayNames[d.getDay()]}</div><div style="font-size:13px;font-weight:500">${d.getDate()}</div><div style="font-size:9px;color:inherit;opacity:.7">${monthNames[d.getMonth()]}</div></div>`;
   }).join("");
-  w.innerHTML=`
-    <div class="bubble-label">${L.label}</div>
-    <div class="date-card">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">${title}</div>
-      <div class="date-grid">${cells}</div>
-      <div id="time-picker-section" style="display:none">
-        <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px" id="time-picker-title">Choose a time:</div>
-        <div class="time-grid" id="time-slots"></div>
-        <button onclick="confirmDateTime()" id="confirm-dt-btn" style="display:none;width:100%;padding:10px;background:#c2426e;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">
-          ${currentLang==="es"?"Confirmar →":"Continue →"}
-        </button>
-      </div>
-    </div>`;
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
+  const continueTxt=currentLang==="es"?"Confirmar →":currentLang==="fr"?"Continuer →":"Continue →";
+  const timeTxt=currentLang==="es"?"Elige un horario:":currentLang==="fr"?"Choisissez un horaire :":"Choose a time:";
+  w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="date-card"><div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">${title}</div><div class="date-grid">${cells}</div><div id="time-picker-section" style="display:none"><div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px" id="time-picker-title">${timeTxt}</div><div class="time-grid" id="time-slots"></div><button onclick="confirmDateTime()" id="confirm-dt-btn" style="display:none;width:100%;padding:10px;background:#c2426e;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${continueTxt}</button></div></div>`;
+  el.appendChild(w);el.scrollTop=el.scrollHeight;
 }
 
-async function selectDate(dateStr, cell, dateNum){
-  // Highlight selected date
+async function selectDate(dateStr,cell,dateNum){
   document.querySelectorAll(".date-cell").forEach(c=>c.classList.remove("active"));
-  cell.classList.add("active");
-  selectedDate=dateStr;
-  selectedTimeSlot=null;
-  // Load taken slots from server
+  cell.classList.add("active");selectedDate=dateStr;selectedTimeSlot=null;
   const taken=await getTakenSlots(dateStr);
-  // Show time slots
   const times=["9am","9:30am","10am","10:30am","11am","11:30am","12pm","1pm","1:30pm","2pm","2:30pm","3pm","3:30pm","4pm","4:30pm","5pm","5:30pm","6pm"];
-  const section=document.getElementById("time-picker-section");
   const grid=document.getElementById("time-slots");
-  const title=document.getElementById("time-picker-title");
-  if(title) title.textContent=currentLang==="es"?"Elige un horario:":"Choose a time:";
-  grid.innerHTML=times.map(t=>{
-    const isTaken=taken.includes(t);
-    return `<div class="time-slot${isTaken?" taken":""}" onclick="${isTaken?"":"selectTime('"+t+"',this)"}">${t}${isTaken?" ✗":""}</div>`;
-  }).join("");
-  section.style.display="block";
+  grid.innerHTML=times.map(t=>{const isTaken=taken.includes(t);return `<div class="time-slot${isTaken?" taken":""}" onclick="${isTaken?"":"selectTime('"+t+"',this)"}">${t}${isTaken?" ✗":""}</div>`;}).join("");
+  document.getElementById("time-picker-section").style.display="block";
   document.getElementById("chat-body").scrollTop=9999;
 }
 
 async function getTakenSlots(dateStr){
   try{
     const res=await fetch(`${BACKEND}/bookings?salon_id=${currentSalonId}&status=in.(confirmed,pending)`,{cache:"no-store"});
-    const data=await res.json();
-    if(!Array.isArray(data)) return [];
+    const data=await res.json();if(!Array.isArray(data))return [];
     const dayLower=dateStr.toLowerCase();
-    return data
-      .filter(b=>(b.day||"").toLowerCase().includes(dayLower.split(",")[0].toLowerCase())||dayLower.includes((b.day||"").toLowerCase().split(" ")[0]))
-      .map(b=>b.time||"")
-      .filter(Boolean);
+    return data.filter(b=>(b.day||"").toLowerCase().includes(dayLower.split(",")[0].toLowerCase())||dayLower.includes((b.day||"").toLowerCase().split(" ")[0])).map(b=>b.time||"").filter(Boolean);
   }catch{return [];}
 }
 
-function selectTime(time, cell){
+function selectTime(time,cell){
   document.querySelectorAll(".time-slot").forEach(c=>c.classList.remove("active"));
-  cell.classList.add("active");
-  selectedTimeSlot=time;
-  const btn=document.getElementById("confirm-dt-btn");
-  if(btn) btn.style.display="block";
+  cell.classList.add("active");selectedTimeSlot=time;
+  const btn=document.getElementById("confirm-dt-btn");if(btn)btn.style.display="block";
   document.getElementById("chat-body").scrollTop=9999;
 }
 
 function confirmDateTime(){
-  if(!selectedDate||!selectedTimeSlot) return;
+  if(!selectedDate||!selectedTimeSlot)return;
   const svc=parsedServices[selectedServiceIdx];
-  // Remove date picker
   document.getElementById("date-picker-card")?.remove();
-  // Format the day nicely
   const d=new Date(selectedDate);
   const dayFormatted=d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
-  // Build complete context message so AI knows service + date + time
   const contextMsg=`I want to book ${svc.name} (${svc.price}) on ${dayFormatted} at ${selectedTimeSlot}.`;
-  addBubble("user",contextMsg);
-  hist=[{role:"user",content:contextMsg}];
-  sendToAI();
+  addBubble("user",contextMsg);hist=[{role:"user",content:contextMsg}];sendToAI();
 }
 
 const slugMap={"theafricancrown":"salon3","freshcut":"salon2","hollywoodglam":"hollywoodglam"};
 const rawSlug=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
 const currentSalonId=slugMap[rawSlug]||rawSlug;
 
-// ── LANGUAGE STRINGS ─────────────────────────────────
 const LANGS={
   en:{
-    status:"AI receptionist · always open",
-    placeholder:"Type a message...",
-    label:"Glam AI",
-    checkLink:"Check my booking →",
-    modalTitle:"Check booking status",
-    modalLabel:"Your name",
-    modalBtn:"Check status",
-    modalPlaceholder:"Enter the name used to book",
-    notFound:"No booking found",
-    notFoundSub:"We couldn't find a booking under that name. Make sure you use the same name you gave when booking.",
-    tryAgain:"Try again",
-    confirmed:"Confirmed ✓",
-    pendingDeposit:"Pending deposit",
-    pendingMsg:"Please send your deposit to confirm your slot.",
-    close:"Close",
-    looking:"Looking up your booking...",
-    couldNot:"Could not load booking. Try again.",
+    status:"AI receptionist · always open",placeholder:"Type or tap 🎤...",label:"Glam AI",
+    checkLink:"Check my booking →",modalTitle:"Check booking status",modalLabel:"Your name",
+    modalBtn:"Check status",modalPlaceholder:"Enter the name used to book",
+    notFound:"No booking found",notFoundSub:"We couldn't find a booking under that name. Make sure you use the same name you gave when booking.",
+    tryAgain:"Try again",confirmed:"Confirmed ✓",pendingDeposit:"Pending deposit",
+    pendingMsg:"Please send your deposit to confirm your slot.",close:"Close",
+    looking:"Looking up your booking...",couldNot:"Could not load booking. Try again.",
     quick:["📅 Book appointment","💰 Prices","📆 Availability","⏱ Duration"],
     quickMsgs:["Book an appointment","What are your prices?","Are you free Friday?","How long for braids?"],
     welcome:(name)=>`Hey! Welcome to ${name}. I can help you book an appointment, check availability, or answer any questions. What can I do for you today?`,
@@ -337,24 +251,40 @@ Stylists available: ${d.stylists||"any available stylist"}. Ask client if they h
 Remember the full conversation. Never restart. Collect service, stylist preference, day, time (use format like 9am, 10am, 2pm), client name, and phone number for reminders. ${depositInstruction}
 Keep replies under 80 words. Plain text only. No asterisks.`
   },
+  fr:{
+    status:"Réceptionniste IA · toujours disponible",placeholder:"Écrivez ou appuyez sur 🎤...",label:"Glam IA",
+    checkLink:"Voir ma réservation →",modalTitle:"Vérifier la réservation",modalLabel:"Votre nom",
+    modalBtn:"Vérifier",modalPlaceholder:"Entrez le nom utilisé lors de la réservation",
+    notFound:"Réservation introuvable",notFoundSub:"Nous n'avons pas trouvé de réservation sous ce nom. Utilisez le même nom que lors de la réservation.",
+    tryAgain:"Réessayer",confirmed:"Confirmée ✓",pendingDeposit:"Acompte en attente",
+    pendingMsg:"Veuillez envoyer votre acompte pour confirmer votre créneau.",close:"Fermer",
+    looking:"Recherche de votre réservation...",couldNot:"Impossible de charger la réservation. Réessayez.",
+    quick:["📅 Prendre rendez-vous","💰 Tarifs","📆 Disponibilités","⏱ Durée"],
+    quickMsgs:["Je voudrais prendre rendez-vous","Quels sont vos tarifs ?","Êtes-vous disponible vendredi ?","Combien de temps pour les tresses ?"],
+    welcome:(name)=>`Bonjour ! Bienvenue chez ${name}. Je peux vous aider à prendre rendez-vous, vérifier les disponibilités ou répondre à vos questions. Comment puis-je vous aider ?`,
+    depositLabel:(amt)=>`Envoyez ${amt}€ d'acompte pour confirmer`,
+    depositSub:(svc,day,time,client)=>`${svc} · ${day} à ${time} · ${client}`,
+    depositFooter:"Incluez votre nom dans le mémo. Votre créneau est réservé pendant 2 heures en attente de l'acompte.",
+    optionalMsg:"L'acompte est facultatif mais recommandé pour sécuriser votre créneau. Vous pouvez payer ci-dessus ou venir directement — nous ferons de notre mieux pour vous garder le créneau !",
+    confirmedMsg:"Votre rendez-vous est confirmé ! Nous avons hâte de vous accueillir 💅",
+    retryMsg:(t)=>`Problème de connexion. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t}')">Appuyez pour réessayer →</span>`,
+    system:(d,slots,depositText,depositInstruction)=>`Tu es la réceptionniste IA de ${d.salon_name||"ce salon"} à ${d.location||"notre adresse"}. Sois chaleureuse, amicale et concise. Réponds toujours en français.
+Aujourd'hui nous sommes le ${new Date().toLocaleDateString("fr-FR",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}. Utilise ceci pour calculer "demain", "ce week-end", "vendredi prochain" avec précision.
+Services proposés : ${d.services||"Renseignez-vous auprès de la styliste pour les services et tarifs actuels."}. Mentionne UNIQUEMENT ces services exacts — n'invente jamais de services non listés.
+Horaires : ${d.hours||"Appelez-nous pour connaître nos horaires."} ${depositText} Venez avec les cheveux propres et démêlés.
+Disponibilités : ${d.availability||"Contactez-nous pour vérifier les disponibilités."} Déjà réservé : ${slots}
+Stylistes disponibles : ${d.stylists||"toute styliste disponible"}. Demandez au client s'il a une styliste préférée après le choix du service.
+Mémorisez toute la conversation. Ne recommencez jamais. Collectez : service, préférence de styliste, jour, heure (format comme 9h, 10h, 14h), nom du client et numéro de téléphone pour les rappels. ${depositInstruction}
+Réponses de moins de 80 mots. Texte simple uniquement. Sans astérisques.`
+  },
   es:{
-    status:"Recepcionista IA · siempre disponible",
-    placeholder:"Escribe un mensaje...",
-    label:"Glam IA",
-    checkLink:"Ver mi reserva →",
-    modalTitle:"Verificar reserva",
-    modalLabel:"Tu nombre",
-    modalBtn:"Verificar",
-    modalPlaceholder:"Ingresa el nombre usado al reservar",
-    notFound:"Reserva no encontrada",
-    notFoundSub:"No encontramos una reserva con ese nombre. Asegúrate de usar el mismo nombre que diste al reservar.",
-    tryAgain:"Intentar de nuevo",
-    confirmed:"Confirmada ✓",
-    pendingDeposit:"Depósito pendiente",
-    pendingMsg:"Por favor envía tu depósito para confirmar tu cita.",
-    close:"Cerrar",
-    looking:"Buscando tu reserva...",
-    couldNot:"No se pudo cargar la reserva. Intenta de nuevo.",
+    status:"Recepcionista IA · siempre disponible",placeholder:"Escribe o toca 🎤...",label:"Glam IA",
+    checkLink:"Ver mi reserva →",modalTitle:"Verificar reserva",modalLabel:"Tu nombre",
+    modalBtn:"Verificar",modalPlaceholder:"Ingresa el nombre usado al reservar",
+    notFound:"Reserva no encontrada",notFoundSub:"No encontramos una reserva con ese nombre. Asegúrate de usar el mismo nombre que diste al reservar.",
+    tryAgain:"Intentar de nuevo",confirmed:"Confirmada ✓",pendingDeposit:"Depósito pendiente",
+    pendingMsg:"Por favor envía tu depósito para confirmar tu cita.",close:"Cerrar",
+    looking:"Buscando tu reserva...",couldNot:"No se pudo cargar la reserva. Intenta de nuevo.",
     quick:["📅 Reservar cita","💰 Precios","📆 Disponibilidad","⏱ Duración"],
     quickMsgs:["Quiero reservar una cita","¿Cuáles son sus precios?","¿Hay disponibilidad el viernes?","¿Cuánto tiempo toman las trenzas?"],
     welcome:(name)=>`¡Hola! Bienvenida a ${name}. Puedo ayudarte a reservar una cita, revisar disponibilidad o responder tus preguntas. ¿En qué te puedo ayudar hoy?`,
@@ -375,26 +305,23 @@ Respuestas de menos de 80 palabras. Solo texto simple. Sin asteriscos.`
   }
 };
 
-// ── LANGUAGE SWITCH ───────────────────────────────────
-function setLang(lang, btn){
+function setLang(lang,btn){
   currentLang=lang;
   document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   const L=LANGS[lang];
   document.getElementById("status-text").textContent=L.status;
-  document.getElementById("inp").placeholder=currentLang==="es"?"Escribe o toca 🎤...":"Type or tap 🎤...";
+  document.getElementById("inp").placeholder=L.placeholder;
   document.getElementById("check-link").textContent=L.checkLink;
   document.getElementById("modal-title").textContent=L.modalTitle;
   document.getElementById("modal-label").textContent=L.modalLabel;
   document.getElementById("modal-btn").textContent=L.modalBtn;
   document.getElementById("status-name").placeholder=L.modalPlaceholder;
   renderQuickBtns();
-  // Reload system prompt in new language and restart chat
   if(Object.keys(salonData).length>0){
     rebuildSystem(salonData).then(()=>{
-      document.getElementById("chat-body").innerHTML="";
-      hist=[];
-      addBubble("bot", L.welcome(salonData.salon_name||"our salon"));
+      document.getElementById("chat-body").innerHTML="";hist=[];
+      addBubble("bot",L.welcome(salonData.salon_name||"our salon"));
     });
   }
 }
@@ -406,197 +333,122 @@ function renderQuickBtns(){
   ).join("");
 }
 
-// ── SETTINGS & SYSTEM PROMPT ─────────────────────────
 async function getBookedSlots(){
   try{
     const res=await fetch(`${BACKEND}/bookings?salon_id=${currentSalonId}`,{cache:'no-store'});
     const bookings=await res.json();
-    if(!Array.isArray(bookings)||bookings.length===0) return "none";
+    if(!Array.isArray(bookings)||bookings.length===0)return "none";
     return bookings.map(b=>`${b.day} ${b.time} (${b.service})`).join(", ");
   }catch{return "none";}
 }
 
 async function rebuildSystem(d){
   const slots=await getBookedSlots();
-  const lang=currentLang;
-  const amt=depositAmount;
-  let depositText, depositInstruction;
+  const lang=currentLang;const amt=depositAmount;
+  let depositText,depositInstruction;
   if(depositMode==="none"){
-    depositText= lang==="es"?"No se requiere depósito para reservar.":"No deposit required to book.";
-    depositInstruction= lang==="es"
+    depositText=lang==="fr"?"Aucun acompte requis pour réserver.":lang==="es"?"No se requiere depósito para reservar.":"No deposit required to book.";
+    depositInstruction=lang==="fr"
+      ?`Une fois toutes les infos confirmées, dis exactement : BOOKING_CONFIRMED:[service]:[jour]:[heure]:[nom]`
+      :lang==="es"
       ?`Una vez confirmada toda la info di exactamente: BOOKING_CONFIRMED:[servicio]:[día]:[hora]:[nombre]`
       :`Once all info confirmed say exactly: BOOKING_CONFIRMED:[service]:[day]:[time]:[name]`;
-  } else if(depositMode==="optional"){
-    depositText= lang==="es"
-      ?`Un depósito de $${amt} es opcional pero recomendado para asegurar tu turno.`
+  }else if(depositMode==="optional"){
+    depositText=lang==="fr"
+      ?`Un acompte de ${amt}€ est facultatif mais recommandé pour sécuriser votre créneau.`
+      :lang==="es"?`Un depósito de $${amt} es opcional pero recomendado para asegurar tu turno.`
       :`A $${amt} deposit is optional but recommended to secure your slot.`;
-    depositInstruction= lang==="es"
-      ?`Una vez confirmada toda la info di exactamente: DEPOSIT_DUE:$${amt}:[servicio]:[día]:[hora]:[nombre]`
+    depositInstruction=lang==="fr"
+      ?`Une fois toutes les infos confirmées, dis exactement : DEPOSIT_DUE:$${amt}:[service]:[jour]:[heure]:[nom]`
+      :lang==="es"?`Una vez confirmada toda la info di exactamente: DEPOSIT_DUE:$${amt}:[servicio]:[día]:[hora]:[nombre]`
       :`Once all info confirmed say exactly: DEPOSIT_DUE:$${amt}:[service]:[day]:[time]:[name]`;
-  } else {
-    depositText= lang==="es"
-      ?`Se requiere un depósito de $${amt} para asegurar tu turno.`
+  }else{
+    depositText=lang==="fr"
+      ?`Un acompte de ${amt}€ est requis pour sécuriser votre créneau.`
+      :lang==="es"?`Se requiere un depósito de $${amt} para asegurar tu turno.`
       :`A $${amt} deposit is required to secure your slot.`;
-    depositInstruction= lang==="es"
-      ?`Una vez confirmada toda la info di exactamente: DEPOSIT_DUE:$${amt}:[servicio]:[día]:[hora]:[nombre]`
+    depositInstruction=lang==="fr"
+      ?`Une fois toutes les infos confirmées, dis exactement : DEPOSIT_DUE:$${amt}:[service]:[jour]:[heure]:[nom]`
+      :lang==="es"?`Una vez confirmada toda la info di exactamente: DEPOSIT_DUE:$${amt}:[servicio]:[día]:[hora]:[nombre]`
       :`Once all info confirmed say exactly: DEPOSIT_DUE:$${amt}:[service]:[day]:[time]:[name]`;
   }
-  SYS=LANGS[lang].system(d, slots, depositText, depositInstruction);
+  SYS=LANGS[lang].system(d,slots,depositText,depositInstruction);
 }
 
 async function loadSettings(){
   try{
     const res=await fetch(`${BACKEND}/settings/${currentSalonId}`);
-    if(!res.ok) throw new Error();
+    if(!res.ok)throw new Error();
     const d=await res.json();
     salonData=d;
     document.getElementById("salon-name").textContent=d.salon_name||"Our Salon";
     const initials=(d.salon_name||"GS").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
     document.getElementById("salon-av").textContent=initials;
-    depositMode=d.deposit_mode||"required";
-    depositAmount=d.deposit_amount||35;
+    depositMode=d.deposit_mode||"required";depositAmount=d.deposit_amount||35;
     PAY={cashapp:d.cashapp||"",venmo:d.venmo||"",zelle:d.zelle||""};
-    parsedServices=parseServices(d.services||"");
-    salonData.stylists=d.stylists||"";
-    await rebuildSystem(d);
-    renderQuickBtns();
-    addBubble("bot", LANGS[currentLang].welcome(d.salon_name||"our salon"));
+    parsedServices=parseServices(d.services||"");salonData.stylists=d.stylists||"";
+    await rebuildSystem(d);renderQuickBtns();
+    addBubble("bot",LANGS[currentLang].welcome(d.salon_name||"our salon"));
   }catch{
-    depositMode="required";
-    depositAmount=35;
+    depositMode="required";depositAmount=35;
     SYS=`You are an AI receptionist for a hair salon. Be warm and helpful. Collect service, day, time, and client name. Once confirmed say: DEPOSIT_DUE:$35:[service]:[day]:[time]:[name]. Keep replies under 80 words. Plain text only.`;
-    renderQuickBtns();
-    addBubble("bot", LANGS[currentLang].welcome("our salon"));
+    renderQuickBtns();addBubble("bot",LANGS[currentLang].welcome("our salon"));
   }
 }
 
-// ── BUBBLES ───────────────────────────────────────────
 function addBubble(role,text){
   const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className=`bubble-wrap ${role}`;
-  if(role==="bot"){
-    const l=document.createElement("div");
-    l.className="bubble-label";
-    l.textContent=LANGS[currentLang].label;
-    w.appendChild(l);
-  }
-  const b=document.createElement("div");
-  b.className=`bubble ${role}`;
-  b.textContent=text;
-  w.appendChild(b);
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
+  const w=document.createElement("div");w.className=`bubble-wrap ${role}`;
+  if(role==="bot"){const l=document.createElement("div");l.className="bubble-label";l.textContent=LANGS[currentLang].label;w.appendChild(l);}
+  const b=document.createElement("div");b.className=`bubble ${role}`;b.textContent=text;
+  w.appendChild(b);el.appendChild(w);el.scrollTop=el.scrollHeight;
 }
 
 function addPayCard(svc,day,time,client){
   const L=LANGS[currentLang];
   const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className="bubble-wrap bot";
-  w.innerHTML=`
-    <div class="bubble-label">${L.label}</div>
-    <div class="pay-card">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:3px">${L.depositLabel(depositAmount)}</div>
-      <div style="font-size:12px;color:#888;margin-bottom:12px">${L.depositSub(svc,day,time,client)}</div>
-      <a href="https://cash.app/${PAY.cashapp}" target="_blank" class="pay-link" style="background:#1a9e3f">
-        <span style="font-size:16px;color:#fff;font-weight:700">$</span>
-        <div><div style="font-size:13px;font-weight:600;color:#fff">Cash App</div><div style="font-size:11px;color:#a8f0bc">${PAY.cashapp}</div></div>
-      </a>
-      <a href="https://venmo.com/${PAY.venmo.replace("@","")}" target="_blank" class="pay-link" style="background:#3d95ce">
-        <span style="font-size:16px;color:#fff;font-weight:700">V</span>
-        <div><div style="font-size:13px;font-weight:600;color:#fff">Venmo</div><div style="font-size:11px;color:#b8dff5">${PAY.venmo}</div></div>
-      </a>
-      <div class="pay-link" style="background:#6B2D8B">
-        <span style="font-size:16px;color:#fff;font-weight:700">Z</span>
-        <div><div style="font-size:13px;font-weight:600;color:#fff">Zelle</div><div style="font-size:11px;color:#dbb8f0">${PAY.zelle}</div></div>
-      </div>
-      <div style="font-size:11px;color:#aaa;margin-top:10px">${L.depositFooter}</div>
-    </div>`;
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
+  const w=document.createElement("div");w.className="bubble-wrap bot";
+  w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="pay-card"><div style="font-size:13px;font-weight:600;color:#111;margin-bottom:3px">${L.depositLabel(depositAmount)}</div><div style="font-size:12px;color:#888;margin-bottom:12px">${L.depositSub(svc,day,time,client)}</div><a href="https://cash.app/${PAY.cashapp}" target="_blank" class="pay-link" style="background:#1a9e3f"><span style="font-size:16px;color:#fff;font-weight:700">$</span><div><div style="font-size:13px;font-weight:600;color:#fff">Cash App</div><div style="font-size:11px;color:#a8f0bc">${PAY.cashapp}</div></div></a><a href="https://venmo.com/${PAY.venmo.replace("@","")}" target="_blank" class="pay-link" style="background:#3d95ce"><span style="font-size:16px;color:#fff;font-weight:700">V</span><div><div style="font-size:13px;font-weight:600;color:#fff">Venmo</div><div style="font-size:11px;color:#b8dff5">${PAY.venmo}</div></div></a><div class="pay-link" style="background:#6B2D8B"><span style="font-size:16px;color:#fff;font-weight:700">Z</span><div><div style="font-size:13px;font-weight:600;color:#fff">Zelle</div><div style="font-size:11px;color:#dbb8f0">${PAY.zelle}</div></div></div><div style="font-size:11px;color:#aaa;margin-top:10px">${L.depositFooter}</div></div>`;
+  el.appendChild(w);el.scrollTop=el.scrollHeight;
 }
 
-// ── REVIEW CARD ──────────────────────────────────────
 let selectedRating=0;
 
 function addReviewCard(clientName){
   const L=LANGS[currentLang];
   const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className="bubble-wrap bot";
-  const title=currentLang==="es"?"¿Cómo fue tu experiencia?":"How was your experience?";
-  const placeholder=currentLang==="es"?"Comparte tu opinión...":"Share your thoughts...";
-  const btnLabel=currentLang==="es"?"Enviar reseña":"Send review";
-  const skipLabel=currentLang==="es"?"Ahora no":"Not now";
-  w.innerHTML=`
-    <div class="bubble-label">${L.label}</div>
-    <div class="review-card">
-      <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">⭐ ${title}</div>
-      <div style="display:flex;gap:6px;margin-bottom:10px" id="star-row">
-        ${[1,2,3,4,5].map(i=>`<span class="star" onclick="setRating(${i})" id="star-${i}">★</span>`).join("")}
-      </div>
-      <textarea id="review-text" placeholder="${placeholder}" style="width:100%;padding:9px 12px;border:1px solid #eee;border-radius:8px;font-size:13px;outline:none;resize:none;height:70px;font-family:inherit"></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button onclick="submitReview('${clientName}')" style="flex:1;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${btnLabel}</button>
-        <button onclick="this.closest('.bubble-wrap').remove()" style="padding:9px 12px;background:transparent;border:1px solid #ddd;border-radius:8px;font-size:13px;color:#888;cursor:pointer">${skipLabel}</button>
-      </div>
-    </div>`;
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
+  const w=document.createElement("div");w.className="bubble-wrap bot";
+  const title=currentLang==="es"?"¿Cómo fue tu experiencia?":currentLang==="fr"?"Comment s'est passée votre expérience ?":"How was your experience?";
+  const placeholder=currentLang==="es"?"Comparte tu opinión...":currentLang==="fr"?"Partagez votre avis...":"Share your thoughts...";
+  const btnLabel=currentLang==="es"?"Enviar reseña":currentLang==="fr"?"Envoyer l'avis":"Send review";
+  const skipLabel=currentLang==="es"?"Ahora no":currentLang==="fr"?"Pas maintenant":"Not now";
+  w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="review-card"><div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">⭐ ${title}</div><div style="display:flex;gap:6px;margin-bottom:10px">${[1,2,3,4,5].map(i=>`<span class="star" onclick="setRating(${i})" id="star-${i}">★</span>`).join("")}</div><textarea id="review-text" placeholder="${placeholder}" style="width:100%;padding:9px 12px;border:1px solid #eee;border-radius:8px;font-size:13px;outline:none;resize:none;height:70px;font-family:inherit"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button onclick="submitReview('${clientName}')" style="flex:1;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${btnLabel}</button><button onclick="this.closest('.bubble-wrap').remove()" style="padding:9px 12px;background:transparent;border:1px solid #ddd;border-radius:8px;font-size:13px;color:#888;cursor:pointer">${skipLabel}</button></div></div>`;
+  el.appendChild(w);el.scrollTop=el.scrollHeight;
 }
 
 function setRating(n){
   selectedRating=n;
-  for(let i=1;i<=5;i++){
-    const s=document.getElementById("star-"+i);
-    if(s) s.classList.toggle("active",i<=n);
-  }
+  for(let i=1;i<=5;i++){const s=document.getElementById("star-"+i);if(s)s.classList.toggle("active",i<=n);}
 }
 
 async function submitReview(clientName){
   const text=document.getElementById("review-text")?.value.trim();
-  if(!text&&!selectedRating) return;
+  if(!text&&!selectedRating)return;
   try{
-    await fetch(BACKEND+"/reviews",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        salon_id:currentSalonId,
-        customer_name:clientName||"Anonymous",
-        review:text||"",
-        rating:selectedRating||0
-      })
-    });
-    const thankyou=currentLang==="es"
-      ?"¡Gracias por tu reseña! 🙏"
-      :"Thank you for your review! 🙏";
-    // Remove review card and show thank you
+    await fetch(BACKEND+"/reviews",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({salon_id:currentSalonId,customer_name:clientName||"Anonymous",review:text||"",rating:selectedRating||0})});
+    const thankyou=currentLang==="es"?"¡Gracias por tu reseña! 🙏":currentLang==="fr"?"Merci pour votre avis ! 🙏":"Thank you for your review! 🙏";
     document.querySelectorAll(".review-card").forEach(c=>c.closest(".bubble-wrap")?.remove());
-    addBubble("bot",thankyou);
-    selectedRating=0;
-  }catch{
-    addBubble("bot","Couldn't send review. Please try again.");
-  }
+    addBubble("bot",thankyou);selectedRating=0;
+  }catch{addBubble("bot","Couldn't send review. Please try again.");}
 }
 
-// ── SEND ──────────────────────────────────────────────
 async function sendToAI(){
-  // Core AI call — used after service selection too
-  const L=LANGS[currentLang];
-  busy=true;
-  const typing=document.createElement("div");
-  typing.className="bubble-wrap bot";
-  typing.id="typing";
+  const L=LANGS[currentLang];busy=true;
+  const typing=document.createElement("div");typing.className="bubble-wrap bot";typing.id="typing";
   typing.innerHTML=`<div class="bubble-label">${L.label}</div><div class="bubble bot" style="color:#aaa">typing...</div>`;
-  document.getElementById("chat-body").appendChild(typing);
-  document.getElementById("chat-body").scrollTop=9999;
+  document.getElementById("chat-body").appendChild(typing);document.getElementById("chat-body").scrollTop=9999;
   try{
-    const res=await fetch(BACKEND+"/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({system:SYS,messages:hist})
-    });
+    const res=await fetch(BACKEND+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system:SYS,messages:hist})});
     const d=await res.json();
     const raw=(d?.content?.[0]?.text||"Try again!").replace(/\*\*(.*?)\*\*/g,"$1");
     const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([\d:apm]+[apm]):(.+)/i);
@@ -606,94 +458,53 @@ async function sendToAI(){
     hist.push({role:"assistant",content:raw});
     if(reply&&!dm){
       addBubble("bot",reply);
-      // Show service picker if AI is asking about services and client hasn't picked one yet
-      const bookingIntent=/service|appointment|book|what.*style|which.*service|interested in|help.*book|réserver|servicio/i.test(reply);
-      if(bookingIntent && parsedServices.length>0 && !dm && !bc && selectedServiceIdx===null){
-        setTimeout(()=>showServicePicker(),400);
-      }
+      const bookingIntent=/service|appointment|book|which.*service|interested in|help.*book|réserver|servicio|rendez-vous|tarif|prestation|quel.*service/i.test(reply);
+      if(bookingIntent&&parsedServices.length>0&&!dm&&!bc&&selectedServiceIdx===null){setTimeout(()=>showServicePicker(),400);}
     }
     if(dm){
-      const svc=dm[2].trim(), day=dm[3].trim(), time=dm[4].trim(), client=dm[5].trim();
-      const priceMatch=reply.match(/\$([0-9]+)/);
-      const serviceAmount=priceMatch?parseInt(priceMatch[1]):0;
-      // Try to extract email and phone from conversation history
+      const svc=dm[2].trim(),day=dm[3].trim(),time=dm[4].trim(),client=dm[5].trim();
+      const priceMatch=reply.match(/\$([0-9]+)/);const serviceAmount=priceMatch?parseInt(priceMatch[1]):0;
       const convText=hist.map(h=>h.content).join(" ");
-      const emailMatch=convText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-      const clientEmail=emailMatch?emailMatch[0]:null;
-      const phoneMatch=convText.match(/\b(\+?1?[-.]?\(?[0-9]{3}\)?[-.]?[0-9]{3}[-.]?[0-9]{4})\b/);
-      const clientPhone=phoneMatch?phoneMatch[0].replace(/[^0-9+]/g,""):null;
-      fetch(BACKEND+"/bookings",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:serviceAmount,salon_id:currentSalonId,source:"chat",language:currentLang,client_email:clientEmail,client_phone:clientPhone})
-      }).then(r=>{
+      const emailMatch=convText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);const clientEmail=emailMatch?emailMatch[0]:null;
+      const phoneMatch=convText.match(/\b(\+?1?[-.]?\(?[0-9]{3}\)?[-.]?[0-9]{3}[-.]?[0-9]{4})\b/);const clientPhone=phoneMatch?phoneMatch[0].replace(/[^0-9+]/g,""):null;
+      fetch(BACKEND+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client,service:svc,day,time,amount:serviceAmount,salon_id:currentSalonId,source:"chat",language:currentLang,client_email:clientEmail,client_phone:clientPhone})})
+      .then(r=>{
         if(r.status===409){
-          const msg=currentLang==="es"
-            ?"¡Lo siento, ese horario ya está ocupado! ¿Qué otro día u hora te funciona?"
-            :"Sorry, that time slot is already taken! What other day or time works for you?";
-          addBubble("bot",msg);
-          hist.push({role:"assistant",content:msg});
-        } else {
-          if(reply) addBubble("bot",reply);
-          if(depositMode==="optional"){
-            addPayCard(svc,day,time,client);
-            addBubble("bot",L.optionalMsg);
-          } else {
-            addPayCard(svc,day,time,client);
-          }
-
+          const msg=currentLang==="es"?"¡Lo siento, ese horario ya está ocupado! ¿Qué otro día u hora te funciona?":currentLang==="fr"?"Désolée, ce créneau est déjà pris ! Quel autre jour ou heure vous conviendrait ?":"Sorry, that time slot is already taken! What other day or time works for you?";
+          addBubble("bot",msg);hist.push({role:"assistant",content:msg});
+        }else{
+          if(reply)addBubble("bot",reply);
+          if(depositMode==="optional"){addPayCard(svc,day,time,client);addBubble("bot",L.optionalMsg);}
+          else{addPayCard(svc,day,time,client);}
+          selectedServiceIdx=null;document.getElementById("quick-btns").style.display="flex";
         }
-      }).catch(()=>{
-        addPayCard(svc,day,time,client);
-      });
+      }).catch(()=>{addPayCard(svc,day,time,client);});
     }
     if(bc&&!dm){
-      const svc=bc[1].trim(), day=bc[2].trim(), time=bc[3].trim(), client=bc[4].trim();
-      fetch(BACKEND+"/bookings",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId,source:"chat",language:currentLang})
-      }).catch(()=>{});
-      addBubble("bot",L.confirmedMsg);
+      const svc=bc[1].trim(),day=bc[2].trim(),time=bc[3].trim(),client=bc[4].trim();
+      fetch(BACKEND+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId,source:"chat",language:currentLang})}).catch(()=>{});
+      addBubble("bot",L.confirmedMsg);selectedServiceIdx=null;document.getElementById("quick-btns").style.display="flex";
     }
   }catch{
     document.getElementById("typing")?.remove();
-    const el=document.getElementById("chat-body");
-    const w=document.createElement("div");
-    w.className="bubble-wrap bot";
+    const el=document.getElementById("chat-body");const w=document.createElement("div");w.className="bubble-wrap bot";
     w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="bubble bot" style="color:#888">${L.retryMsg("retry")}</div>`;
-    el.appendChild(w);
-    el.scrollTop=el.scrollHeight;
-    hist.pop();
+    el.appendChild(w);el.scrollTop=el.scrollHeight;hist.pop();
   }
   busy=false;
 }
 
 async function send(txt){
-  const inp=document.getElementById("inp");
-  const t=txt||(inp?inp.value.trim():"");
-  if(!t||busy)return;
-  if(inp)inp.value="";
-
-  // Show service picker for booking intent
-  const bookingIntent=/book|appointment|reserve|schedule|réserver|cita|rendez/i.test(t);
-  if(bookingIntent && parsedServices.length>0 && hist.length<=2){
-    addBubble("user",t);
-    hist.push({role:"user",content:t});
-    const pickerLabel=currentLang==="es"
-      ?"¡Claro! ¿Qué servicio te interesa?"
-      :"Of course! Which service are you interested in?";
-    addBubble("bot",pickerLabel);
-    showServicePicker();
-    return;
+  const inp=document.getElementById("inp");const t=txt||(inp?inp.value.trim():"");if(!t||busy)return;if(inp)inp.value="";
+  const bookingIntent=/book|appointment|reserve|schedule|réserver|cita|rendez|prendre rendez|voudrais/i.test(t);
+  if(bookingIntent&&parsedServices.length>0&&hist.length<=2){
+    addBubble("user",t);hist.push({role:"user",content:t});
+    const pickerLabel=currentLang==="es"?"¡Claro! ¿Qué servicio te interesa?":currentLang==="fr"?"Bien sûr ! Quel service vous intéresse ?":"Of course! Which service are you interested in?";
+    addBubble("bot",pickerLabel);document.getElementById("quick-btns").style.display="none";showServicePicker();return;
   }
-
-  addBubble("user",t);
-  hist.push({role:"user",content:t});
-  await sendToAI();
+  addBubble("user",t);hist.push({role:"user",content:t});await sendToAI();
 }
 
-// ── STATUS MODAL ──────────────────────────────────────
 function openStatus(){
   const L=LANGS[currentLang];
   document.getElementById("status-modal").style.display="flex";
@@ -706,109 +517,55 @@ function openStatus(){
   document.getElementById("status-search").style.display="block";
 }
 
-function closeStatus(){
-  document.getElementById("status-modal").style.display="none";
-}
+function closeStatus(){document.getElementById("status-modal").style.display="none";}
 
 async function checkStatus(){
-  const name=document.getElementById("status-name").value.trim();
-  if(!name)return;
+  const name=document.getElementById("status-name").value.trim();if(!name)return;
   const L=LANGS[currentLang];
-  const result=document.getElementById("status-result");
-  const search=document.getElementById("status-search");
-  search.style.display="none";
-  result.style.display="block";
+  const result=document.getElementById("status-result");const search=document.getElementById("status-search");
+  search.style.display="none";result.style.display="block";
   result.innerHTML=`<div style="text-align:center;padding:20px;color:#aaa;font-size:13px">${L.looking}</div>`;
   try{
     const res=await fetch(`${BACKEND}/bookings/search?name=${encodeURIComponent(name)}&salon_id=${currentSalonId}`,{cache:"no-store"});
     const bookings=await res.json();
     if(!Array.isArray(bookings)||bookings.length===0){
-      result.innerHTML=`
-        <div style="text-align:center;padding:10px 0">
-          <div style="font-size:32px;margin-bottom:8px">🔍</div>
-          <div style="font-size:14px;font-weight:600;color:#111;margin-bottom:6px">${L.notFound}</div>
-          <div style="font-size:13px;color:#888;margin-bottom:14px">${L.notFoundSub}</div>
-          <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button>
-        </div>`;
+      result.innerHTML=`<div style="text-align:center;padding:10px 0"><div style="font-size:32px;margin-bottom:8px">🔍</div><div style="font-size:14px;font-weight:600;color:#111;margin-bottom:6px">${L.notFound}</div><div style="font-size:13px;color:#888;margin-bottom:14px">${L.notFoundSub}</div><button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button></div>`;
       return;
     }
     const b=bookings[0];
-    const statusColor=b.status==="confirmed"?"#0F6E56":"#633806";
-    const statusBg=b.status==="confirmed"?"#eafaf1":"#FAEEDA";
+    const statusColor=b.status==="confirmed"?"#0F6E56":"#633806";const statusBg=b.status==="confirmed"?"#eafaf1":"#FAEEDA";
     const statusLabel=b.status==="confirmed"?L.confirmed:L.pendingDeposit;
-    result.innerHTML=`
-      <div style="text-align:center;padding:10px 0">
-        <div style="font-size:32px;margin-bottom:8px">${b.status==="confirmed"?"✅":"⏳"}</div>
-        <div style="font-size:15px;font-weight:600;color:#111;margin-bottom:4px">${b.service}</div>
-        <div style="font-size:13px;color:#888;margin-bottom:12px">${b.day} at ${b.time||b.hour+"am"} · ${b.client}</div>
-        <span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:${statusBg};color:${statusColor}">${statusLabel}</span>
-        ${b.status==="pending"?`<div style="font-size:12px;color:#888;margin-top:12px">${L.pendingMsg}</div>`:""}
-        <button onclick="closeStatus()" style="display:block;width:100%;margin-top:14px;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${L.close}</button>
-      </div>`;
+    result.innerHTML=`<div style="text-align:center;padding:10px 0"><div style="font-size:32px;margin-bottom:8px">${b.status==="confirmed"?"✅":"⏳"}</div><div style="font-size:15px;font-weight:600;color:#111;margin-bottom:4px">${b.service}</div><div style="font-size:13px;color:#888;margin-bottom:12px">${b.day} at ${b.time||b.hour+"am"} · ${b.client}</div><span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:${statusBg};color:${statusColor}">${statusLabel}</span>${b.status==="pending"?`<div style="font-size:12px;color:#888;margin-top:12px">${L.pendingMsg}</div>`:""}<button onclick="closeStatus()" style="display:block;width:100%;margin-top:14px;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${L.close}</button></div>`;
   }catch{
-    result.innerHTML=`
-      <div style="text-align:center;padding:10px 0">
-        <div style="font-size:13px;color:#888">${L.couldNot}</div>
-        <button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;margin-top:10px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button>
-      </div>`;
+    result.innerHTML=`<div style="text-align:center;padding:10px 0"><div style="font-size:13px;color:#888">${L.couldNot}</div><button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;margin-top:10px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button></div>`;
   }
 }
 
-// ── VOICE INPUT ──────────────────────────────────────
-let recognition=null, isListening=false;
+let recognition=null,isListening=false;
 
 function toggleVoice(){
   if(!("webkitSpeechRecognition" in window||"SpeechRecognition" in window)){
-    const msg=currentLang==="es"
-      ?"Lo sentimos, tu navegador no soporta voz. Intenta con Chrome."
-      :"Sorry, your browser doesn't support voice. Try Chrome.";
-    addBubble("bot",msg);
-    return;
+    addBubble("bot",currentLang==="es"?"Lo sentimos, tu navegador no soporta voz. Intenta con Chrome.":currentLang==="fr"?"Désolé, votre navigateur ne supporte pas la voix. Essayez Chrome.":"Sorry, your browser doesn't support voice. Try Chrome.");return;
   }
-  if(isListening){
-    stopVoice();
-  } else {
-    startVoice();
-  }
+  if(isListening){stopVoice();}else{startVoice();}
 }
 
 function startVoice(){
-  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  recognition=new SpeechRecognition();
-  recognition.continuous=false;
-  recognition.interimResults=true;
-  recognition.lang=currentLang==="es"?"es-US":"en-US";
-  recognition.onstart=()=>{
-    isListening=true;
-    document.getElementById("mic-btn").classList.add("listening");
-    document.getElementById("inp").placeholder=currentLang==="es"?"Escuchando...":"Listening...";
-  };
-  recognition.onresult=(e)=>{
-    const transcript=Array.from(e.results).map(r=>r[0].transcript).join("");
-    document.getElementById("inp").value=transcript;
-  };
-  recognition.onend=()=>{
-    stopVoice();
-    // Auto-send if we got something
-    const val=document.getElementById("inp").value.trim();
-    if(val) setTimeout(()=>send(),300);
-  };
-  recognition.onerror=(e)=>{
-    stopVoice();
-    if(e.error!=="no-speech"){
-      addBubble("bot",currentLang==="es"?"No pude escucharte. Intenta de nuevo.":"Couldn't hear you. Please try again.");
-    }
-  };
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.continuous=false;recognition.interimResults=true;
+  recognition.lang=currentLang==="es"?"es-US":currentLang==="fr"?"fr-FR":"en-US";
+  recognition.onstart=()=>{isListening=true;document.getElementById("mic-btn").classList.add("listening");document.getElementById("inp").placeholder=currentLang==="es"?"Escuchando...":currentLang==="fr"?"En écoute...":"Listening...";};
+  recognition.onresult=(e)=>{document.getElementById("inp").value=Array.from(e.results).map(r=>r[0].transcript).join("");};
+  recognition.onend=()=>{stopVoice();const val=document.getElementById("inp").value.trim();if(val)setTimeout(()=>send(),300);};
+  recognition.onerror=(e)=>{stopVoice();if(e.error!=="no-speech")addBubble("bot",currentLang==="es"?"No pude escucharte. Intenta de nuevo.":currentLang==="fr"?"Je n'ai pas pu vous entendre. Veuillez réessayer.":"Couldn't hear you. Please try again.");};
   recognition.start();
 }
 
 function stopVoice(){
   isListening=false;
-  const btn=document.getElementById("mic-btn");
-  if(btn) btn.classList.remove("listening");
-  const inp=document.getElementById("inp");
-  if(inp) inp.placeholder=currentLang==="es"?"Escribe o toca 🎤...":"Type or tap 🎤...";
-  try{ recognition?.stop(); }catch{}
+  const btn=document.getElementById("mic-btn");if(btn)btn.classList.remove("listening");
+  const inp=document.getElementById("inp");if(inp)inp.placeholder=LANGS[currentLang].placeholder;
+  try{recognition?.stop();}catch{}
 }
 
 loadSettings();
