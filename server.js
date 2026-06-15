@@ -331,7 +331,7 @@ app.patch("/orders/:id", async (req, res) => {
           }
           const settings = await supabase("GET", `salon_settings?salon_id=eq.${order.salon_id}&limit=1`);
           const restaurantName = settings?.[0]?.salon_name || order.salon_id;
-          const reviewLink = settings?.[0]?.review_link || `https://dianke.ai/review/${order.salon_id}`;
+          const reviewLink = settings?.[0]?.review_link || `https://dianke.ai/review/${order.salon_id}?name=${encodeURIComponent(order.customer_name || "")}`;
           const lang = order.language || "en";
           const copy = {
             en: { subject: `How was your meal at ${restaurantName}? ⭐`, heading: "How was your experience?", body: "We hope you enjoyed your meal! We'd love to hear from you.", btn: "Leave a Review" },
