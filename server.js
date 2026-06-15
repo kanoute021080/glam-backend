@@ -727,14 +727,16 @@ app.post('/settings/:salon_id/update', async (req, res) => {
   }
 });
 
+
 app.get("*", (req, res) => {
-  // Don't intercept API routes
   const apiPrefixes = ["/orders", "/menu", "/bookings", "/settings", "/reviews", "/chat"];
   if (apiPrefixes.some(p => req.path.startsWith(p))) {
     return res.status(404).json({ error: "Not found" });
   }
   if (req.path.startsWith("/dashboard")) {
     res.sendFile(path.join(__dirname, "dashboard.html"));
+  } else if (req.path.startsWith("/review")) {
+    res.sendFile(path.join(__dirname, "review.html"));
   } else {
     res.sendFile(path.join(__dirname, "client.html"));
   }
