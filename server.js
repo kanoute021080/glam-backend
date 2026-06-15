@@ -317,8 +317,48 @@ app.patch("/orders/:id", async (req, res) => {
           console.error("[ready-email] lookup failed:", e);
         }
       })();
+   }
+    if (status === "done") {
+      (async () => {
+        try {
+          const orderRows = await supabase("GET", "orders?id=eq." + req.params.id + "&limit=1");
+          const order = Array.isArray(orderRows) ? orderRows[0] : null;
+          if (!order || !order.customer_email || !RESEND_KEY) {
+            console.log(`[review-email] skip — email=${!!(order && order.customer_email)}`);
+            return;
+          }
+          const settings = await supabase("GET", `salon_settings?salon_id=eq.${order.salon_id}&limit=1`);
+          const restaurantName = settings?.[0]?.salon_name || order.salon_id;
+          const reviewLink = settings?.[0]?.review_link || "";
+          const lang = order.language || "en";
+          const copy = {
+            en: { subject: `How was your meal at ${restaurantName}? ⭐`, heading: "How was your experience?", body: "We hope you enjoyed your meal! We'd love to hear from you.", btn: "Leave a Review" },
+            fr: { subject: `Comment était votre repas chez ${restaurantName} ? ⭐`, heading: "Comment s'est passée votre expérience ?", body: "Nous espérons que vous avez apprécié votre repas ! Votre avis compte beaucoup.", btn: "Laisser un avis" },
+            wo: { subject: `Ndax lekk bi yegeel nga ci ${restaurantName} ? ⭐`, heading: "Ndax lekk bi yegeel nga?", body: "Dafa neex sunu xam xam sa xibaar.", btn: "Bind sa xibaar" }
+          };
+          const t = copy[lang] || copy.en;
+          fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
+            body: JSON.stringify({
+              from: "Dianke.ai <hello@dianke.ai>",
+              to: order.customer_email,
+              subject: t.subject,
+              html: `
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+                  <h2 style="color:#c2426e;margin-bottom:6px">⭐ ${t.heading}</h2>
+                  <p style="color:#555;font-size:14px;margin-bottom:18px">${t.body}</p>
+                  ${reviewLink ? `<a href="${reviewLink}" style="display:block;background:#111;color:#fff;text-align:center;padding:14px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none">${t.btn} →</a>` : ""}
+                  <p style="color:#888;font-size:12px;margin-top:16px;text-align:center">Sent by ${restaurantName} via Dianke.ai</p>
+                </div>
+              `
+            })
+          }).then(r => r.text()).then(t => console.log(`[review-email] resend: ${t.slice(0,200)}`)).catch(e => console.error("[review-email] error:", e));
+        } catch (e) {
+          console.error("[review-email] lookup failed:", e);
+        }
+      })();
     }
-
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
