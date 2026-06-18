@@ -180,6 +180,14 @@ async function loadSettings(){
     if(!res.ok) return;
     const d=await res.json();
     restaurantPhone=d.phone||null;
+    if(d.salon_name){
+      document.getElementById("restaurant-name").textContent=d.salon_name;
+      const initials=d.salon_name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+      const av=document.getElementById("restaurant-av");
+      if(av) av.textContent=initials;
+      document.title=d.salon_name+" — Order Online";
+      Object.keys(LANGS).forEach(l=>{LANGS[l].label=d.salon_name+" AI";});
+    }
   }catch{}
 }
 
