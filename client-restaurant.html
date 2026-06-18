@@ -3,54 +3,74 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>Afghan Kababs & Grill — Order Online</title>
+<title>Crown & Glory Beauty</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-body{background:#1a0a00;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;overflow-x:hidden}
+body{background:#f5f5f3;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;overflow-x:hidden}
 .wrap{width:100%;max-width:420px}
 .lang-bar{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
-.lang-btn{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid #c17f24;background:transparent;color:#c17f24;cursor:pointer;font-weight:500}
-.lang-btn.active{background:#c17f24;color:#fff}
-.chat-hdr{background:#2d1500;padding:12px 16px;display:flex;align-items:center;gap:10px;border-radius:12px 12px 0 0;border:1px solid #c17f24;border-bottom:none}
-.av{width:38px;height:38px;border-radius:50%;background:#c17f24;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0}
-.hdr-name{font-size:14px;font-weight:600;color:#f5e6c8}
-.hdr-status{font-size:11px;color:#c17f24;display:flex;align-items:center;gap:5px;margin-top:2px}
+.lang-btn{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid #c2426e;background:transparent;color:#c2426e;cursor:pointer;font-weight:500}
+.lang-btn.active{background:#c2426e;color:#fff}
+.chat-hdr{background:#111;padding:12px 16px;display:flex;align-items:center;gap:10px;border-radius:12px 12px 0 0}
+.av{width:36px;height:36px;border-radius:50%;background:#c2426e;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.hdr-name{font-size:14px;font-weight:600;color:#f0f0ec}
+.hdr-status{font-size:11px;color:#7dd9b8;display:flex;align-items:center;gap:5px;margin-top:2px}
 .dot{width:6px;height:6px;border-radius:50%;background:#22c98a;display:inline-block}
-.period-badge{font-size:10px;background:#c17f24;color:#fff;padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:600}
-.chat-body{height:380px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#0d0500;border:1px solid #3d1f00;border-top:none}
-.bw-bot{display:flex;flex-direction:column;align-items:flex-start}
-.bw-user{display:flex;flex-direction:column;align-items:flex-end}
-.bl{font-size:10px;color:#8a6a3a;margin-bottom:2px}
-.bb{font-size:14px;line-height:1.6;padding:10px 14px;max-width:85%}
-.bb-bot{background:#2d1500;color:#f5e6c8;border:1px solid #3d1f00;border-radius:4px 14px 14px 14px}
-.bb-user{background:#c17f24;color:#fff;border-radius:14px 4px 14px 14px}
-.quick-btns{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;background:#0d0500;border:1px solid #3d1f00;border-top:none}
-.qbtn{font-size:12px;padding:6px 12px;border:1px solid #c17f24;border-radius:20px;background:transparent;color:#c17f24;cursor:pointer}
-.input-row{display:flex;gap:8px;padding:10px 12px;background:#2d1500;border:1px solid #c17f24;border-top:none;border-radius:0 0 12px 12px;align-items:center}
-.inp{flex:1;font-size:14px;padding:9px 14px;border-radius:20px;border:1px solid #3d1f00;background:#0d0500;color:#f5e6c8;outline:none}
-.inp::placeholder{color:#8a6a3a}
-.send-btn{width:38px;height:38px;border-radius:50%;background:#c17f24;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.order-card{background:#2d1500;border:1px solid #c17f24;border-radius:12px;padding:14px;max-width:88%}
-.footer{text-align:center;font-size:11px;color:#8a6a3a;margin-top:10px}
-.footer a{color:#c17f24;text-decoration:none;font-weight:500}
+.chat-body{height:420px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#f5f5f3;border:1px solid #eee;border-top:none}
+.bubble-wrap{display:flex;flex-direction:column}
+.bubble-wrap.bot{align-items:flex-start}
+.bubble-wrap.user{align-items:flex-end}
+.bubble-label{font-size:10px;color:#aaa;margin-bottom:2px}
+.bubble{font-size:14px;line-height:1.6;padding:10px 14px;max-width:85%}
+.bubble.bot{background:#fff;color:#111;border:1px solid #eee;border-radius:4px 14px 14px 14px}
+.bubble.user{background:#111;color:#f0f0ec;border-radius:14px 4px 14px 14px}
+.quick-btns{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;background:#f5f5f3;border:1px solid #eee;border-top:none}
+.qbtn{font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#444;cursor:pointer}
+.qbtn:active{background:#eee}
+.input-row{display:flex;gap:8px;padding:10px 12px;background:#fff;border:1px solid #eee;border-top:none;border-radius:0 0 12px 12px;align-items:center}
+.inp{flex:1;font-size:14px;padding:9px 14px;border-radius:20px;border:1px solid #ddd;background:#f5f5f3;color:#111;outline:none}
+.send-btn{width:38px;height:38px;border-radius:50%;background:#c2426e;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mic-btn{width:38px;height:38px;border-radius:50%;background:#f5f5f3;border:1px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#888;transition:all .2s}
+.mic-btn.listening{background:#c2426e;border-color:#c2426e;color:#fff;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.pay-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;margin-top:4px;max-width:88%}
+.pay-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;text-decoration:none;margin-bottom:6px}
+.footer{text-align:center;font-size:11px;color:#aaa;margin-top:10px}
+.review-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;max-width:92%;margin-top:4px}
+.star{font-size:22px;cursor:pointer;opacity:.3;transition:opacity .15s}
+.star.active{opacity:1}
+.svc-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;max-width:92%}
+.date-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px;max-width:96%}
+.date-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px}
+.date-cell{text-align:center;padding:6px 2px;border-radius:8px;cursor:pointer;font-size:12px}
+.date-cell.active{background:#c2426e;color:#fff;font-weight:600}
+.date-cell.disabled{opacity:.3;cursor:default}
+.date-cell.today{border:1px solid #c2426e;color:#c2426e;font-weight:600}
+.date-cell:not(.disabled):not(.active):hover{background:#fff0f5}
+.time-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.time-slot{padding:6px 12px;border:1px solid #eee;border-radius:20px;font-size:12px;cursor:pointer;color:#444}
+.time-slot.active{background:#c2426e;color:#fff;border-color:#c2426e}
+.time-slot.taken{opacity:.3;cursor:default;text-decoration:line-through}
+.svc-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1.5px solid #eee;border-radius:10px;cursor:pointer;margin-bottom:6px;transition:all .15s}
+.svc-item:active{background:#fff5f8;border-color:#c2426e}
+.svc-name{font-size:13px;font-weight:500;color:#111}
+.svc-price{font-size:13px;font-weight:700;color:#c2426e}
 </style>
 </head>
 <body>
 <div class="wrap">
+
   <div class="lang-bar">
-    <button class="lang-btn active" onclick="setLang('en',this)">🇺🇸 English</button>
-    <button class="lang-btn" onclick="setLang('fr',this)">🇫🇷 Français</button>
-    <button class="lang-btn" onclick="setLang('wo',this)">🇸🇳 Wolof</button>
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en',this)">🇺🇸 English</button>
+    <button class="lang-btn" id="btn-fr" onclick="setLang('fr',this)">🇫🇷 Français</button>
+    <button class="lang-btn" id="btn-es" onclick="setLang('es',this)">🇪🇸 Español</button>
   </div>
 
   <div class="chat-hdr">
-    <div class="av">TR</div>
-    <div style="flex:1">
-      <div style="display:flex;align-items:center">
-        <div class="hdr-name" id="restaurant-name">Afghan Kababs & Grill</div>
-        <span class="period-badge" id="period-badge">Lunch</span>
-      </div>
-      <div class="hdr-status"><span class="dot"></span><span id="status-text">AI assistant · always open</span></div>
+    <div class="av" id="salon-av">CG</div>
+    <div>
+      <div class="hdr-name" id="salon-name">Crown & Glory Beauty</div>
+      <div class="hdr-status"><span class="dot"></span><span id="status-text">AI receptionist · always open</span></div>
     </div>
   </div>
 
@@ -58,405 +78,497 @@ body{background:#1a0a00;min-height:100vh;display:flex;flex-direction:column;alig
   <div class="quick-btns" id="quick-btns"></div>
 
   <div class="input-row">
-    <input class="inp" id="inp" placeholder="Type your order..." onkeydown="if(event.key==='Enter')send()"/>
+    <button class="mic-btn" id="mic-btn" onclick="toggleVoice()" title="Voice input">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm-1 3a1 1 0 0 1 2 0v8a1 1 0 0 1-2 0V4zm-4 8a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.92V21h-2v-2.08A7 7 0 0 1 5 12H7z"/></svg>
+    </button>
+    <input class="inp" id="inp" placeholder="Type or tap 🎤..." onkeydown="if(event.key==='Enter')send()"/>
     <button class="send-btn" onclick="send()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
     </button>
   </div>
 
   <div class="footer">
-    Powered by <a href="https://dianke.ai">Dianke.ai</a> ·
-    <span onclick="openOrderStatus()" style="color:#c17f24;cursor:pointer;font-weight:600;display:inline-block;padding:4px 0" id="check-order-link">Check my order →</span>
+    Powered by AutoPilot Reception ·
+    <span onclick="openStatus()" style="color:#c2426e;cursor:pointer;font-weight:600" id="check-link">Check my booking →</span>
   </div>
 
-  <!-- Order status modal -->
-  <div id="order-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;padding:20px">
-    <div style="background:#2d1500;border:1px solid #c17f24;border-radius:14px;padding:20px;width:100%;max-width:380px">
+  <div id="status-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#fff;border-radius:14px;padding:20px;width:100%;max-width:380px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:15px;font-weight:600;color:#f5e6c8" id="modal-title">Check my order</div>
-        <button onclick="closeOrderStatus()" style="background:none;border:none;font-size:20px;color:#8a6a3a;cursor:pointer">×</button>
+        <div style="font-size:15px;font-weight:600;color:#111" id="modal-title">Check booking status</div>
+        <button onclick="closeStatus()" style="background:none;border:none;font-size:20px;color:#aaa;cursor:pointer">×</button>
       </div>
-      <div id="order-search">
-        <label style="font-size:12px;color:#8a6a3a;display:block;margin-bottom:4px" id="modal-label">Your name</label>
-        <input id="order-name" placeholder="Enter the name used to order" style="width:100%;font-size:14px;padding:9px 12px;border:1px solid #3d1f00;border-radius:8px;outline:none;margin-bottom:10px;background:#0d0500;color:#f5e6c8"/>
-        <button onclick="checkOrderStatus()" style="width:100%;padding:10px;background:#c17f24;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer" id="modal-btn">Check status</button>
+      <div id="status-search">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:4px" id="modal-label">Your name</label>
+        <input id="status-name" placeholder="Enter the name used to book" style="width:100%;font-size:14px;padding:9px 12px;border:1px solid #ddd;border-radius:8px;outline:none;margin-bottom:10px"/>
+        <button onclick="checkStatus()" style="width:100%;padding:10px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer" id="modal-btn">Check status</button>
       </div>
-      <div id="order-result" style="display:none"></div>
+      <div id="status-result" style="display:none"></div>
     </div>
   </div>
 </div>
 
 <script>
-const BACKEND="https://dianke.ai";
-const salonId=window.location.pathname.split("/")[2]||"restaurant1";
-let hist=[], busy=false, currentLang="en", menuData=null, currentPeriod=null, restaurantPhone=null;
+const BACKEND="https://glam-backend-rxdf.onrender.com";
+let hist=[], busy=false, currentLang="en";
+let PAY={cashapp:"",venmo:"",zelle:""};
+let depositMode="required", depositAmount=35, SYS="", salonData={};
+let parsedServices=[];
+
+function parseServices(servicesStr){
+  if(!servicesStr) return [];
+  const results=[];
+  const sentences=servicesStr.split(/\.\s+/);
+  for(const sentence of sentences){
+    const catMatch=sentence.match(/^([^:$]+):\s*(.+)/);
+    if(catMatch){
+      const category=catMatch[1].trim();
+      const rest=catMatch[2];
+      const pairs=[...rest.matchAll(/(XL|X Larger?|Large|L\b|Medium|M\b|Small|S\b|XS)\s+\$([0-9]+)/gi)];
+      if(pairs.length){for(const p of pairs) results.push({name:`${category} - ${p[1]}`,price:"$"+p[2]});continue;}
+      const pm=sentence.match(/\$([0-9]+)/);
+      if(pm) results.push({name:category,price:"$"+pm[1]+"+"});
+    } else {
+      const items=sentence.split(/,\s*/);
+      for(const item of items){
+        const m=item.trim().match(/^([^$]+?)\s+\$([0-9]+)/);
+        if(m){const name=m[1].trim().replace(/^[-+\s]+|[-+\s]+$/g,'');if(name.length>2&&!/tracks|track/.test(name))results.push({name,price:"$"+m[2]});}
+      }
+    }
+  }
+  return results;
+}
+
+function showServicePicker(){
+  if(!parsedServices.length) return false;
+  const L=LANGS[currentLang];
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.className="bubble-wrap bot";
+  const title=currentLang==="es"?"Elige tu servicio:":currentLang==="fr"?"Choisissez votre service :":"Choose your service:";
+  const items=parsedServices.map((s,i)=>`<div class="svc-item" onclick="selectService(${i})"><span class="svc-name">${s.name}</span><span class="svc-price">${s.price}</span></div>`).join("");
+  w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="svc-card"><div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">${title}</div>${items}</div>`;
+  el.appendChild(w);el.scrollTop=el.scrollHeight;
+  return true;
+}
+
+let selectedServiceIdx=null, selectedDate=null, selectedTimeSlot=null;
+
+function selectService(idx){
+  const svc=parsedServices[idx];if(!svc)return;
+  selectedServiceIdx=idx;selectedDate=null;selectedTimeSlot=null;
+  document.getElementById("chat-body").querySelectorAll(".svc-card").forEach(c=>c.closest(".bubble-wrap")?.remove());
+  document.getElementById("quick-btns").style.display="none";
+  addBubble("user",`${svc.name} (${svc.price})`);
+  showDatePicker();
+}
+
+function showDatePicker(){
+  const L=LANGS[currentLang];
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");
+  w.id="date-picker-card";w.className="bubble-wrap bot";
+  const title=currentLang==="es"?"Elige una fecha:":currentLang==="fr"?"Choisissez une date :":"Choose a date:";
+  const today=new Date();
+  const days=[];for(let i=1;i<=30;i++){const d=new Date(today);d.setDate(today.getDate()+i);days.push(d);}
+  const dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const monthNames=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const cells=days.map(d=>{
+    const dateStr=d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+    return `<div class="date-cell" onclick="selectDate('${dateStr}',this,${d.getDate()})"><div style="font-size:9px;color:inherit;opacity:.7">${dayNames[d.getDay()]}</div><div style="font-size:13px;font-weight:500">${d.getDate()}</div><div style="font-size:9px;color:inherit;opacity:.7">${monthNames[d.getMonth()]}</div></div>`;
+  }).join("");
+  const continueTxt=currentLang==="es"?"Confirmar →":currentLang==="fr"?"Continuer →":"Continue →";
+  const timeTxt=currentLang==="es"?"Elige un horario:":currentLang==="fr"?"Choisissez un horaire :":"Choose a time:";
+  w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="date-card"><div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">${title}</div><div class="date-grid">${cells}</div><div id="time-picker-section" style="display:none"><div style="font-size:13px;font-weight:600;color:#111;margin-bottom:8px" id="time-picker-title">${timeTxt}</div><div class="time-grid" id="time-slots"></div><button onclick="confirmDateTime()" id="confirm-dt-btn" style="display:none;width:100%;padding:10px;background:#c2426e;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${continueTxt}</button></div></div>`;
+  el.appendChild(w);el.scrollTop=el.scrollHeight;
+}
+
+async function selectDate(dateStr,cell,dateNum){
+  document.querySelectorAll(".date-cell").forEach(c=>c.classList.remove("active"));
+  cell.classList.add("active");selectedDate=dateStr;selectedTimeSlot=null;
+  const taken=await getTakenSlots(dateStr);
+  const times=["9am","9:30am","10am","10:30am","11am","11:30am","12pm","1pm","1:30pm","2pm","2:30pm","3pm","3:30pm","4pm","4:30pm","5pm","5:30pm","6pm"];
+  const grid=document.getElementById("time-slots");
+  grid.innerHTML=times.map(t=>{const isTaken=taken.includes(t);return `<div class="time-slot${isTaken?" taken":""}" onclick="${isTaken?"":"selectTime('"+t+"',this)"}">${t}${isTaken?" ✗":""}</div>`;}).join("");
+  document.getElementById("time-picker-section").style.display="block";
+  document.getElementById("chat-body").scrollTop=9999;
+}
+
+async function getTakenSlots(dateStr){
+  try{
+    const res=await fetch(`${BACKEND}/bookings?salon_id=${currentSalonId}&status=in.(confirmed,pending)`,{cache:"no-store"});
+    const data=await res.json();if(!Array.isArray(data))return [];
+    const dayLower=dateStr.toLowerCase();
+    return data.filter(b=>(b.day||"").toLowerCase().includes(dayLower.split(",")[0].toLowerCase())||dayLower.includes((b.day||"").toLowerCase().split(" ")[0])).map(b=>b.time||"").filter(Boolean);
+  }catch{return [];}
+}
+
+function selectTime(time,cell){
+  document.querySelectorAll(".time-slot").forEach(c=>c.classList.remove("active"));
+  cell.classList.add("active");selectedTimeSlot=time;
+  const btn=document.getElementById("confirm-dt-btn");if(btn)btn.style.display="block";
+  document.getElementById("chat-body").scrollTop=9999;
+}
+
+function confirmDateTime(){
+  if(!selectedDate||!selectedTimeSlot)return;
+  const svc=parsedServices[selectedServiceIdx];
+  document.getElementById("date-picker-card")?.remove();
+  const d=new Date(selectedDate);
+  const dayFormatted=d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  const contextMsg=`I want to book ${svc.name} (${svc.price}) on ${dayFormatted} at ${selectedTimeSlot}.`;
+  addBubble("user",contextMsg);hist=[{role:"user",content:contextMsg}];sendToAI();
+}
+
+const slugMap={"theafricancrown":"salon3","freshcut":"salon2","hollywoodglam":"hollywoodglam"};
+const rawSlug=window.location.pathname.split("/").filter(Boolean).pop()||"salon1";
+const currentSalonId=slugMap[rawSlug]||rawSlug;
 
 const LANGS={
   en:{
-    status:"AI assistant · always open",
-    placeholder:"Type your order or question...",
-    label:"Afghan Kababs AI",
-    periods:{breakfast:"Breakfast",lunch:"Lunch",dinner:"Dinner"},
-    quick:["📋 See menu","🛵 Delivery available?","⏱️ Wait time?","📞 Call us"],
+    status:"AI receptionist · always open",placeholder:"Type or tap 🎤...",label:"Glam AI",
+    checkLink:"Check my booking →",modalTitle:"Check booking status",modalLabel:"Your name",
+    modalBtn:"Check status",modalPlaceholder:"Enter the name used to book",
+    notFound:"No booking found",notFoundSub:"We couldn't find a booking under that name. Make sure you use the same name you gave when booking.",
+    tryAgain:"Try again",confirmed:"Confirmed ✓",pendingDeposit:"Pending deposit",
+    pendingMsg:"Please send your deposit to confirm your slot.",close:"Close",
+    looking:"Looking up your booking...",couldNot:"Could not load booking. Try again.",
+    quick:["📅 Book appointment","💰 Prices","📆 Availability","⏱ Duration"],
+    quickMsgs:["Book an appointment","What are your prices?","Are you free Friday?","How long for braids?"],
+    welcome:(name)=>`Hey! Welcome to ${name}. I can help you book an appointment, check availability, or answer any questions. What can I do for you today?`,
+    depositLabel:(amt)=>`Send $${amt} deposit to confirm`,
+    depositSub:(svc,day,time,client)=>`${svc} · ${day} at ${time} · ${client}`,
+    depositFooter:"Include your name in the memo. Your slot is held for 2 hours pending deposit.",
+    optionalMsg:"A deposit is optional but helps secure your slot. You can pay above or just show up — we'll do our best to hold it for you!",
+    confirmedMsg:"Your appointment is confirmed! We look forward to seeing you 💅",
+    retryMsg:(t)=>`Having trouble connecting. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t}')">Tap to retry →</span>`,
+    system:(d,slots,depositText,depositInstruction)=>`You are the AI receptionist for ${d.salon_name||"this salon"} in ${d.location||"the local area"}. Be warm, friendly and concise. Reply in English.
+Today is ${new Date().toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}. Use this to calculate "tomorrow", "this weekend", "next Friday" etc accurately.
+Services offered: ${d.services||"Ask the stylist for current services and pricing."}. ONLY mention these exact services — never invent or suggest services not listed here.
+Hours: ${d.hours||"Call us for current hours."} ${depositText} Come with clean detangled hair.
+Availability: ${d.availability||"Contact us to check availability."} Already booked: ${slots}
+Stylists available: ${d.stylists||"any available stylist"}. Ask client if they have a preferred stylist after they select a service.
+Remember the full conversation. Never restart. Collect service, stylist preference, day, time (use format like 9am, 10am, 2pm), client name, and phone number for reminders. ${depositInstruction}
+Keep replies under 80 words. Plain text only. No asterisks.`
   },
   fr:{
-    status:"Assistant IA · toujours disponible",
-    placeholder:"Tapez votre commande...",
-    label:"Afghan Kababs IA",
-    periods:{breakfast:"Petit-déjeuner",lunch:"Déjeuner",dinner:"Dîner"},
-    quick:["📋 Voir le menu","🛵 Livraison?","⏱️ Délai d'attente?","📞 Nous appeler"],
+    status:"Réceptionniste IA · toujours disponible",placeholder:"Écrivez ou appuyez sur 🎤...",label:"Glam IA",
+    checkLink:"Voir ma réservation →",modalTitle:"Vérifier la réservation",modalLabel:"Votre nom",
+    modalBtn:"Vérifier",modalPlaceholder:"Entrez le nom utilisé lors de la réservation",
+    notFound:"Réservation introuvable",notFoundSub:"Nous n'avons pas trouvé de réservation sous ce nom. Utilisez le même nom que lors de la réservation.",
+    tryAgain:"Réessayer",confirmed:"Confirmée ✓",pendingDeposit:"Acompte en attente",
+    pendingMsg:"Veuillez envoyer votre acompte pour confirmer votre créneau.",close:"Fermer",
+    looking:"Recherche de votre réservation...",couldNot:"Impossible de charger la réservation. Réessayez.",
+    quick:["📅 Prendre rendez-vous","💰 Tarifs","📆 Disponibilités","⏱ Durée"],
+    quickMsgs:["Je voudrais prendre rendez-vous","Quels sont vos tarifs ?","Êtes-vous disponible vendredi ?","Combien de temps pour les tresses ?"],
+    welcome:(name)=>`Bonjour ! Bienvenue chez ${name}. Je peux vous aider à prendre rendez-vous, vérifier les disponibilités ou répondre à vos questions. Comment puis-je vous aider ?`,
+    depositLabel:(amt)=>`Envoyez ${amt}€ d'acompte pour confirmer`,
+    depositSub:(svc,day,time,client)=>`${svc} · ${day} à ${time} · ${client}`,
+    depositFooter:"Incluez votre nom dans le mémo. Votre créneau est réservé pendant 2 heures en attente de l'acompte.",
+    optionalMsg:"L'acompte est facultatif mais recommandé pour sécuriser votre créneau. Vous pouvez payer ci-dessus ou venir directement — nous ferons de notre mieux pour vous garder le créneau !",
+    confirmedMsg:"Votre rendez-vous est confirmé ! Nous avons hâte de vous accueillir 💅",
+    retryMsg:(t)=>`Problème de connexion. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t}')">Appuyez pour réessayer →</span>`,
+    system:(d,slots,depositText,depositInstruction)=>`Tu es la réceptionniste IA de ${d.salon_name||"ce salon"} à ${d.location||"notre adresse"}. Sois chaleureuse, amicale et concise. Réponds toujours en français.
+Aujourd'hui nous sommes le ${new Date().toLocaleDateString("fr-FR",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}. Utilise ceci pour calculer "demain", "ce week-end", "vendredi prochain" avec précision.
+Services proposés : ${d.services||"Renseignez-vous auprès de la styliste pour les services et tarifs actuels."}. Mentionne UNIQUEMENT ces services exacts — n'invente jamais de services non listés.
+Horaires : ${d.hours||"Appelez-nous pour connaître nos horaires."} ${depositText} Venez avec les cheveux propres et démêlés.
+Disponibilités : ${d.availability||"Contactez-nous pour vérifier les disponibilités."} Déjà réservé : ${slots}
+Stylistes disponibles : ${d.stylists||"toute styliste disponible"}. Demandez au client s'il a une styliste préférée après le choix du service.
+Mémorisez toute la conversation. Ne recommencez jamais. Collectez : service, préférence de styliste, jour, heure (format comme 9h, 10h, 14h), nom du client et numéro de téléphone pour les rappels. ${depositInstruction}
+Réponses de moins de 80 mots. Texte simple uniquement. Sans astérisques.`
   },
-  wo:{
-    status:"AI ji · def ak yëgël",
-    placeholder:"Bind sa commande...",
-    label:"Afghan Kababs AI",
-    periods:{breakfast:"Petit-déjeuner",lunch:"Déjeuner",dinner:"Dîner"},
-    quick:["📋 Xool menu bi","🛵 Livraison am?","⏱️ Benn waxtu?","📞 Woo leen"],
+  es:{
+    status:"Recepcionista IA · siempre disponible",placeholder:"Escribe o toca 🎤...",label:"Glam IA",
+    checkLink:"Ver mi reserva →",modalTitle:"Verificar reserva",modalLabel:"Tu nombre",
+    modalBtn:"Verificar",modalPlaceholder:"Ingresa el nombre usado al reservar",
+    notFound:"Reserva no encontrada",notFoundSub:"No encontramos una reserva con ese nombre. Asegúrate de usar el mismo nombre que diste al reservar.",
+    tryAgain:"Intentar de nuevo",confirmed:"Confirmada ✓",pendingDeposit:"Depósito pendiente",
+    pendingMsg:"Por favor envía tu depósito para confirmar tu cita.",close:"Cerrar",
+    looking:"Buscando tu reserva...",couldNot:"No se pudo cargar la reserva. Intenta de nuevo.",
+    quick:["📅 Reservar cita","💰 Precios","📆 Disponibilidad","⏱ Duración"],
+    quickMsgs:["Quiero reservar una cita","¿Cuáles son sus precios?","¿Hay disponibilidad el viernes?","¿Cuánto tiempo toman las trenzas?"],
+    welcome:(name)=>`¡Hola! Bienvenida a ${name}. Puedo ayudarte a reservar una cita, revisar disponibilidad o responder tus preguntas. ¿En qué te puedo ayudar hoy?`,
+    depositLabel:(amt)=>`Envía $${amt} de depósito para confirmar`,
+    depositSub:(svc,day,time,client)=>`${svc} · ${day} a las ${time} · ${client}`,
+    depositFooter:"Incluye tu nombre en el memo. Tu cita queda reservada por 2 horas mientras se confirma el depósito.",
+    optionalMsg:"El depósito es opcional pero ayuda a asegurar tu cita. Puedes pagar arriba o simplemente llegar — haremos lo posible por guardarte el turno.",
+    confirmedMsg:"¡Tu cita está confirmada! Con gusto te atenderemos 💅",
+    retryMsg:(t)=>`Problema de conexión. <span style="color:#c2426e;cursor:pointer;font-weight:600" onclick="send('${t}')">Toca para reintentar →</span>`,
+    system:(d,slots,depositText,depositInstruction)=>`Eres la recepcionista IA de ${d.salon_name||"este salón"} en ${d.location||"el área local"}. Sé cálida, amigable y concisa. Responde siempre en español.
+Hoy es ${new Date().toLocaleDateString("es-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}. Usa esto para calcular "mañana", "este fin de semana", "el próximo viernes" con precisión.
+Servicios ofrecidos: ${d.services||"Consulta con la estilista los servicios y precios actuales."}. SOLO menciona estos servicios exactos — nunca inventes ni sugieras servicios que no estén listados aquí.
+Horarios: ${d.hours||"Llámanos para conocer los horarios."} ${depositText} Ven con el cabello limpio y desenredado.
+Disponibilidad: ${d.availability||"Contáctanos para verificar disponibilidad."} Ya reservado: ${slots}
+Estilistas disponibles: ${d.stylists||"cualquier estilista disponible"}. Pregunta al cliente si tiene una estilista preferida después de seleccionar el servicio.
+Recuerda toda la conversación. No reinicies. Solicita: servicio, preferencia de estilista, día, hora (formato como 9am, 10am, 2pm), nombre del cliente y número de teléfono para recordatorios. ${depositInstruction}
+Respuestas de menos de 80 palabras. Solo texto simple. Sin asteriscos.`
   }
 };
-
-const ORDER_LABELS={
-  en:{title:"Check my order",label:"Your name",btn:"Check status",notfound:"No order found",notfound_sub:"We couldn't find an order under that name.",tryagain:"Try again",pending:"Preparing",confirmed:"Confirmed, in kitchen",ready:"Ready for pickup",done:"Completed",noPhone:"Sorry — phone number isn't available right now. Please order through chat."},
-  fr:{title:"Vérifier ma commande",label:"Votre nom",btn:"Vérifier",notfound:"Commande introuvable",notfound_sub:"Nous n'avons pas trouvé de commande sous ce nom.",tryagain:"Réessayer",pending:"En préparation",confirmed:"Confirmée, en cuisine",ready:"Prête à récupérer",done:"Terminée",noPhone:"Désolé — le numéro n'est pas disponible. Veuillez commander par chat."},
-  wo:{title:"Xool sa commande",label:"Sa tur",btn:"Xool",notfound:"Commande bi amul",notfound_sub:"Xoolul commande bu am sa tur.",tryagain:"Saytu",pending:"Def nanu ko",confirmed:"Wone na, ci cuisine",ready:"Sett na, jëlël",done:"Mat na",noPhone:"Numéro bi amul leegi. Bind ci chat bi."}
-};
-
-function buildSystem(menu, period){
-  const items=menu.map(i=>`${i.name}: $${i.price}`).join(", ");
-  const periodName=LANGS[currentLang].periods[period]||period;
-  if(currentLang==="fr") return `Tu es l'assistant IA du Restaurant Afghan Kababs. Sois chaleureux en français.\nMenu ${periodName}: ${items}\nHoraires: 11h-22h. À emporter: 20-30 min. Livraison disponible. Sur place bienvenu.\nQuand client commande: confirme articles, total, temps estimé, demande nom, type (sur place/à emporter/livraison), et demande son email pour être prévenu quand prêt (optionnel — accepte s'il refuse). Puis: ORDER_CONFIRMED:[articles]:[total]:[temps]:[nom]:[type]:[email-ou-vide]\nMoins de 90 mots. Texte simple.`;
-  if(currentLang==="wo") return `Yaa ngi représente Restaurant Afghan Kababs ci Wolof.\nMenu ${periodName}: ${items}\nWaxtu: 11h-22h. À emporter: 20-30 min. Livraison am na.\nBu client bi commande: xalaat li, prix, waxtu, laaj tur, loolu (sur place/à emporter/livraison), ak laaj email pour yëgël ko bu sett (optionnel). Ci kanam: ORDER_CONFIRMED:[articles]:[total]:[waxtu]:[tur]:[loolu]:[email-walla-tuuti]\nMots yu amul solo. Texte simple.`;
-  return `You are the AI order assistant for Afghan Kababs & Grill. Be warm in English.\n${periodName} Menu: ${items}\nHours: 11am-10pm. Takeout: 20-30 mins. Delivery available. Dine-in welcome.\nWhen customer orders: confirm items, total, estimated time, ask name, order type (dine-in/takeout/delivery), and ask for an email so we can notify them when ready (optional — accept "no thanks" gracefully). Then: ORDER_CONFIRMED:[items]:[total]:[time]:[name]:[type]:[email-or-empty]\nIf the customer declines email, leave the email segment empty (still output the trailing colon). Under 90 words. Plain text only.`;
-}
-
-function buildWelcome(menu, period){
-  const periodName=LANGS[currentLang].periods[period]||period;
-  const featured=menu.slice(0,3).map(i=>i.name).join(", ");
-  if(currentLang==="fr") return `Bienvenue au Restaurant Afghan Kababs! 🍽️ Nous servons notre menu ${periodName}. En vedette: ${featured}. Comment puis-je vous aider?`;
-  if(currentLang==="wo") return `Dalal jaam ci Restaurant Afghan Kababs! 🍽️ Lëndëm ${periodName} la ñu def tëy. Ci kanam: ${featured}. Lan nga bëgg?`;
-  return `Welcome to Afghan Kababs & Grill! 🍽️ We're currently serving our ${periodName} menu. Featured: ${featured}. How can I help you?`;
-}
-
-// Loads the active period from the server — no period arg means server decides
-async function loadMenu(){
-  try{
-    const res=await fetch(BACKEND+"/menu/"+salonId, {cache:"no-store"});
-    const d=await res.json();
-    menuData=d;
-    currentPeriod=d.period;
-    const L=LANGS[currentLang];
-    const periodName=L.periods[d.period]||d.period;
-    document.getElementById("period-badge").textContent=periodName;
-    document.getElementById("chat-body").innerHTML="";
-    hist=[];
-    addBubble("bot",buildWelcome(d.items,d.period));
-    renderQuick();
-  }catch(e){
-    addBubble("bot","Welcome to Afghan Kababs & Grill! How can I help you today?");
-  }
-}
 
 function setLang(lang,btn){
   currentLang=lang;
   document.querySelectorAll(".lang-btn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
-  document.getElementById("status-text").textContent=LANGS[lang].status;
-  document.getElementById("inp").placeholder=LANGS[lang].placeholder;
-  // reload using the server's current active period
-  loadMenu();
+  const L=LANGS[lang];
+  document.getElementById("status-text").textContent=L.status;
+  document.getElementById("inp").placeholder=L.placeholder;
+  document.getElementById("check-link").textContent=L.checkLink;
+  document.getElementById("modal-title").textContent=L.modalTitle;
+  document.getElementById("modal-label").textContent=L.modalLabel;
+  document.getElementById("modal-btn").textContent=L.modalBtn;
+  document.getElementById("status-name").placeholder=L.modalPlaceholder;
+  renderQuickBtns();
+  if(Object.keys(salonData).length>0){
+    rebuildSystem(salonData).then(()=>{
+      document.getElementById("chat-body").innerHTML="";hist=[];
+      addBubble("bot",L.welcome(salonData.salon_name||"our salon"));
+    });
+  }
 }
 
-function renderQuick(){
+function renderQuickBtns(){
   const L=LANGS[currentLang];
-  document.getElementById("quick-btns").innerHTML=L.quick.map(q=>{
-    if(q.indexOf("📞")!==-1) return `<button class="qbtn" onclick="callUs()">${q}</button>`;
-    return `<button class="qbtn" onclick="send('${q.replace(/'/g,"\\'")}')">${q}</button>`;
-  }).join("");
+  document.getElementById("quick-btns").innerHTML=L.quick.map((label,i)=>
+    `<button class="qbtn" onclick="send('${L.quickMsgs[i].replace(/'/g,"\\'")}')">${label}</button>`
+  ).join("");
+}
+
+async function getBookedSlots(){
+  try{
+    const res=await fetch(`${BACKEND}/bookings?salon_id=${currentSalonId}`,{cache:'no-store'});
+    const bookings=await res.json();
+    if(!Array.isArray(bookings)||bookings.length===0)return "none";
+    return bookings.map(b=>`${b.day} ${b.time} (${b.service})`).join(", ");
+  }catch{return "none";}
+}
+
+async function rebuildSystem(d){
+  const slots=await getBookedSlots();
+  const lang=currentLang;const amt=depositAmount;
+  let depositText,depositInstruction;
+  if(depositMode==="none"){
+    depositText=lang==="fr"?"Aucun acompte requis pour réserver.":lang==="es"?"No se requiere depósito para reservar.":"No deposit required to book.";
+    depositInstruction=lang==="fr"
+      ?`Une fois toutes les infos confirmées, dis exactement : BOOKING_CONFIRMED:[service]:[jour]:[heure]:[nom]`
+      :lang==="es"
+      ?`Una vez confirmada toda la info di exactamente: BOOKING_CONFIRMED:[servicio]:[día]:[hora]:[nombre]`
+      :`Once all info confirmed say exactly: BOOKING_CONFIRMED:[service]:[day]:[time]:[name]`;
+  }else if(depositMode==="optional"){
+    depositText=lang==="fr"
+      ?`Un acompte de ${amt}€ est facultatif mais recommandé pour sécuriser votre créneau.`
+      :lang==="es"?`Un depósito de $${amt} es opcional pero recomendado para asegurar tu turno.`
+      :`A $${amt} deposit is optional but recommended to secure your slot.`;
+    depositInstruction=lang==="fr"
+      ?`Une fois toutes les infos confirmées, dis exactement : DEPOSIT_DUE:$${amt}:[service]:[jour]:[heure]:[nom]`
+      :lang==="es"?`Una vez confirmada toda la info di exactamente: DEPOSIT_DUE:$${amt}:[servicio]:[día]:[hora]:[nombre]`
+      :`Once all info confirmed say exactly: DEPOSIT_DUE:$${amt}:[service]:[day]:[time]:[name]`;
+  }else{
+    depositText=lang==="fr"
+      ?`Un acompte de ${amt}€ est requis pour sécuriser votre créneau.`
+      :lang==="es"?`Se requiere un depósito de $${amt} para asegurar tu turno.`
+      :`A $${amt} deposit is required to secure your slot.`;
+    depositInstruction=lang==="fr"
+      ?`Une fois toutes les infos confirmées, dis exactement : DEPOSIT_DUE:$${amt}:[service]:[jour]:[heure]:[nom]`
+      :lang==="es"?`Una vez confirmada toda la info di exactamente: DEPOSIT_DUE:$${amt}:[servicio]:[día]:[hora]:[nombre]`
+      :`Once all info confirmed say exactly: DEPOSIT_DUE:$${amt}:[service]:[day]:[time]:[name]`;
+  }
+  SYS=LANGS[lang].system(d,slots,depositText,depositInstruction);
 }
 
 async function loadSettings(){
   try{
-    const res=await fetch(BACKEND+"/settings/"+salonId, {cache:"no-store"});
-    if(!res.ok) return;
+    const res=await fetch(`${BACKEND}/settings/${currentSalonId}`);
+    if(!res.ok)throw new Error();
     const d=await res.json();
-    restaurantPhone=d.phone||null;
-  }catch{}
-}
-
-function callUs(){
-  const L=ORDER_LABELS[currentLang];
-  if(restaurantPhone){
-    const clean=String(restaurantPhone).replace(/[^0-9+]/g,"");
-    addBubble("bot","📞 "+restaurantPhone);
-    window.location.href="tel:"+clean;
-  } else {
-    addBubble("bot",L.noPhone);
+    salonData=d;
+    document.getElementById("salon-name").textContent=d.salon_name||"Our Salon";
+    const initials=(d.salon_name||"GS").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+    document.getElementById("salon-av").textContent=initials;
+    depositMode=d.deposit_mode||"required";depositAmount=d.deposit_amount||35;
+    PAY={cashapp:d.cashapp||"",venmo:d.venmo||"",zelle:d.zelle||""};
+    parsedServices=parseServices(d.services||"");salonData.stylists=d.stylists||"";
+    await rebuildSystem(d);renderQuickBtns();
+    addBubble("bot",LANGS[currentLang].welcome(d.salon_name||"our salon"));
+  }catch{
+    depositMode="required";depositAmount=35;
+    SYS=`You are an AI receptionist for a hair salon. Be warm and helpful. Collect service, day, time, and client name. Once confirmed say: DEPOSIT_DUE:$35:[service]:[day]:[time]:[name]. Keep replies under 80 words. Plain text only.`;
+    renderQuickBtns();addBubble("bot",LANGS[currentLang].welcome("our salon"));
   }
-}
-
-// ─── ORDER-READY NOTIFICATIONS ───────────────────────
-const READY_LABELS={
-  en:{
-    title:"🔔 Your order is ready!",
-    notifTitle:"Your order is ready! 🍽️",
-    sub:{
-      takeout:"Come pick it up at the counter.",
-      "dine-in":"Your food is on its way to your table!",
-      delivery:"Your order is on its way to you! 🛵"
-    }
-  },
-  fr:{
-    title:"🔔 Votre commande est prête!",
-    notifTitle:"Votre commande est prête! 🍽️",
-    sub:{
-      takeout:"Venez la chercher au comptoir.",
-      "dine-in":"Votre repas arrive à votre table!",
-      delivery:"Votre commande est en route! 🛵"
-    }
-  },
-  wo:{
-    title:"🔔 Sa commande sett na!",
-    notifTitle:"Sa commande sett na! 🍽️",
-    sub:{
-      takeout:"Ñëw ko jëlël ci comptoir bi.",
-      "dine-in":"Dinañu ko dëkk ci sa tabël!",
-      delivery:"Sa commande dafa dem yoon! 🛵"
-    }
-  }
-};
-
-let pollTimer=null, watchedOrderId=null, watchedCustomerName=null, lastStatus=null;
-
-function requestNotifPermission(){
-  if(!("Notification" in window)) return;
-  if(Notification.permission==="default"){
-    try{ Notification.requestPermission(); }catch{}
-  }
-}
-
-function fireReadyAlerts(order){
-  const L=READY_LABELS[currentLang]||READY_LABELS.en;
-  const orderType=(order.order_type||"takeout").toLowerCase();
-  const subMsg=L.sub[orderType]||L.sub.takeout;
-  const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className="bw-bot";
-  w.innerHTML=`
-    <div class="bl">${LANGS[currentLang].label}</div>
-    <div class="order-card" style="border-color:#22c98a;background:#0e2d1a">
-      <div style="font-size:15px;font-weight:700;color:#22c98a;margin-bottom:6px">${L.title}</div>
-      <div style="font-size:13px;color:#f5e6c8;margin-bottom:6px">${order.items||""}</div>
-      <div style="font-size:12px;color:#a8d5b8">${subMsg}</div>
-    </div>`;
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
-  if("Notification" in window && Notification.permission==="granted"){
-    try{ new Notification(L.notifTitle,{body:order.items||"",tag:"order-"+order.id}); }catch{}
-  }
-  if("vibrate" in navigator) try{ navigator.vibrate([200,80,200]); }catch{}
-}
-
-async function pollOrderStatus(){
-  if(!watchedOrderId||!watchedCustomerName){ clearInterval(pollTimer); pollTimer=null; return; }
-  try{
-    const res=await fetch(`${BACKEND}/orders/search?name=${encodeURIComponent(watchedCustomerName)}&salon_id=${salonId}`,{cache:"no-store"});
-    const orders=await res.json();
-    if(!Array.isArray(orders)) return;
-    const o=orders.find(x=>x.id===watchedOrderId);
-    if(!o||o.status===lastStatus) return;
-    lastStatus=o.status;
-    if(o.status==="ready") fireReadyAlerts(o);
-    if(o.status==="ready"||o.status==="done"||o.status==="cancelled"){ clearInterval(pollTimer); pollTimer=null; }
-  }catch{}
-}
-
-function startOrderPolling(orderId, customerName){
-  if(!orderId||!customerName) return;
-  watchedOrderId=orderId;
-  watchedCustomerName=customerName;
-  lastStatus="pending";
-  if(pollTimer) clearInterval(pollTimer);
-  setTimeout(pollOrderStatus, 8000);
-  pollTimer=setInterval(pollOrderStatus, 12000);
 }
 
 function addBubble(role,text){
   const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className=role==="bot"?"bw-bot":"bw-user";
-  if(role==="bot"){const l=document.createElement("div");l.className="bl";l.textContent=LANGS[currentLang].label;w.appendChild(l);}
-  const b=document.createElement("div");
-  b.className=`bb bb-${role}`;
-  b.textContent=text;
-  w.appendChild(b);
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
+  const w=document.createElement("div");w.className=`bubble-wrap ${role}`;
+  if(role==="bot"){const l=document.createElement("div");l.className="bubble-label";l.textContent=LANGS[currentLang].label;w.appendChild(l);}
+  const b=document.createElement("div");b.className=`bubble ${role}`;b.textContent=text;
+  w.appendChild(b);el.appendChild(w);el.scrollTop=el.scrollHeight;
 }
 
-function addOrderCard(items,total,time,name,type,email){
+function addPayCard(svc,day,time,client){
+  const L=LANGS[currentLang];
   const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className="bw-bot";
-  const labels={
-    en:{
-      confirmed:"Order Confirmed!",kitchen:"Sent to kitchen 🍳",ready:"Ready in",
-      notifyEmail:"📧 We'll email you when it's ready",orderNum:"Your order number",
-      footer:{takeout:"Show this number when you pick up.",
-              "dine-in":"Sit back — your food will be brought to you!",
-              delivery:"Your order will be delivered to you 🛵"}
-    },
-    fr:{
-      confirmed:"Commande Confirmée!",kitchen:"Envoyée en cuisine 🍳",ready:"Prête dans",
-      notifyEmail:"📧 Nous vous enverrons un email quand prête",orderNum:"Votre numéro de commande",
-      footer:{takeout:"Montrez ce numéro au comptoir.",
-              "dine-in":"Restez assis — votre repas vous sera apporté!",
-              delivery:"Votre commande vous sera livrée 🛵"}
-    },
-    wo:{
-      confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",
-      notifyEmail:"📧 Dinañu yónni email bu sett",orderNum:"Numéro commande bi",
-      footer:{takeout:"Yëgël numéro bi bu nga ñëw.",
-              "dine-in":"Dëgël — dinañu ko indi ci sa tabël!",
-              delivery:"Dinañu ko indi ci sa adresse 🛵"}
-    }
-  };
-  const L=labels[currentLang];
-  const footerMsg=L.footer[(type||"takeout").toLowerCase()]||L.footer.takeout;
-  // Render card with placeholder — real order number filled in after server responds
-  w.innerHTML=`
-    <div class="bl">${LANGS[currentLang].label}</div>
-    <div class="order-card">
-      <div style="font-size:14px;font-weight:700;color:#c17f24;margin-bottom:8px">✅ ${L.confirmed}</div>
-      <div style="background:#1a0a00;border-radius:10px;padding:12px;text-align:center;margin-bottom:10px;border:1px solid #c17f24">
-        <div style="font-size:11px;color:#8a6a3a;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">${L.orderNum}</div>
-        <div id="order-num-display" style="font-size:32px;font-weight:700;color:#c17f24;letter-spacing:2px">...</div>
-      </div>
-      <div style="font-size:13px;color:#f5e6c8;margin-bottom:4px">🍽️ ${items}</div>
-      <div style="font-size:13px;color:#f5e6c8;margin-bottom:4px">💰 Total: ${total}</div>
-      <div style="font-size:13px;color:#f5e6c8;margin-bottom:10px">👤 ${name} · ${type}</div>
-      <div style="background:#1a0a00;border-radius:8px;padding:10px;text-align:center;margin-bottom:8px">
-        <div style="font-size:22px;font-weight:700;color:#c17f24">⏱️ ${L.ready} ${time}</div>
-        <div style="font-size:11px;color:#8a6a3a;margin-top:4px">${L.kitchen}</div>
-      </div>
-      ${email?`<div style="font-size:11px;color:#22c98a;text-align:center;margin-bottom:6px">${L.notifyEmail}</div>`:""}
-      <div style="font-size:11px;color:#8a6a3a;text-align:center">${footerMsg}</div>
-    </div>`;
-  el.appendChild(w);
-  el.scrollTop=el.scrollHeight;
-  requestNotifPermission();
-  fetch(BACKEND+"/orders",{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({customer_name:name,customer_email:email||null,items,total:parseFloat(String(total).replace(/[^0-9.]/g,"")),order_type:type,estimated_time:time,salon_id:salonId,source:"chat",language:currentLang,status:"pending"})
-  }).then(r=>r.json()).then(d=>{
-    if(d&&d.id) startOrderPolling(d.id,name);
-    // Fill in the real order number once server responds
-    const numEl=w.querySelector("#order-num-display");
-    if(numEl) numEl.textContent=d&&d.order_number?"#"+d.order_number:"#"+Math.floor(1000+Math.random()*9000);
-  }).catch(e=>console.error("Order error:",e));
+  const w=document.createElement("div");w.className="bubble-wrap bot";
+  w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="pay-card"><div style="font-size:13px;font-weight:600;color:#111;margin-bottom:3px">${L.depositLabel(depositAmount)}</div><div style="font-size:12px;color:#888;margin-bottom:12px">${L.depositSub(svc,day,time,client)}</div><a href="https://cash.app/${PAY.cashapp}" target="_blank" class="pay-link" style="background:#1a9e3f"><span style="font-size:16px;color:#fff;font-weight:700">$</span><div><div style="font-size:13px;font-weight:600;color:#fff">Cash App</div><div style="font-size:11px;color:#a8f0bc">${PAY.cashapp}</div></div></a><a href="https://venmo.com/${PAY.venmo.replace("@","")}" target="_blank" class="pay-link" style="background:#3d95ce"><span style="font-size:16px;color:#fff;font-weight:700">V</span><div><div style="font-size:13px;font-weight:600;color:#fff">Venmo</div><div style="font-size:11px;color:#b8dff5">${PAY.venmo}</div></div></a><div class="pay-link" style="background:#6B2D8B"><span style="font-size:16px;color:#fff;font-weight:700">Z</span><div><div style="font-size:13px;font-weight:600;color:#fff">Zelle</div><div style="font-size:11px;color:#dbb8f0">${PAY.zelle}</div></div></div><div style="font-size:11px;color:#aaa;margin-top:10px">${L.depositFooter}</div></div>`;
+  el.appendChild(w);el.scrollTop=el.scrollHeight;
 }
 
-async function send(txt){
-  const inp=document.getElementById("inp");
-  const t=txt||(inp?inp.value.trim():"");
-  if(!t||busy||!menuData)return;
-  if(inp)inp.value="";
-  addBubble("user",t);
-  hist.push({role:"user",content:t});
-  busy=true;
-  const typing=document.createElement("div");
-  typing.className="bw-bot";
-  typing.id="typing";
-  typing.innerHTML=`<div class="bl">${LANGS[currentLang].label}</div><div class="bb bb-bot" style="color:#8a6a3a">...</div>`;
-  document.getElementById("chat-body").appendChild(typing);
-  document.getElementById("chat-body").scrollTop=9999;
+let selectedRating=0;
+
+function addReviewCard(clientName){
+  const L=LANGS[currentLang];
+  const el=document.getElementById("chat-body");
+  const w=document.createElement("div");w.className="bubble-wrap bot";
+  const title=currentLang==="es"?"¿Cómo fue tu experiencia?":currentLang==="fr"?"Comment s'est passée votre expérience ?":"How was your experience?";
+  const placeholder=currentLang==="es"?"Comparte tu opinión...":currentLang==="fr"?"Partagez votre avis...":"Share your thoughts...";
+  const btnLabel=currentLang==="es"?"Enviar reseña":currentLang==="fr"?"Envoyer l'avis":"Send review";
+  const skipLabel=currentLang==="es"?"Ahora no":currentLang==="fr"?"Pas maintenant":"Not now";
+  w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="review-card"><div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px">⭐ ${title}</div><div style="display:flex;gap:6px;margin-bottom:10px">${[1,2,3,4,5].map(i=>`<span class="star" onclick="setRating(${i})" id="star-${i}">★</span>`).join("")}</div><textarea id="review-text" placeholder="${placeholder}" style="width:100%;padding:9px 12px;border:1px solid #eee;border-radius:8px;font-size:13px;outline:none;resize:none;height:70px;font-family:inherit"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button onclick="submitReview('${clientName}')" style="flex:1;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${btnLabel}</button><button onclick="this.closest('.bubble-wrap').remove()" style="padding:9px 12px;background:transparent;border:1px solid #ddd;border-radius:8px;font-size:13px;color:#888;cursor:pointer">${skipLabel}</button></div></div>`;
+  el.appendChild(w);el.scrollTop=el.scrollHeight;
+}
+
+function setRating(n){
+  selectedRating=n;
+  for(let i=1;i<=5;i++){const s=document.getElementById("star-"+i);if(s)s.classList.toggle("active",i<=n);}
+}
+
+async function submitReview(clientName){
+  const text=document.getElementById("review-text")?.value.trim();
+  if(!text&&!selectedRating)return;
   try{
-    const res=await fetch(BACKEND+"/chat",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({system:buildSystem(menuData.items,menuData.period),messages:hist})
-    });
+    await fetch(BACKEND+"/reviews",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({salon_id:currentSalonId,customer_name:clientName||"Anonymous",review:text||"",rating:selectedRating||0})});
+    const thankyou=currentLang==="es"?"¡Gracias por tu reseña! 🙏":currentLang==="fr"?"Merci pour votre avis ! 🙏":"Thank you for your review! 🙏";
+    document.querySelectorAll(".review-card").forEach(c=>c.closest(".bubble-wrap")?.remove());
+    addBubble("bot",thankyou);selectedRating=0;
+  }catch{addBubble("bot","Couldn't send review. Please try again.");}
+}
+
+async function sendToAI(){
+  const L=LANGS[currentLang];busy=true;
+  const typing=document.createElement("div");typing.className="bubble-wrap bot";typing.id="typing";
+  typing.innerHTML=`<div class="bubble-label">${L.label}</div><div class="bubble bot" style="color:#aaa">typing...</div>`;
+  document.getElementById("chat-body").appendChild(typing);document.getElementById("chat-body").scrollTop=9999;
+  try{
+    const res=await fetch(BACKEND+"/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system:SYS,messages:hist})});
     const d=await res.json();
-    const raw=(d?.content?.[0]?.text||"...").replace(/\*\*(.*?)\*\*/g,"$1");
-    const dm=raw.match(/ORDER_CONFIRMED:([^:\n]+):([^:\n]+):([^:\n]+):([^:\n]+):([^:\n]+)(?::([^\n]*))?/);
-    const reply=raw.replace(/ORDER_CONFIRMED:[^\n]*/,"").trim();
+    const raw=(d?.content?.[0]?.text||"Try again!").replace(/\*\*(.*?)\*\*/g,"$1");
+    const dm=raw.match(/DEPOSIT_DUE:\$(\d+):([^:]+):([^:]+):([\d:apm]+[apm]):(.+)/i);
+    const bc=raw.match(/BOOKING_CONFIRMED:([^:]+):([^:]+):([\d:apm]+[apm]):([^\n]+)/i);
+    const reply=raw.replace(/DEPOSIT_DUE:[^\n]*/,"").replace(/BOOKING_CONFIRMED:[^\n]*/,"").trim();
     document.getElementById("typing")?.remove();
     hist.push({role:"assistant",content:raw});
-    if(reply)addBubble("bot",reply);
-    if(dm){
-      const emailRaw=(dm[6]||"").trim();
-      const email=/^\S+@\S+\.\S+$/.test(emailRaw)?emailRaw:"";
-      addOrderCard(dm[1].trim(),dm[2].trim(),dm[3].trim(),dm[4].trim(),dm[5].trim(),email);
+    if(reply&&!dm){
+      addBubble("bot",reply);
+      const bookingIntent=/service|appointment|book|which.*service|interested in|help.*book|réserver|servicio|rendez-vous|tarif|prestation|quel.*service/i.test(reply);
+      if(bookingIntent&&parsedServices.length>0&&!dm&&!bc&&selectedServiceIdx===null){setTimeout(()=>showServicePicker(),400);}
     }
-  }catch(e){
+    if(dm){
+      const svc=dm[2].trim(),day=dm[3].trim(),time=dm[4].trim(),client=dm[5].trim();
+      const priceMatch=reply.match(/\$([0-9]+)/);const serviceAmount=priceMatch?parseInt(priceMatch[1]):0;
+      const convText=hist.map(h=>h.content).join(" ");
+      const emailMatch=convText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);const clientEmail=emailMatch?emailMatch[0]:null;
+      const phoneMatch=convText.match(/\b(\+?1?[-.]?\(?[0-9]{3}\)?[-.]?[0-9]{3}[-.]?[0-9]{4})\b/);const clientPhone=phoneMatch?phoneMatch[0].replace(/[^0-9+]/g,""):null;
+      fetch(BACKEND+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client,service:svc,day,time,amount:serviceAmount,salon_id:currentSalonId,source:"chat",language:currentLang,client_email:clientEmail,client_phone:clientPhone})})
+      .then(r=>{
+        if(r.status===409){
+          const msg=currentLang==="es"?"¡Lo siento, ese horario ya está ocupado! ¿Qué otro día u hora te funciona?":currentLang==="fr"?"Désolée, ce créneau est déjà pris ! Quel autre jour ou heure vous conviendrait ?":"Sorry, that time slot is already taken! What other day or time works for you?";
+          addBubble("bot",msg);hist.push({role:"assistant",content:msg});
+        }else{
+          if(reply)addBubble("bot",reply);
+          if(depositMode==="optional"){addPayCard(svc,day,time,client);addBubble("bot",L.optionalMsg);}
+          else{addPayCard(svc,day,time,client);}
+          selectedServiceIdx=null;document.getElementById("quick-btns").style.display="flex";
+        }
+      }).catch(()=>{addPayCard(svc,day,time,client);});
+    }
+    if(bc&&!dm){
+      const svc=bc[1].trim(),day=bc[2].trim(),time=bc[3].trim(),client=bc[4].trim();
+      fetch(BACKEND+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId,source:"chat",language:currentLang})}).catch(()=>{});
+      addBubble("bot",L.confirmedMsg);selectedServiceIdx=null;document.getElementById("quick-btns").style.display="flex";
+    }
+  }catch{
     document.getElementById("typing")?.remove();
-    addBubble("bot","Connection issue. Please try again.");
-    hist.pop();
+    const el=document.getElementById("chat-body");const w=document.createElement("div");w.className="bubble-wrap bot";
+    w.innerHTML=`<div class="bubble-label">${L.label}</div><div class="bubble bot" style="color:#888">${L.retryMsg("retry")}</div>`;
+    el.appendChild(w);el.scrollTop=el.scrollHeight;hist.pop();
   }
   busy=false;
 }
 
-// ─── CHECK MY ORDER ──────────────────────────────────
-function openOrderStatus(){
-  const L=ORDER_LABELS[currentLang];
-  document.getElementById("order-modal").style.display="flex";
-  document.getElementById("modal-title").textContent=L.title;
-  document.getElementById("modal-label").textContent=L.label;
-  document.getElementById("modal-btn").textContent=L.btn;
-  document.getElementById("order-name").value="";
-  document.getElementById("order-result").style.display="none";
-  document.getElementById("order-search").style.display="block";
+async function send(txt){
+  const inp=document.getElementById("inp");const t=txt||(inp?inp.value.trim():"");if(!t||busy)return;if(inp)inp.value="";
+  const bookingIntent=/book|appointment|reserve|schedule|réserver|cita|rendez|prendre rendez|voudrais/i.test(t);
+  if(bookingIntent&&parsedServices.length>0&&hist.length<=2){
+    addBubble("user",t);hist.push({role:"user",content:t});
+    const pickerLabel=currentLang==="es"?"¡Claro! ¿Qué servicio te interesa?":currentLang==="fr"?"Bien sûr ! Quel service vous intéresse ?":"Of course! Which service are you interested in?";
+    addBubble("bot",pickerLabel);document.getElementById("quick-btns").style.display="none";showServicePicker();return;
+  }
+  addBubble("user",t);hist.push({role:"user",content:t});await sendToAI();
 }
 
-function closeOrderStatus(){
-  document.getElementById("order-modal").style.display="none";
+function openStatus(){
+  const L=LANGS[currentLang];
+  document.getElementById("status-modal").style.display="flex";
+  document.getElementById("modal-title").textContent=L.modalTitle;
+  document.getElementById("modal-label").textContent=L.modalLabel;
+  document.getElementById("modal-btn").textContent=L.modalBtn;
+  document.getElementById("status-name").placeholder=L.modalPlaceholder;
+  document.getElementById("status-name").value="";
+  document.getElementById("status-result").style.display="none";
+  document.getElementById("status-search").style.display="block";
 }
 
-async function checkOrderStatus(){
-  const name=document.getElementById("order-name").value.trim();
-  if(!name) return;
-  const L=ORDER_LABELS[currentLang];
-  const result=document.getElementById("order-result");
-  const search=document.getElementById("order-search");
-  search.style.display="none";
-  result.style.display="block";
-  result.innerHTML=`<div style="text-align:center;padding:20px;color:#8a6a3a;font-size:13px">...</div>`;
+function closeStatus(){document.getElementById("status-modal").style.display="none";}
+
+async function checkStatus(){
+  const name=document.getElementById("status-name").value.trim();if(!name)return;
+  const L=LANGS[currentLang];
+  const result=document.getElementById("status-result");const search=document.getElementById("status-search");
+  search.style.display="none";result.style.display="block";
+  result.innerHTML=`<div style="text-align:center;padding:20px;color:#aaa;font-size:13px">${L.looking}</div>`;
   try{
-    const res=await fetch(`${BACKEND}/orders/search?name=${encodeURIComponent(name)}&salon_id=${salonId}`,{cache:"no-store"});
-    const orders=await res.json();
-    if(!Array.isArray(orders)||orders.length===0){
-      result.innerHTML=`
-        <div style="text-align:center;padding:10px 0">
-          <div style="font-size:32px;margin-bottom:8px">🔍</div>
-          <div style="font-size:14px;font-weight:600;color:#f5e6c8;margin-bottom:6px">${L.notfound}</div>
-          <div style="font-size:13px;color:#8a6a3a;margin-bottom:14px">${L.notfound_sub}</div>
-          <button onclick="document.getElementById('order-search').style.display='block';document.getElementById('order-result').style.display='none'" style="width:100%;padding:9px;background:transparent;color:#c17f24;border:1px solid #c17f24;border-radius:8px;font-size:13px;cursor:pointer">${L.tryagain}</button>
-        </div>`;
+    const res=await fetch(`${BACKEND}/bookings/search?name=${encodeURIComponent(name)}&salon_id=${currentSalonId}`,{cache:"no-store"});
+    const bookings=await res.json();
+    if(!Array.isArray(bookings)||bookings.length===0){
+      result.innerHTML=`<div style="text-align:center;padding:10px 0"><div style="font-size:32px;margin-bottom:8px">🔍</div><div style="font-size:14px;font-weight:600;color:#111;margin-bottom:6px">${L.notFound}</div><div style="font-size:13px;color:#888;margin-bottom:14px">${L.notFoundSub}</div><button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button></div>`;
       return;
     }
-    const o=orders[0];
-    const statusMap={
-      pending:{icon:"⏳",label:L.pending,color:"#c17f24"},
-      confirmed:{icon:"👨‍🍳",label:L.confirmed,color:"#c17f24"},
-      ready:{icon:"🔔",label:L.ready,color:"#22c98a"},
-      done:{icon:"✅",label:L.done,color:"#8a6a3a"}
-    };
-    const s=statusMap[o.status]||statusMap.pending;
-    const totalDisplay=(o.total!=null&&o.total!=="")?"$"+o.total:"";
-    result.innerHTML=`
-      <div style="text-align:center;padding:10px 0">
-        <div style="font-size:32px;margin-bottom:8px">${s.icon}</div>
-        <div style="font-size:15px;font-weight:600;color:#f5e6c8;margin-bottom:4px">${o.items||"Your order"}</div>
-        <div style="font-size:13px;color:#8a6a3a;margin-bottom:4px">${o.customer_name||""}${o.order_type?" · "+o.order_type:""}</div>
-        ${totalDisplay?`<div style="font-size:12px;color:#8a6a3a;margin-bottom:10px">${totalDisplay}${o.estimated_time?" · ETA "+o.estimated_time:""}</div>`:`<div style="margin-bottom:10px"></div>`}
-        <span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:rgba(193,127,36,0.15);color:${s.color}">${s.label}</span>
-        <button onclick="closeOrderStatus()" style="display:block;width:100%;margin-top:14px;padding:9px;background:#c17f24;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Close</button>
-      </div>`;
+    const b=bookings[0];
+    const statusColor=b.status==="confirmed"?"#0F6E56":"#633806";const statusBg=b.status==="confirmed"?"#eafaf1":"#FAEEDA";
+    const statusLabel=b.status==="confirmed"?L.confirmed:L.pendingDeposit;
+    result.innerHTML=`<div style="text-align:center;padding:10px 0"><div style="font-size:32px;margin-bottom:8px">${b.status==="confirmed"?"✅":"⏳"}</div><div style="font-size:15px;font-weight:600;color:#111;margin-bottom:4px">${b.service}</div><div style="font-size:13px;color:#888;margin-bottom:12px">${b.day} at ${b.time||b.hour+"am"} · ${b.client}</div><span style="font-size:12px;padding:4px 14px;border-radius:20px;font-weight:600;background:${statusBg};color:${statusColor}">${statusLabel}</span>${b.status==="pending"?`<div style="font-size:12px;color:#888;margin-top:12px">${L.pendingMsg}</div>`:""}<button onclick="closeStatus()" style="display:block;width:100%;margin-top:14px;padding:9px;background:#111;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">${L.close}</button></div>`;
   }catch{
-    result.innerHTML=`<div style="text-align:center;padding:10px;color:#8a6a3a;font-size:13px">Could not load. Try again.</div>`;
+    result.innerHTML=`<div style="text-align:center;padding:10px 0"><div style="font-size:13px;color:#888">${L.couldNot}</div><button onclick="document.getElementById('status-search').style.display='block';document.getElementById('status-result').style.display='none'" style="width:100%;padding:9px;margin-top:10px;background:#f5f5f3;color:#111;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer">${L.tryAgain}</button></div>`;
   }
 }
 
+let recognition=null,isListening=false;
+
+function toggleVoice(){
+  if(!("webkitSpeechRecognition" in window||"SpeechRecognition" in window)){
+    addBubble("bot",currentLang==="es"?"Lo sentimos, tu navegador no soporta voz. Intenta con Chrome.":currentLang==="fr"?"Désolé, votre navigateur ne supporte pas la voix. Essayez Chrome.":"Sorry, your browser doesn't support voice. Try Chrome.");return;
+  }
+  if(isListening){stopVoice();}else{startVoice();}
+}
+
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.continuous=false;recognition.interimResults=true;
+  recognition.lang=currentLang==="es"?"es-US":currentLang==="fr"?"fr-FR":"en-US";
+  recognition.onstart=()=>{isListening=true;document.getElementById("mic-btn").classList.add("listening");document.getElementById("inp").placeholder=currentLang==="es"?"Escuchando...":currentLang==="fr"?"En écoute...":"Listening...";};
+  recognition.onresult=(e)=>{document.getElementById("inp").value=Array.from(e.results).map(r=>r[0].transcript).join("");};
+  recognition.onend=()=>{stopVoice();const val=document.getElementById("inp").value.trim();if(val)setTimeout(()=>send(),300);};
+  recognition.onerror=(e)=>{stopVoice();if(e.error!=="no-speech")addBubble("bot",currentLang==="es"?"No pude escucharte. Intenta de nuevo.":currentLang==="fr"?"Je n'ai pas pu vous entendre. Veuillez réessayer.":"Couldn't hear you. Please try again.");};
+  recognition.start();
+}
+
+function stopVoice(){
+  isListening=false;
+  const btn=document.getElementById("mic-btn");if(btn)btn.classList.remove("listening");
+  const inp=document.getElementById("inp");if(inp)inp.placeholder=LANGS[currentLang].placeholder;
+  try{recognition?.stop();}catch{}
+}
+
 loadSettings();
-loadMenu();
 </script>
 </body>
 </html>
