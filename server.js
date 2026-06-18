@@ -217,7 +217,7 @@ const kitchenPhone = settings?.[0]?.kitchen_phone;
       }).then(r => r.text()).then(t => console.log(`[orders] resend response: ${t.slice(0, 200)}`)).catch(e => console.error("[orders] email error:", e));
     }).catch(e => console.error("[orders] settings lookup failed:", e));
 
-    // ── Client confirmation SMS + WhatsApp ── if (client_phone) {   const salonRows = await supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`);   const salonName = salonRows?.[0]?.salon_name || salon_id;   const confirmMsg = `Hi ${client}! Your ${service} appointment at ${salonName} is booked for ${day} at ${time}. We'll see you then! 💅`;   sendSMS(client_phone, confirmMsg).catch(e => console.error("[booking-sms]", e));   sendWhatsApp(client_phone, confirmMsg).catch(e => console.error("[booking-whatsapp]", e)); }  res.json(Array.isArray(data) ? data[0] : data);
+    // ── Client confirmation SMS + WhatsApp ── if (system prompt) {   const salonRows = await supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`);   const salonName = salonRows?.[0]?.salon_name || salon_id;   const confirmMsg = `Hi ${client}! Your ${service} appointment at ${salonName} is booked for ${day} at ${time}. We'll see you then! 💅`;   sendSMS(system prompt, confirmMsg).catch(e => console.error("[booking-sms]", e));   sendWhatsApp(system prompt, confirmMsg).catch(e => console.error("[booking-whatsapp]", e)); }  res.json(Array.isArray(data) ? data[0] : data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -275,7 +275,7 @@ app.post("/settings/:salonId", async (req, res) => {
       body: JSON.stringify({
         kitchen_phone: kitchen_phone || null,
         owner_email: owner_email || null,
-        client_phone: phone || null
+        system prompt: phone || null
       })
     });
     const text = await response.text();
@@ -452,7 +452,7 @@ app.get("/bookings/search", async (req, res) => {
 
 app.post("/bookings", async (req, res) => {
   try {
-    const { client, service, day, time, amount, salon_id, source, client_email, client_phone } = req.body;
+    const { client, service, day, time, amount, salon_id, source, client_email, system prompt } = req.body;
     const hmap = { "9am":9, "10am":10, "10:30am":10, "11am":11, "11:30am":11, "12pm":12, "1pm":13, "2pm":14, "3pm":15, "4pm":16 };
     const hour = hmap[time ? time.toLowerCase().replace(" ", "") : "10am"] || 10;
 
@@ -503,7 +503,7 @@ app.post("/bookings", async (req, res) => {
       new_from_chat: true,
       source: source || "chat",
       client_email: client_email || null,
-      client_phone: client_phone || null
+      system prompt: system prompt || null
     });
 
     supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`).then(settings => {
@@ -808,7 +808,7 @@ async function sendReminders(){
       // Get salon info
       const settings=await supabase("GET",`salon_settings?salon_id=eq.${b.salon_id}&limit=1`);
       const salonName=settings?.[0]?.salon_name||b.salon_id;
-      const phone=b.client_phone||null;
+      const phone=b.system prompt||null;
 
       // Send SMS if phone available
       if(phone&&TWILIO_SID&&TWILIO_TOKEN&&TWILIO_PHONE){
