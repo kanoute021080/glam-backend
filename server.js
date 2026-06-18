@@ -505,7 +505,14 @@ app.post("/bookings", async (req, res) => {
       client_email: client_email || null,
       client_phone: client_phone || null
     });
-
+// ── Client confirmation SMS + WhatsApp ──
+if (client_phone) {
+  const salonRows = await supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`);
+  const salonName = salonRows?.[0]?.salon_name || salon_id;
+  const confirmMsg = `Hi ${client}! Your ${service} appointment at ${salonName} is booked for ${day} at ${time}. We'll see you then! 💅`;
+  sendSMS(client_phone, confirmMsg).catch(e => console.error("[booking-sms]", e));
+  sendWhatsApp(client_phone, confirmMsg).catch(e => console.error("[booking-whatsapp]", e));
+}
     supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`).then(settings => {
       const ownerEmail = settings?.[0]?.owner_email;
       console.log(`[bookings] owner_email=${ownerEmail||"none"} salon_id=${salon_id}`);
