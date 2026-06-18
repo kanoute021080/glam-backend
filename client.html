@@ -115,9 +115,6 @@ let PAY={cashapp:"",venmo:"",zelle:""};
 let depositMode="required", depositAmount=35, SYS="", salonData={};
 let parsedServices=[];
 
-// FIX: track whether a booking has been completed to prevent service picker from reappearing
-let selectedServiceIdx=null, selectedDate=null, selectedTimeSlot=null, bookingComplete=false;
-
 function parseServices(servicesStr){
   if(!servicesStr) return [];
   const results=[];
@@ -154,6 +151,8 @@ function showServicePicker(){
   el.appendChild(w);el.scrollTop=el.scrollHeight;
   return true;
 }
+
+let selectedServiceIdx=null, selectedDate=null, selectedTimeSlot=null;
 
 function selectService(idx){
   const svc=parsedServices[idx];if(!svc)return;
@@ -322,8 +321,6 @@ function setLang(lang,btn){
   if(Object.keys(salonData).length>0){
     rebuildSystem(salonData).then(()=>{
       document.getElementById("chat-body").innerHTML="";hist=[];
-      // FIX: reset bookingComplete when language changes (fresh conversation)
-      bookingComplete=false;
       addBubble("bot",L.welcome(salonData.salon_name||"our salon"));
     });
   }
@@ -461,9 +458,8 @@ async function sendToAI(){
     hist.push({role:"assistant",content:raw});
     if(reply&&!dm){
       addBubble("bot",reply);
-      // FIX: only show service picker if booking is not already complete
       const bookingIntent=/service|appointment|book|which.*service|interested in|help.*book|réserver|servicio|rendez-vous|tarif|prestation|quel.*service/i.test(reply);
-      if(bookingIntent&&parsedServices.length>0&&!dm&&!bc&&selectedServiceIdx===null&&!bookingComplete){setTimeout(()=>showServicePicker(),400);}
+      if(bookingIntent&&parsedServices.length>0&&!dm&&!bc&&selectedServiceIdx===null){setTimeout(()=>showServicePicker(),400);}
     }
     if(dm){
       const svc=dm[2].trim(),day=dm[3].trim(),time=dm[4].trim(),client=dm[5].trim();
@@ -480,17 +476,14 @@ async function sendToAI(){
           if(reply)addBubble("bot",reply);
           if(depositMode==="optional"){addPayCard(svc,day,time,client);addBubble("bot",L.optionalMsg);}
           else{addPayCard(svc,day,time,client);}
-          // FIX: mark booking as complete to prevent service picker from reappearing
-          selectedServiceIdx=null;bookingComplete=true;document.getElementById("quick-btns").style.display="flex";
+          selectedServiceIdx=null;document.getElementById("quick-btns").style.display="flex";
         }
       }).catch(()=>{addPayCard(svc,day,time,client);});
     }
     if(bc&&!dm){
       const svc=bc[1].trim(),day=bc[2].trim(),time=bc[3].trim(),client=bc[4].trim();
       fetch(BACKEND+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId,source:"chat",language:currentLang})}).catch(()=>{});
-      addBubble("bot",L.confirmedMsg);
-      // FIX: mark booking as complete to prevent service picker from reappearing
-      selectedServiceIdx=null;bookingComplete=true;document.getElementById("quick-btns").style.display="flex";
+      addBubble("bot",L.confirmedMsg);selectedServiceIdx=null;document.getElementById("quick-btns").style.display="flex";
     }
   }catch{
     document.getElementById("typing")?.remove();
@@ -504,7 +497,7 @@ async function sendToAI(){
 async function send(txt){
   const inp=document.getElementById("inp");const t=txt||(inp?inp.value.trim():"");if(!t||busy)return;if(inp)inp.value="";
   const bookingIntent=/book|appointment|reserve|schedule|réserver|cita|rendez|prendre rendez|voudrais/i.test(t);
-  if(bookingIntent&&parsedServices.length>0&&hist.length<=2&&!bookingComplete){
+  if(bookingIntent&&parsedServices.length>0&&hist.length<=2){
     addBubble("user",t);hist.push({role:"user",content:t});
     const pickerLabel=currentLang==="es"?"¡Claro! ¿Qué servicio te interesa?":currentLang==="fr"?"Bien sûr ! Quel service vous intéresse ?":"Of course! Which service are you interested in?";
     addBubble("bot",pickerLabel);document.getElementById("quick-btns").style.display="none";showServicePicker();return;
