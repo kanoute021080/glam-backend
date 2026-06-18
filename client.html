@@ -482,7 +482,7 @@ async function sendToAI(){
     }
     if(bc&&!dm){
       const svc=bc[1].trim(),day=bc[2].trim(),time=bc[3].trim(),client=bc[4].trim();
-      fetch(BACKEND+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId,source:"chat",language:currentLang})}).catch(()=>{});
+    fetch(BACKEND+"/bookings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client,service:svc,day,time,amount:0,salon_id:currentSalonId,source:"chat",language:currentLang,client_phone:clientPhone||null})}).catch(()=>{});
       addBubble("bot",L.confirmedMsg);selectedServiceIdx=null;document.getElementById("quick-btns").style.display="flex";
     }
   }catch{
