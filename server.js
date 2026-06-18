@@ -33,6 +33,38 @@ async function sendSMS(to, body) {
     console.error("[sms] error:", e.message);
   }
 }
+async function sendWhatsApp(to, body) {
+  if (!TWILIO_SID || !TWILIO_TOKEN) {
+    console.log("[whatsapp] Twilio not configured, skipping");
+    return;
+  }
+  let clean = String(to).replace(/[^0-9+]/g, "");
+  if (!clean) return;
+  if (clean.length === 10) clean = "+1" + clean;
+  else if (clean.length === 11 && !clean.startsWith("+")) clean = "+" + clean;
+
+  // Use sandbox number for testing, swap to your approved WA sender when ready
+  const WA_FROM = process.env.TWILIO_WHATSAPP_FROM || "whatsapp:+14155238886";
+
+  try {
+    const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`, {
+      method: "POST",
+      headers: {
+        "Authorization": "Basic " + Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString("base64"),
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: new URLSearchParams({
+        From: WA_FROM,
+        To: `whatsapp:${clean}`,
+        Body: body
+      }).toString()
+    });
+    const d = await res.json();
+    console.log(`[whatsapp] sent to ${clean} — sid: ${d.sid || d.message}`);
+  } catch (e) {
+    console.error("[whatsapp] error:", e.message);
+  }
+}
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
