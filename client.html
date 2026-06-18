@@ -352,8 +352,7 @@ async function rebuildSystem(d){
       ?`Une fois toutes les infos confirmées, dis exactement : BOOKING_CONFIRMED:[service]:[jour]:[heure]:[nom]:[téléphone]`
       :lang==="es"
       ?`Una vez confirmada toda la info di exactamente: BOOKING_CONFIRMED:[servicio]:[día]:[hora]:[nombre]:[teléfono]`
-      :`Once all info confirmed say exactly: BOOKING_CONFIRMED:[service]:[day]:[time]:[name]:[phone]`;
-  }
+     :`Once all info confirmed say exactly: BOOKING_CONFIRMED:[service]:[day]:[time]:[name]:[phone]`;
   }else if(depositMode==="optional"){
     depositText=lang==="fr"
       ?`Un acompte de ${amt}€ est facultatif mais recommandé pour sécuriser votre créneau.`
