@@ -366,25 +366,56 @@ function addBubble(role,text){
     if(numEl) numEl.textContent=d&&d.order_number?"#"+d.order_number:"#"+Math.floor(1000+Math.random()*9000);
   }).catch(e=>console.error("Order error:",e));
 }
+let cartItems=[];
+
 function showVisualMenu(){
   const el=document.getElementById("chat-body");
   const w=document.createElement("div");
   w.className="bw-bot";
-  const items=menuData.items.map(i=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #3d1f00">
+  const items=menuData.items.map((i,idx)=>`
+    <div class="menu-item-row" data-idx="${idx}" onclick="toggleMenuItem(${idx})" style="display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid #3d1f00;cursor:pointer;border-radius:8px;transition:background .15s">
       ${i.image_url?`<img src="${i.image_url}" style="width:56px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`:`<div style="width:56px;height:56px;border-radius:8px;background:#3d1f00;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px">🍽️</div>`}
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600;color:#f5e6c8">${i.name}</div>
         <div style="font-size:12px;color:#c17f24;font-weight:700">$${i.price}</div>
       </div>
+      <div id="check-${idx}" style="width:22px;height:22px;border-radius:50%;border:2px solid #c17f24;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff"></div>
     </div>
   `).join("");
-  const title=currentLang==="fr"?"Notre menu":currentLang==="wo"?"Menu bi":"Our menu";
-  w.innerHTML=`<div class="bl">${LANGS[currentLang].label}</div><div class="order-card" style="max-width:96%;padding:12px"><div style="font-size:13px;font-weight:700;color:#c17f24;margin-bottom:8px">📋 ${title}</div>${items}</div>`;
+  const title=currentLang==="fr"?"Notre menu — touchez pour commander":currentLang==="wo"?"Menu bi — borom ko":"Our menu — tap to order";
+  const orderTxt=currentLang==="fr"?"Commander la sélection":currentLang==="wo"?"Yónni":"Order selection";
+  w.innerHTML=`<div class="bl">${LANGS[currentLang].label}</div><div class="order-card" style="max-width:96%;padding:12px"><div style="font-size:13px;font-weight:700;color:#c17f24;margin-bottom:8px">📋 ${title}</div><div id="menu-list">${items}</div><button id="order-selection-btn" onclick="orderSelection()" style="display:none;width:100%;margin-top:10px;padding:10px;background:#c17f24;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">${orderTxt}</button></div>`;
   el.appendChild(w);
   el.scrollTop=el.scrollHeight;
+  cartItems=[];
 }
-async function send(txt){
+
+function toggleMenuItem(idx){
+  const row=document.querySelector(`.menu-item-row[data-idx="${idx}"]`);
+  const check=document.getElementById(`check-${idx}`);
+  const i=cartItems.indexOf(idx);
+  if(i===-1){
+    cartItems.push(idx);
+    check.textContent="✓";
+    check.style.background="#c17f24";
+    row.style.background="rgba(193,127,36,0.12)";
+  }else{
+    cartItems.splice(i,1);
+    check.textContent="";
+    check.style.background="transparent";
+    row.style.background="transparent";
+  }
+  const btn=document.getElementById("order-selection-btn");
+  if(btn) btn.style.display=cartItems.length?"block":"none";
+}
+
+function orderSelection(){
+  const names=cartItems.map(idx=>menuData.items[idx].name);
+  const text=(currentLang==="fr"?"Je voudrais commander: ":currentLang==="wo"?"Dama bëgg: ":"I'd like to order: ")+names.join(", ");
+  document.querySelectorAll(".bw-bot").forEach(w=>{ if(w.querySelector("#menu-list")) w.remove(); });
+  send(text);
+}
+  async function send(txt){
   const inp=document.getElementById("inp");
   const t=txt||(inp?inp.value.trim():"");
   if(!t||busy)return; if(!menuData) menuData={items:[],period:"lunch"};
