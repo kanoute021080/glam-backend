@@ -334,9 +334,11 @@ app.patch("/orders/:id", async (req, res) => {
 
           // ── WhatsApp ready notification ──
           if (order.customer_phone) {
-            const readyMsg = `Hi ${order.customer_name}! Your order #${order.order_number||""} at ${restaurantName} is ready for pickup! 🔔 Come grab it at the counter.`;
-            sendWhatsApp(order.customer_phone, readyMsg).catch(e => console.error("[ready-whatsapp]", e));
-          }
+  const rSettings = await supabase("GET", `restaurants?salon_id=eq.${order.salon_id}&limit=1`);
+  const rName = rSettings?.[0]?.name || order.salon_id;
+  const readyMsg = `Hi ${order.customer_name}! Your order #${order.order_number||""} at ${rName} is ready for pickup! 🔔 Come grab it at the counter.`;
+  sendWhatsApp(order.customer_phone, readyMsg).catch(e => console.error("[ready-whatsapp]", e));
+}
 
           if (!order.customer_email || !RESEND_KEY) {
             console.log(`[ready-email] skip — email=${!!order.customer_email} resendKey=${!!RESEND_KEY}`);
