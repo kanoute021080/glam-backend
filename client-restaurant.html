@@ -302,25 +302,25 @@ function addBubble(role,text){
   el.scrollTop=el.scrollHeight;
 }
 
-function addOrderCard(items,total,time,name,type,phone){
-  const el=document.getElementById("chat-body");
-  const w=document.createElement("div");
-  w.className="bw-bot";
-  const labels={
-    en:{
-      confirmed:"Order Confirmed!",kitchen:"Sent to kitchen 🍳",ready:"Ready in",
-      notifyEmail:"📧 We'll email you when it's ready",orderNum:"Your order number",
-      footer:{takeout:"Show this number when you pick up.",
-              "dine-in":"Sit back — your food will be brought to you!",
-              delivery:"Your order will be delivered to you 🛵"}
-    },
-    fr:{
-      confirmed:"Commande Confirmée!",kitchen:"Envoyée en cuisine 🍳",ready:"Prête dans",
-      notifyEmail:"📧 Nous vous enverrons un email quand prête",orderNum:"Votre numéro de commande",
-      footer:{takeout:"Montrez ce numéro au comptoir.",
-              "dine-in":"Restez assis — votre repas vous sera apporté!",
-              delivery:"Votre commande vous sera livrée 🛵"}
-    },
+  function addOrderCard(items,total,time,name,type,phone){
+    const el=document.getElementById("chat-body");
+    const w=document.createElement("div");
+    w.className="bw-bot";
+    const labels={
+      en:{
+        confirmed:"Order Confirmed!",kitchen:"Sent to kitchen 🍳",ready:"Ready in",
+        notifyEmail:"📧 We'll email you when it's ready",orderNum:"Your order number",
+        footer:{takeout:"Show this number when you pick up.",
+                "dine-in":"Sit back — your food will be brought to you!",
+                delivery:"Your order will be delivered to you 🛵"}
+      },
+      fr:{
+        confirmed:"Commande Confirmée!",kitchen:"Envoyée en cuisine 🍳",ready:"Prête dans",
+        notifyEmail:"📧 Nous vous enverrons un email quand prête",orderNum:"Votre numéro de commande",
+        footer:{takeout:"Montrez ce numéro au comptoir.",
+                "dine-in":"Restez assis — votre repas vous sera apporté!",
+                delivery:"Votre commande vous sera livrée 🛵"}
+      },
     wo:{
       confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",
       notifyEmail:"📧 Dinañu yónni email bu sett",orderNum:"Numéro commande bi",
@@ -347,7 +347,7 @@ function addOrderCard(items,total,time,name,type,phone){
         <div style="font-size:22px;font-weight:700;color:#c17f24">⏱️ ${L.ready} ${time}</div>
         <div style="font-size:11px;color:#8a6a3a;margin-top:4px">${L.kitchen}</div>
       </div>
-      ${email?`<div style="font-size:11px;color:#22c98a;text-align:center;margin-bottom:6px">${L.notifyEmail}</div>`:""}
+      ${phone?`<div style="font-size:11px;color:#22c98a;text-align:center;margin-bottom:6px">📱 We'll WhatsApp you when it's ready</div>`:""}
       <div style="font-size:11px;color:#8a6a3a;text-align:center">${footerMsg}</div>
     </div>`;
   el.appendChild(w);
@@ -390,10 +390,11 @@ async function send(txt){
     document.getElementById("typing")?.remove();
     hist.push({role:"assistant",content:raw});
     if(reply)addBubble("bot",reply);
-    if(dm){
-     const phoneRaw=(dm[6]||"").trim();
-const phone=/\d{7,}/.test(phoneRaw)?phoneRaw:"";
-addOrderCard(dm[1].trim(),dm[2].trim(),dm[3].trim(),dm[4].trim(),dm[5].trim(),phone);
+   if(dm){
+      const phoneRaw=(dm[6]||"").trim();
+      const phone=/\d{7,}/.test(phoneRaw)?phoneRaw:"";
+      addOrderCard(dm[1].trim(),dm[2].trim(),dm[3].trim(),dm[4].trim(),dm[5].trim(),phone);
+    }
   }catch(e){
     document.getElementById("typing")?.remove();
     addBubble("bot","Connection issue. Please try again.");
