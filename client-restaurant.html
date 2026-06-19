@@ -177,9 +177,10 @@ function renderQuick(){
 
 async function loadSettings(){
   try{
-    const res=await fetch(BACKEND+"/settings/"+salonId, {cache:"no-store"});
+    const res=await fetch(BACKEND+"/restaurant-settings/"+salonId, {cache:"no-store"});
+    if(!res.ok) return;
     const d=await res.json();
-    const rName=d.salon_name||d.name||null;
+    const rName=d.salon_name||null;
     restaurantPhone=d.phone||null;
     if(rName){
       document.getElementById("restaurant-name").textContent=rName;
@@ -190,6 +191,7 @@ async function loadSettings(){
       Object.keys(LANGS).forEach(l=>{LANGS[l].label=rName+" AI";});
     }
   }catch{}
+
 }
       const initials=d.salon_name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
       const av=document.getElementById("restaurant-av");
