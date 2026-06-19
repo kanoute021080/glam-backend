@@ -143,7 +143,7 @@ app.get("/menu/:salonId", async (req, res) => {
 
 app.post("/orders", async (req, res) => {
   try {
-    const { customer_name, customer_email, items, total, order_type, estimated_time, salon_id, source, language, status } = req.body;
+    const { customer_name, customer_email, customer_phone, items, total, order_type, estimated_time, salon_id, source, language, status } = req.body;
     const sid = salon_id || "restaurant1";
 
     // ── Generate order number: highest existing + 1, starting at 1000 ──
@@ -159,6 +159,7 @@ app.post("/orders", async (req, res) => {
     const data = await supabase("POST", "orders", {
       customer_name,
       customer_email: customer_email || null,
+      customer_phone: customer_phone || null,
       items, total, order_type,
       estimated_time: estimated_time || "25-30 mins",
       salon_id: sid,
