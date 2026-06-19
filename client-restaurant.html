@@ -177,7 +177,7 @@ function renderQuick(){
     async function loadSettings(){
   try{
     const res=await fetch(BACKEND+"/restaurant-settings/"+salonId, {cache:"no-store"});
-    if(!res.ok) return;
+    
     const d=await res.json();
     const rName=d.salon_name||null;
     restaurantPhone=d.phone||null;
