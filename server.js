@@ -167,7 +167,6 @@ app.post("/orders", async (req, res) => {
       status: status || "pending",
       order_number
     });
-    app.post("/whatsapp/incoming", (req, res) => {
   // Acknowledge incoming WhatsApp messages silently
   res.set("Content-Type", "text/xml");
   res.send("<Response></Response>");
