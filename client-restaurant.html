@@ -360,9 +360,9 @@ function addBubble(role,text){
   fetch(BACKEND+"/orders",{method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({customer_name:name,customer_phone:phone||null,items,total:parseFloat(String(total).replace(/[^0-9.]/g,"")),order_type:type,estimated_time:time,salon_id:salonId,source:"chat",language:currentLang,status:"pending"})
   }).then(r=>r.json()).then(d=>{
+    console.log("Order response:", d);
     if(d&&d.id) startOrderPolling(d.id,name);
-    // Fill in the real order number once server responds
-    const numEl=w.querySelector("#order-num-display");
+    const numEl=document.getElementById("order-num-display");
     if(numEl) numEl.textContent=d&&d.order_number?"#"+d.order_number:"#"+Math.floor(1000+Math.random()*9000);
   }).catch(e=>console.error("Order error:",e));
 }
