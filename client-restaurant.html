@@ -91,6 +91,7 @@ const BACKEND="https://dianke.ai";
 const salonId=window.location.pathname.split("/")[2]||"restaurant1";
 let hist=[], busy=false, currentLang="en", menuData=null, currentPeriod=null, restaurantPhone=null, restaurantName="Teranga Restaurant";
 
+
 const LANGS={
   en:{
     status:"AI assistant · always open",
@@ -184,6 +185,7 @@ function renderQuick(){
     const rName=d.salon_name||null;
     restaurantPhone=d.phone||null;
     if(rName){
+      restaurantName=rName;
       document.getElementById("restaurant-name").textContent=rName;
       const initials=rName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
       const av=document.getElementById("restaurant-av");
