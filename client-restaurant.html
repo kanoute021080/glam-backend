@@ -153,7 +153,9 @@ async function loadMenu(){
     addBubble("bot",buildWelcome(d.items,d.period));
     renderQuick();
   }catch(e){
-    addBubble("bot","Welcome to Teranga Restaurant! How can I help you today?");
+    menuData={items:[],period:"lunch"};
+    addBubble("bot",`Welcome to ${restaurantName}! How can I help you today?`);
+    renderQuick();
   }
 }
 
@@ -366,7 +368,7 @@ function addBubble(role,text){
 async function send(txt){
   const inp=document.getElementById("inp");
   const t=txt||(inp?inp.value.trim():"");
-  if(!t||busy||!menuData)return;
+  if(!t||busy)return; if(!menuData) menuData={items:[],period:"lunch"};
   if(inp)inp.value="";
   addBubble("user",t);
   hist.push({role:"user",content:t});
