@@ -393,7 +393,7 @@ async function send(txt){
 hist.push({role:"user",content:t});
 
 // ── Visual menu display ──
-if(/see menu|voir le menu|xool menu/i.test(t) && menuData?.items?.length){
+if(/see menu|voir le menu|xool menu/i.test(t.replace(/[^\w\s]/g,"")) && menuData?.items?.length){
   showVisualMenu();
   busy=false;
   return;
