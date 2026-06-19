@@ -184,7 +184,15 @@ const kitchenPhone = settings?.[0]?.kitchen_phone;
         const orderNum = Array.isArray(data) ? data[0]?.order_number : data?.order_number;
         const smsBody = `NEW ORDER #${orderNum||""}\nCustomer: ${customer_name}\nItems: ${items}\nTotal: $${total}\nType: ${order_type||"takeout"}\nETA: ${estimated_time||"25-30 mins"}`;
         sendSMS(kitchenPhone, smsBody).catch(e => console.error("[kitchen-sms]", e));
-      } else {
+      } 
+      // ── Customer WhatsApp confirmation ──
+const customerPhone = req.body.customer_phone || null;
+if (customerPhone) {
+  const orderNum = Array.isArray(data) ? data[0]?.order_number : data?.order_number;
+  const waMsg = `Hi ${customer_name}! Your order #${orderNum||""} at ${restaurantName} is confirmed. Items: ${items}. ETA: ${estimated_time||"25-30 mins"}. We'll notify you when it's ready! 🍽️`;
+  sendWhatsApp(customerPhone, waMsg).catch(e => console.error("[customer-whatsapp]", e));
+}
+      else {
         console.log("[kitchen-sms] no kitchen_phone set in settings");
       }
 
