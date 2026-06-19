@@ -182,6 +182,13 @@ async function loadSettings(){
     const d=await res.json();
     const rName=d.salon_name||null;
     restaurantPhone=d.phone||null;
+    async function loadSettings(){
+  try{
+    const res=await fetch(BACKEND+"/restaurant-settings/"+salonId, {cache:"no-store"});
+    if(!res.ok) return;
+    const d=await res.json();
+    const rName=d.salon_name||null;
+    restaurantPhone=d.phone||null;
     if(rName){
       document.getElementById("restaurant-name").textContent=rName;
       const initials=rName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
@@ -189,15 +196,6 @@ async function loadSettings(){
       if(av) av.textContent=initials;
       document.title=rName+" — Order Online";
       Object.keys(LANGS).forEach(l=>{LANGS[l].label=rName+" AI";});
-    
-  }catch{}
-
-}
-      const initials=d.salon_name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
-      const av=document.getElementById("restaurant-av");
-      if(av) av.textContent=initials;
-      document.title=d.salon_name+" — Order Online";
-      Object.keys(LANGS).forEach(l=>{LANGS[l].label=d.salon_name+" AI";});
     }
   }catch{}
 }
