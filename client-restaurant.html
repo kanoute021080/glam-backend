@@ -466,8 +466,7 @@ async function checkOrderStatus(){
   }
 }
 
-loadSettings();
-loadMenu();
+loadSettings().then(()=>loadMenu());
 </script>
 </body>
 </html>
