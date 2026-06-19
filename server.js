@@ -167,10 +167,7 @@ app.post("/orders", async (req, res) => {
       status: status || "pending",
       order_number
     });
-  // Acknowledge incoming WhatsApp messages silently
-  res.set("Content-Type", "text/xml");
-  res.send("<Response></Response>");
-});
+  
 
     supabase("GET", `restaurants?salon_id=eq.${sid}&limit=1`).then(settings => {
       const ownerEmail = settings?.[0]?.owner_email;
