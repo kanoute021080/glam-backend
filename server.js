@@ -246,6 +246,22 @@ app.get("/orders/search", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get("/restaurant-settings/:salonId", async (req, res) => {
+  try {
+    const rows = await supabase("GET", `restaurants?salon_id=eq.${req.params.salonId}&limit=1`);
+    const r = rows?.[0];
+    if (!r) return res.status(404).json({ error: "Restaurant not found" });
+    res.json({
+      salon_name: r.name,
+      phone: r.phone || null,
+      owner_email: r.owner_email || null,
+      kitchen_phone: r.kitchen_phone || null,
+      review_link: r.review_link || null
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // Restaurant settings - GET
 app.get("/settings/:salonId", async (req, res) => {
   try {
