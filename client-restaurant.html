@@ -69,7 +69,22 @@ body{background:#1a0a00;min-height:100vh;display:flex;flex-direction:column;alig
     Powered by <a href="https://dianke.ai">Dianke.ai</a> ·
     <span onclick="openOrderStatus()" style="color:#c17f24;cursor:pointer;font-weight:600;display:inline-block;padding:4px 0" id="check-order-link">Check my order →</span>
   </div>
+<!-- Card payment modal -->
+  <div id="payment-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#2d1500;border:1px solid #c17f24;border-radius:14px;padding:20px;width:100%;max-width:380px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="font-size:15px;font-weight:600;color:#f5e6c8">Pay with Card</div>
+        <button onclick="closeCardPayment()" style="background:none;border:none;font-size:20px;color:#8a6a3a;cursor:pointer">×</button>
+      </div>
+      <div id="payment-amount" style="font-size:24px;font-weight:700;color:#c17f24;text-align:center;margin-bottom:16px">$0</div>
+      <div id="payment-element" style="margin-bottom:14px"></div>
+      <div id="payment-message" style="font-size:12px;color:#ff6b6b;text-align:center;margin-bottom:10px;display:none"></div>
+      <button id="submit-payment-btn" onclick="submitCardPayment()" style="width:100%;padding:11px;background:#5469d4;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Pay Now</button>
+    </div>
+  </div>
 
+  <!-- Order status modal -->
+  <div id="order-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;padding:20px">
   <!-- Order status modal -->
   <div id="order-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;padding:20px">
     <div style="background:#2d1500;border:1px solid #c17f24;border-radius:14px;padding:20px;width:100%;max-width:380px">
