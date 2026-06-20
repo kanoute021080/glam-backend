@@ -107,6 +107,8 @@ const BACKEND="https://dianke.ai";
 const salonId=window.location.pathname.split("/")[2]||"restaurant1";
 let hist=[], busy=false, currentLang="en", menuData=null, currentPeriod=null, restaurantPhone=null, restaurantName="Teranga Restaurant";
 
+const STRIPE_PUBLISHABLE_KEY="pk_test_51TkX0ZFopYChX4fBwpIUXT1n3dte7tXcdnrfKmWTl80MOtJwaTraI8cEiBFr4FJFs5skNrilvky41Mw7aC4HnoSI009WHgnYOJ";
+let stripe=null, elements=null, currentOrderName="";
 
 const LANGS={
   en:{
@@ -536,7 +538,70 @@ async function checkOrderStatus(){
     result.innerHTML=`<div style="text-align:center;padding:10px;color:#8a6a3a;font-size:13px">Could not load. Try again.</div>`;
   }
 }
+async function openCardPayment(total, name){
+  currentOrderName=name;
+  const amount=parseFloat(String(total).replace(/[^0-9.]/g,""));
+  document.getElementById("payment-amount").textContent="$"+amount.toFixed(2);
+  document.getElementById("payment-message").style.display="none";
+  document.getElementById("payment-modal").style.display="flex";
 
+  try{
+    const res=await fetch(BACKEND+"/create-payment-intent",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({amount, orderId:salonId+"-"+Date.now(), customerName:name})
+    });
+    const data=await res.json();
+    if(data.error){
+      showPaymentError(data.error);
+      return;
+    }
+    if(!stripe) stripe=Stripe(STRIPE_PUBLISHABLE_KEY);
+    elements=stripe.elements({clientSecret:data.clientSecret});
+    const paymentElement=elements.create("payment");
+    paymentElement.mount("#payment-element");
+  }catch(e){
+    showPaymentError("Could not load payment form. Please try again.");
+  }
+}
+
+function closeCardPayment(){
+  document.getElementById("payment-modal").style.display="none";
+  document.getElementById("payment-element").innerHTML="";
+  elements=null;
+}
+
+function showPaymentError(msg){
+  const el=document.getElementById("payment-message");
+  el.textContent=msg;
+  el.style.display="block";
+}
+
+async function submitCardPayment(){
+  if(!stripe||!elements) return;
+  const btn=document.getElementById("submit-payment-btn");
+  btn.disabled=true;
+  btn.textContent="Processing...";
+  document.getElementById("payment-message").style.display="none";
+
+  const {error}=await stripe.confirmPayment({
+    elements,
+    confirmParams:{return_url:window.location.href},
+    redirect:"if_required"
+  });
+
+  if(error){
+    showPaymentError(error.message||"Payment failed. Please try again.");
+    btn.disabled=false;
+    btn.textContent="Pay Now";
+  }else{
+    btn.textContent="✅ Paid!";
+    setTimeout(()=>{
+      closeCardPayment();
+      addBubble("bot", currentLang==="fr"?"Paiement reçu! Merci.":"Payment received! Thank you.");
+    }, 1200);
+  }
+}
 loadSettings().then(()=>loadMenu());
 </script>
 </body>
