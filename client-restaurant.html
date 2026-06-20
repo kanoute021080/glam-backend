@@ -351,7 +351,12 @@ function addBubble(role,text){
         <div style="font-size:22px;font-weight:700;color:#c17f24">⏱️ ${L.ready} ${time}</div>
         <div style="font-size:11px;color:#8a6a3a;margin-top:4px">${L.kitchen}</div>
       </div>
-      ${phone?`<div style="font-size:11px;color:#22c98a;text-align:center;margin-bottom:6px">📱 We'll WhatsApp you when it's ready</div>`:""}
+     ${phone?`<div style="font-size:11px;color:#22c98a;text-align:center;margin-bottom:6px">📱 We'll WhatsApp you when it's ready</div>`:""}
+      <div style="background:#1a0a00;border-radius:8px;padding:10px;margin-bottom:8px">
+        <div style="font-size:11px;color:#8a6a3a;text-align:center;margin-bottom:6px">💳 Pay via Zelle</div>
+        <div style="font-size:14px;font-weight:700;color:#c17f24;text-align:center">zelle@lasavane.com</div>
+        <div style="font-size:10px;color:#8a6a3a;text-align:center;margin-top:2px">Include your name in the memo</div>
+      </div>
       <div style="font-size:11px;color:#8a6a3a;text-align:center">${footerMsg}</div>
     </div>`;
   el.appendChild(w);
