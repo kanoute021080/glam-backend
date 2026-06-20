@@ -100,26 +100,18 @@ const LANGS={
     periods:{breakfast:"Breakfast",lunch:"Lunch",dinner:"Dinner"},
     quick:["📋 See menu","🛵 Delivery available?","⏱️ Wait time?","📞 Call us"],
   },
-  fr:{
+ fr:{
     status:"Assistant IA · toujours disponible",
     placeholder:"Tapez votre commande...",
     label:"Teranga IA",
     periods:{breakfast:"Petit-déjeuner",lunch:"Déjeuner",dinner:"Dîner"},
     quick:["📋 Voir le menu","🛵 Livraison?","⏱️ Délai d'attente?","📞 Nous appeler"],
-  },
-  
-    status:"AI ji · def ak yëgël",
-    placeholder:"Bind sa commande...",
-    label:"Afghan Kababs AI",
-    periods:{breakfast:"Petit-déjeuner",lunch:"Déjeuner",dinner:"Dîner"},
-    quick:["📋 Xool menu bi","🛵 Livraison am?","⏱️ Benn waxtu?","📞 Woo leen"],
   }
 };
 
 const ORDER_LABELS={
   en:{title:"Check my order",label:"Your name",btn:"Check status",notfound:"No order found",notfound_sub:"We couldn't find an order under that name.",tryagain:"Try again",pending:"Preparing",confirmed:"Confirmed, in kitchen",ready:"Ready for pickup",done:"Completed",noPhone:"Sorry — phone number isn't available right now. Please order through chat."},
-  fr:{title:"Vérifier ma commande",label:"Votre nom",btn:"Vérifier",notfound:"Commande introuvable",notfound_sub:"Nous n'avons pas trouvé de commande sous ce nom.",tryagain:"Réessayer",pending:"En préparation",confirmed:"Confirmée, en cuisine",ready:"Prête à récupérer",done:"Terminée",noPhone:"Désolé — le numéro n'est pas disponible. Veuillez commander par chat."},
-  title:"Xool sa commande",label:"Sa tur",btn:"Xool",notfound:"Commande bi amul",notfound_sub:"Xoolul commande bu am sa tur.",tryagain:"Saytu",pending:"Def nanu ko",confirmed:"Wone na, ci cuisine",ready:"Sett na, jëlël",done:"Mat na",noPhone:"Numéro bi amul leegi. Bind ci chat bi."}
+  fr:{title:"Vérifier ma commande",label:"Votre nom",btn:"Vérifier",notfound:"Commande introuvable",notfound_sub:"Nous n'avons pas trouvé de commande sous ce nom.",tryagain:"Réessayer",pending:"En préparation",confirmed:"Confirmée, en cuisine",ready:"Prête à récupérer",done:"Terminée",noPhone:"Désolé — le numéro n'est pas disponible. Veuillez commander par chat."}
 };
 
 function buildSystem(menu, period){
@@ -226,15 +218,6 @@ const READY_LABELS={
       "dine-in":"Votre repas arrive à votre table!",
       delivery:"Votre commande est en route! 🛵"
     }
-  },
-  
-    title:"🔔 Sa commande sett na!",
-    notifTitle:"Sa commande sett na! 🍽️",
-    sub:{
-      takeout:"Ñëw ko jëlël ci comptoir bi.",
-      "dine-in":"Dinañu ko dëkk ci sa tabël!",
-      delivery:"Sa commande dafa dem yoon! 🛵"
-    }
   }
 };
 
@@ -324,15 +307,8 @@ function addBubble(role,text){
         footer:{takeout:"Montrez ce numéro au comptoir.",
                 "dine-in":"Restez assis — votre repas vous sera apporté!",
                 delivery:"Votre commande vous sera livrée 🛵"}
-      },
-    
-      confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",
-      notifyEmail:"📧 Dinañu yónni email bu sett",orderNum:"Numéro commande bi",
-      footer:{takeout:"Yëgël numéro bi bu nga ñëw.",
-              "dine-in":"Dëgël — dinañu ko indi ci sa tabël!",
-              delivery:"Dinañu ko indi ci sa adresse 🛵"}
-    }
-  };
+      }
+    };
   const L=labels[currentLang];
   const footerMsg=L.footer[(type||"takeout").toLowerCase()]||L.footer.takeout;
   // Render card with placeholder — real order number filled in after server responds
