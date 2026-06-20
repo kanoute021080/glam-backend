@@ -107,7 +107,7 @@ const LANGS={
     periods:{breakfast:"Petit-déjeuner",lunch:"Déjeuner",dinner:"Dîner"},
     quick:["📋 Voir le menu","🛵 Livraison?","⏱️ Délai d'attente?","📞 Nous appeler"],
   },
-  wo:{
+  
     status:"AI ji · def ak yëgël",
     placeholder:"Bind sa commande...",
     label:"Afghan Kababs AI",
@@ -119,7 +119,7 @@ const LANGS={
 const ORDER_LABELS={
   en:{title:"Check my order",label:"Your name",btn:"Check status",notfound:"No order found",notfound_sub:"We couldn't find an order under that name.",tryagain:"Try again",pending:"Preparing",confirmed:"Confirmed, in kitchen",ready:"Ready for pickup",done:"Completed",noPhone:"Sorry — phone number isn't available right now. Please order through chat."},
   fr:{title:"Vérifier ma commande",label:"Votre nom",btn:"Vérifier",notfound:"Commande introuvable",notfound_sub:"Nous n'avons pas trouvé de commande sous ce nom.",tryagain:"Réessayer",pending:"En préparation",confirmed:"Confirmée, en cuisine",ready:"Prête à récupérer",done:"Terminée",noPhone:"Désolé — le numéro n'est pas disponible. Veuillez commander par chat."},
-  wo:{title:"Xool sa commande",label:"Sa tur",btn:"Xool",notfound:"Commande bi amul",notfound_sub:"Xoolul commande bu am sa tur.",tryagain:"Saytu",pending:"Def nanu ko",confirmed:"Wone na, ci cuisine",ready:"Sett na, jëlël",done:"Mat na",noPhone:"Numéro bi amul leegi. Bind ci chat bi."}
+  title:"Xool sa commande",label:"Sa tur",btn:"Xool",notfound:"Commande bi amul",notfound_sub:"Xoolul commande bu am sa tur.",tryagain:"Saytu",pending:"Def nanu ko",confirmed:"Wone na, ci cuisine",ready:"Sett na, jëlël",done:"Mat na",noPhone:"Numéro bi amul leegi. Bind ci chat bi."}
 };
 
 function buildSystem(menu, period){
@@ -227,7 +227,7 @@ const READY_LABELS={
       delivery:"Votre commande est en route! 🛵"
     }
   },
-  wo:{
+  
     title:"🔔 Sa commande sett na!",
     notifTitle:"Sa commande sett na! 🍽️",
     sub:{
@@ -325,7 +325,7 @@ function addBubble(role,text){
                 "dine-in":"Restez assis — votre repas vous sera apporté!",
                 delivery:"Votre commande vous sera livrée 🛵"}
       },
-    wo:{
+    
       confirmed:"Commande bi dafa set!",kitchen:"Def ko ci cuisine bi 🍳",ready:"Dëkk ci",
       notifyEmail:"📧 Dinañu yónni email bu sett",orderNum:"Numéro commande bi",
       footer:{takeout:"Yëgël numéro bi bu nga ñëw.",
