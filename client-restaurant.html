@@ -558,7 +558,9 @@ async function openCardPayment(total, name){
     }
     if(!stripe) stripe=Stripe(STRIPE_PUBLISHABLE_KEY);
     elements=stripe.elements({clientSecret:data.clientSecret});
-    const paymentElement=elements.create("payment");
+    const paymentElement=elements.create("payment", {
+      wallets: { link: "never" }
+    });
     paymentElement.mount("#payment-element");
   }catch(e){
     showPaymentError("Could not load payment form. Please try again.");
