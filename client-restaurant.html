@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://js.stripe.com/v3/"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Teranga Restaurant — Order Online</title>
@@ -325,8 +326,11 @@ function addBubble(role,text){
       <div style="font-size:13px;color:#f5e6c8;margin-bottom:10px">👤 ${name} · ${type}</div>
      ${payPref==="app"?`<div style="background:#1a0a00;border-radius:8px;padding:12px;margin-bottom:8px">
         <div style="font-size:11px;color:#8a6a3a;text-align:center;margin-bottom:8px">💳 Pay how you like</div>
+        <button onclick="openCardPayment('${total}', '${name.replace(/'/g,"\\'")}')" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:none;cursor:pointer;margin-bottom:6px;background:#5469d4">
+          <span style="font-size:16px;color:#fff">💳</span>
+          <div style="text-align:left"><div style="font-size:13px;font-weight:600;color:#fff">Pay with Card</div><div style="font-size:11px;color:#c8cfff">Visa, Mastercard, Amex</div></div>
+        </button>
         <a href="https://cash.app/$lasavane" target="_blank" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;text-decoration:none;margin-bottom:6px;background:#1a9e3f">
-          <span style="font-size:16px;color:#fff;font-weight:700">$</span>
           <div><div style="font-size:13px;font-weight:600;color:#fff">Cash App</div><div style="font-size:11px;color:#a8f0bc">$lasavane</div></div>
         </a>
         <a href="https://venmo.com/lasavane" target="_blank" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;text-decoration:none;margin-bottom:6px;background:#3d95ce">
