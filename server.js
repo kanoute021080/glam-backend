@@ -33,6 +33,25 @@ async function sendSMS(to, body) {
     console.error("[sms] error:", e.message);
   }
 }
+async function createPaymentIntent(amountInDollars, orderId, customerName){
+  const params = new URLSearchParams();
+  params.append("amount", Math.round(amountInDollars * 100)); // Stripe uses cents
+  params.append("currency", "usd");
+  params.append("metadata[order_id]", orderId);
+  params.append("metadata[customer_name]", customerName || "");
+  params.append("automatic_payment_methods[enabled]", "true");
+
+  const res = await fetch("https://api.stripe.com/v1/payment_intents", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + process.env.STRIPE_SECRET_KEY,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: params
+  });
+  const data = await res.json();
+  return data;
+}
 async function sendWhatsApp(to, body) {
   if (!TWILIO_SID || !TWILIO_TOKEN) {
     console.log("[whatsapp] Twilio not configured, skipping");
@@ -170,7 +189,23 @@ app.post("/orders", async (req, res) => {
       status: status || "pending",
       order_number
     });
-  
+  app.post("/create-payment-intent", async (req, res) => {
+  try {
+    const { amount, orderId, customerName } = req.body;
+    if (!amount) return res.status(400).json({ error: "Amount required" });
+
+    const intent = await createPaymentIntent(amount, orderId, customerName);
+    if (intent.error) {
+      console.error("Stripe error:", intent.error);
+      return res.status(400).json({ error: intent.error.message });
+    }
+
+    res.json({ clientSecret: intent.client_secret });
+  } catch (e) {
+    console.error("Payment intent error:", e);
+    res.status(500).json({ error: "Failed to create payment" });
+  }
+});
 
     supabase("GET", `restaurants?salon_id=eq.${sid}&limit=1`).then(settings => {
       const ownerEmail = settings?.[0]?.owner_email;
