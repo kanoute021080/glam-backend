@@ -347,9 +347,21 @@ function addBubble(role,text){
       <div style="font-size:13px;color:#f5e6c8;margin-bottom:4px">🍽️ ${items}</div>
       <div style="font-size:13px;color:#f5e6c8;margin-bottom:4px">💰 Total: ${total}</div>
       <div style="font-size:13px;color:#f5e6c8;margin-bottom:10px">👤 ${name} · ${type}</div>
-      <div style="background:#1a0a00;border-radius:8px;padding:10px;text-align:center;margin-bottom:8px">
-        <div style="font-size:22px;font-weight:700;color:#c17f24">⏱️ ${L.ready} ${time}</div>
-        <div style="font-size:11px;color:#8a6a3a;margin-top:4px">${L.kitchen}</div>
+     <div style="background:#1a0a00;border-radius:8px;padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;color:#8a6a3a;text-align:center;margin-bottom:8px">💳 Pay how you like</div>
+        <a href="https://cash.app/$lasavane" target="_blank" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;text-decoration:none;margin-bottom:6px;background:#1a9e3f">
+          <span style="font-size:16px;color:#fff;font-weight:700">$</span>
+          <div><div style="font-size:13px;font-weight:600;color:#fff">Cash App</div><div style="font-size:11px;color:#a8f0bc">$lasavane</div></div>
+        </a>
+        <a href="https://venmo.com/lasavane" target="_blank" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;text-decoration:none;margin-bottom:6px;background:#3d95ce">
+          <span style="font-size:16px;color:#fff;font-weight:700">V</span>
+          <div><div style="font-size:13px;font-weight:600;color:#fff">Venmo</div><div style="font-size:11px;color:#b8dff5">@lasavane</div></div>
+        </a>
+        <div onclick="navigator.clipboard.writeText('zelle@lasavane.com');this.querySelector('.copy-hint').textContent='Copied!'" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;background:#6B2D8B">
+          <span style="font-size:16px;color:#fff;font-weight:700">Z</span>
+          <div><div style="font-size:13px;font-weight:600;color:#fff">Zelle</div><div style="font-size:11px;color:#dbb8f0" class="copy-hint">zelle@lasavane.com — tap to copy</div></div>
+        </div>
+        <div style="font-size:10px;color:#8a6a3a;text-align:center;margin-top:8px">Include your name in the memo</div>
       </div>
      ${phone?`<div style="font-size:11px;color:#22c98a;text-align:center;margin-bottom:6px">📱 We'll WhatsApp you when it's ready</div>`:""}
       <div style="background:#1a0a00;border-radius:8px;padding:10px;margin-bottom:8px">
