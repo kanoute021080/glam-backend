@@ -578,7 +578,6 @@ function showPaymentError(msg){
   el.textContent=msg;
   el.style.display="block";
 }
-
 async function submitCardPayment(){
   if(!stripe||!elements) return;
   const btn=document.getElementById("submit-payment-btn");
@@ -598,6 +597,13 @@ async function submitCardPayment(){
     btn.textContent="Pay Now";
   }else{
     btn.textContent="✅ Paid!";
+    if(currentOrderId){
+      fetch(BACKEND+"/orders/"+currentOrderId+"/payment-status",{
+        method:"PATCH",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({payment_status:"paid"})
+      }).catch(e=>console.error("Payment status update failed:",e));
+    }
     setTimeout(()=>{
       closeCardPayment();
       addBubble("bot", currentLang==="fr"?"Paiement reçu! Merci.":"Payment received! Thank you.");
