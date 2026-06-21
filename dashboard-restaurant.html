@@ -144,7 +144,10 @@ async function loadRestaurantSettings(){
     }
   }catch{}
 }
-
+function paymentBadge(status){
+  if(status==="paid") return `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:#d1f7e0;color:#0a8a4a">✅ PAID</span>`;
+  return `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:#fff4d6;color:#a8730a">💵 UNPAID</span>`;
+}
 async function saveRestaurantSettings(){
   const btn = document.getElementById("settings-save-btn");
   btn.textContent = "Saving..."; btn.disabled = true;
@@ -281,8 +284,9 @@ function renderOrders(){
                 ${orderBadge(o.order_number)}
               </div>
               <div style="font-size:12px;color:#888">${o.order_type} · ${srcBadge(o.source||"chat")}</div>
-              <div style="font-size:13px;color:#c17f24;font-weight:500;margin-top:4px">${o.items}</div>
+             <div style="font-size:13px;color:#c17f24;font-weight:500;margin-top:4px">${o.items}</div>
               <div style="font-size:12px;color:#888">Total: ${o.total} · Est: ${o.estimated_time}</div>
+              <div style="margin-top:4px">${paymentBadge(o.payment_status)}</div>
             </div>
             ${statusBadge(o.status)}
           </div>
@@ -303,8 +307,9 @@ function renderOrders(){
                 <div style="font-size:13px;font-weight:600;color:#111">${o.customer_name}</div>
                 ${orderBadge(o.order_number)}
               </div>
-              <div style="font-size:12px;color:#888">${o.order_type} · ⏱️ ${o.estimated_time}</div>
+             <div style="font-size:12px;color:#888">${o.order_type} · ⏱️ ${o.estimated_time}</div>
               <div style="font-size:13px;color:#c17f24;margin-top:2px">${o.items}</div>
+              <div style="margin-top:4px">${paymentBadge(o.payment_status)}</div>
             </div>
             ${statusBadge(o.status)}
           </div>
