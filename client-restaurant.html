@@ -597,6 +597,7 @@ async function submitCardPayment(){
     btn.textContent="Pay Now";
   }else{
     btn.textContent="✅ Paid!";
+    console.log("Attempting payment status update, currentOrderId =", currentOrderId);
     if(currentOrderId){
       fetch(BACKEND+"/orders/"+currentOrderId+"/payment-status",{
         method:"PATCH",
