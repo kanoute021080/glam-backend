@@ -471,7 +471,16 @@ app.patch("/orders/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
+app.patch("/orders/:id/payment-status", async (req, res) => {
+  try {
+    const { payment_status } = req.body;
+    const data = await supabase("PATCH", "orders?id=eq." + req.params.id, { payment_status });
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Payment status update error:", e);
+    res.status(500).json({ error: "Failed to update payment status" });
+  }
+});
 app.get("/menu-period/:salonId", async (req, res) => {
   try {
     const period = req.query.period || "lunch";
