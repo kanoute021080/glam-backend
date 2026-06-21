@@ -108,7 +108,7 @@ const salonId=window.location.pathname.split("/")[2]||"restaurant1";
 let hist=[], busy=false, currentLang="en", menuData=null, currentPeriod=null, restaurantPhone=null, restaurantName="Teranga Restaurant";
 
 const STRIPE_PUBLISHABLE_KEY="pk_test_51TkX0ZFopYChX4fBwpIUXT1n3dte7tXcdnrfKmWTl80MOtJwaTraI8cEiBFr4FJFs5skNrilvky41Mw7aC4HnoSI009WHgnYOJ";
-let stripe=null, elements=null, currentOrderName="";
+let stripe=null, elements=null, currentOrderName="", currentOrderId=null;
 
 const LANGS={
   en:{
