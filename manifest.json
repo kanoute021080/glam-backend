@@ -1,0 +1,41 @@
+{
+  "name": "Dianke AI – Réceptionniste",
+  "short_name": "Dianke AI",
+  "description": "AI receptionist for salons & restaurants — always open, always available.",
+  "start_url": "/theafricancrown",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f1a",
+  "theme_color": "#c9a84c",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Book Appointment",
+      "short_name": "Book",
+      "url": "/theafricancrown#book",
+      "description": "Book a new appointment"
+    },
+    {
+      "name": "Check Booking",
+      "short_name": "My Booking",
+      "url": "/theafricancrown#status",
+      "description": "Check your booking status"
+    }
+  ]
+}
