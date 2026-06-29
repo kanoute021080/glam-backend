@@ -2,6 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const app = express();
+// Serve PWA files
+app.get('/sw.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'sw.js'));
+});
+app.get('/manifest.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'manifest.json'));
+});
 
 const RESEND_KEY = process.env.RESEND_KEY;
 const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
