@@ -168,11 +168,10 @@ const currentTime = etTime.getHours().toString().padStart(2,'0') + ':' + etTime.
       } else if (s?.dinner_start && s?.dinner_end && currentTime >= s.dinner_start && currentTime < s.dinner_end) {
         period = "dinner";
       } else {
-        // Fallback to time-based if column not yet set in DB
-        const hour = new Date().getHours();
-        period = hour < 11 ? "breakfast" : hour < 18 ? "lunch" : "dinner";
-      }
-    }
+  // Fallback to time-based if column not yet set in DB
+  const hour = etTime.getHours();
+  period = hour < 6 ? "dinner" : hour < 11 ? "breakfast" : hour < 18 ? "lunch" : "dinner";
+}    }
     const data = await supabase("GET", "menu_items?salon_id=eq." + req.params.salonId + "&available=eq.true&or=(meal_period.eq." + period + ",meal_period.eq.all)&order=meal_period.asc,category.asc");
     res.json({ period, items: Array.isArray(data) ? data : [] });
   } catch (err) {
