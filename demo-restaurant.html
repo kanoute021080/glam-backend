@@ -232,7 +232,7 @@ async function send(txt){
     const res=await fetch(BACKEND+"/chat",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({system:LANGS[currentLang].system,messages:hist})
+      body:JSON.stringify({system:LANGS[currentLang].system.replace("MENU_PLACEHOLDER", MENUS[currentPeriod][currentLang]),messages:hist})
     });
     const d=await res.json();
     const raw=(d?.content?.[0]?.text||"...").replace(/\*\*(.*?)\*\*/g,"$1");
