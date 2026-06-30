@@ -151,11 +151,21 @@ app.get("/menu/:salonId", async (req, res) => {
       // Explicit ?period=xxx from the dashboard menu browser — honour it
       period = requested;
     } else {
-      // No period specified — read what the owner set as active
+     } else {
+      // Read time-based period from owner's settings
       const settings = await supabase("GET", `salon_settings?salon_id=eq.${req.params.salonId}&limit=1`);
-      const saved = settings?.[0]?.active_period;
-      if (["breakfast", "lunch", "dinner"].includes(saved)) {
-        period = saved;
+      const s = settings?.[0];
+      
+      // Get current time in HH:MM format
+      const now = new Date();
+      const currentTime = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+      
+      if (s?.breakfast_start && s?.breakfast_end && currentTime >= s.breakfast_start && currentTime < s.breakfast_end) {
+        period = "breakfast";
+      } else if (s?.lunch_start && s?.lunch_end && currentTime >= s.lunch_start && currentTime < s.lunch_end) {
+        period = "lunch";
+      } else if (s?.dinner_start && s?.dinner_end && currentTime >= s.dinner_start && currentTime < s.dinner_end) {
+        period = "dinner";
       } else {
         // Fallback to time-based if column not yet set in DB
         const hour = new Date().getHours();
