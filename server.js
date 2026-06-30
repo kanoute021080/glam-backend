@@ -158,7 +158,8 @@ app.get("/menu/:salonId", async (req, res) => {
       
       // Get current time in HH:MM format
       const now = new Date();
-      const currentTime = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+const etTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+const currentTime = etTime.getHours().toString().padStart(2,'0') + ':' + etTime.getMinutes().toString().padStart(2,'0');
       
       if (s?.breakfast_start && s?.breakfast_end && currentTime >= s.breakfast_start && currentTime < s.breakfast_end) {
         period = "breakfast";
