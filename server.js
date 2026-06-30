@@ -151,7 +151,7 @@ app.get("/menu/:salonId", async (req, res) => {
       // Explicit ?period=xxx from the dashboard menu browser — honour it
       period = requested;
     } else {
-     } else {
+    
       // Read time-based period from owner's settings
       const settings = await supabase("GET", `salon_settings?salon_id=eq.${req.params.salonId}&limit=1`);
       const s = settings?.[0];
