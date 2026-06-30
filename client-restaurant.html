@@ -427,7 +427,7 @@ function orderSelection(){
   async function send(txt){
   const inp=document.getElementById("inp");
   const t=txt||(inp?inp.value.trim():"");
-  if(!t||busy)return; if(!menuData) menuData={items:[],period:"lunch"};
+  if(!t||busy)return; if(!menuData || !menuData.items || menuData.items.length===0) await loadMenu();
   if(inp)inp.value="";
   addBubble("user",t);
 hist.push({role:"user",content:t});
