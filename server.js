@@ -206,6 +206,11 @@ app.post("/orders", async (req, res) => {
       status: status || "pending",
       order_number
     });
+    res.json(Array.isArray(data) ? data[0] : data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
   app.post("/create-payment-intent", async (req, res) => {
   try {
     const { amount, orderId, customerName } = req.body;
