@@ -286,7 +286,7 @@ if (customerPhone) {
       }).then(r => r.text()).then(t => console.log(`[orders] resend response: ${t.slice(0, 200)}`)).catch(e => console.error("[orders] email error:", e));
     }).catch(e => console.error("[orders] settings lookup failed:", e));
 
-    // ── Client confirmation SMS + WhatsApp ── if (client_phone) {   const salonRows = await supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`);   const salonName = salonRows?.[0]?.salon_name || salon_id;   const confirmMsg = `Hi ${client}! Your ${service} appointment at ${salonName} is booked for ${day} at ${time}. We'll see you then! 💅`;   sendSMS(client_phone, confirmMsg).catch(e => console.error("[booking-sms]", e));   sendWhatsApp(client_phone, confirmMsg).catch(e => console.error("[booking-whatsapp]", e)); }  res.json(Array.isArray(data) ? data[0] : data);
+    // ── Client confirmation SMS + WhatsApp ── if (client_phone) {   const salonRows = await supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`);   const salonName = salonRows?.[0]?.salon_name || salon_id;   const confirmMsg = `Hi ${client}! Your ${service} appointment at ${salonName} is booked for ${day} at ${time}. We'll see you then! 💅`;   sendSMS(client_phone, confirmMsg).catch(e => console.error("[booking-sms]", e));   sendWhatsApp(client_phone, confirmMsg).catch(e => console.error("[booking-whatsapp]", e)); }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
