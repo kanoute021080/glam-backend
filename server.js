@@ -229,70 +229,7 @@ app.post("/orders", async (req, res) => {
   }
 });
 
-    supabase("GET", `restaurants?salon_id=eq.${sid}&limit=1`).then(settings => {
-      const ownerEmail = settings?.[0]?.owner_email;
-const restaurantName = settings?.[0]?.name || sid;
-const kitchenPhone = settings?.[0]?.kitchen_phone;
-
-      // ── Kitchen SMS notification ──
-      console.log(`[kitchen-sms] kitchenPhone=${kitchenPhone} TWILIO_SID=${!!TWILIO_SID} TWILIO_TOKEN=${!!TWILIO_TOKEN} TWILIO_PHONE=${TWILIO_PHONE}`);
-      if (kitchenPhone) {
-        const orderNum = Array.isArray(data) ? data[0]?.order_number : data?.order_number;
-        const smsBody = `NEW ORDER #${orderNum||""}\nCustomer: ${customer_name}\nItems: ${items}\nTotal: $${total}\nType: ${order_type||"takeout"}\nETA: ${estimated_time||"25-30 mins"}`;
-        sendSMS(kitchenPhone, smsBody).catch(e => console.error("[kitchen-sms]", e));
-      } 
-      // ── Customer WhatsApp confirmation ──
-const customerPhone = req.body.customer_phone || null;
-if (customerPhone) {
-  const orderNum = Array.isArray(data) ? data[0]?.order_number : data?.order_number;
-  const waMsg = `Hi ${customer_name}! Your order #${orderNum||""} at ${restaurantName} is confirmed. Items: ${items}. ETA: ${estimated_time||"25-30 mins"}. We'll notify you when it's ready! 🍽️`;
-  sendWhatsApp(customerPhone, waMsg).catch(e => console.error("[customer-whatsapp]", e));
-}
-      else {
-        console.log("[kitchen-sms] no kitchen_phone set in settings");
-      }
-
-      if (!ownerEmail || !RESEND_KEY) {
-        console.log(`[orders] skip email — ownerEmail=${!!ownerEmail} resendKey=${!!RESEND_KEY}`);
-        return;
-      }
-      fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${RESEND_KEY}` },
-        body: JSON.stringify({
-          from: "Dianke.ai <hello@dianke.ai>",
-          to: ownerEmail,
-          subject: `New order — ${customer_name} · $${total}`,
-          html: `
-            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
-              <h2 style="color:#111;margin-bottom:4px">New order received 🍽️</h2>
-              <p style="color:#888;font-size:13px;margin-bottom:20px">Via Dianke.ai · ${restaurantName}</p>
-              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
-                <div style="font-size:13px;color:#888;margin-bottom:4px">Customer</div>
-                <div style="font-size:15px;font-weight:600;color:#111">${customer_name}</div>
-              </div>
-              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
-                <div style="font-size:13px;color:#888;margin-bottom:4px">Items</div>
-                <div style="font-size:15px;font-weight:600;color:#111">${items}</div>
-              </div>
-              <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:12px">
-                <div style="font-size:13px;color:#888;margin-bottom:4px">Total · Type · ETA</div>
-                <div style="font-size:15px;font-weight:600;color:#111">$${total} · ${order_type || "takeout"} · ${estimated_time || "25-30 mins"}</div>
-              </div>
-              <a href="https://dianke.ai/dashboard/${sid}" style="display:block;text-align:center;background:#c17f24;color:#fff;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">Open dashboard →</a>
-            </div>
-          `
-        })
-      }).then(r => r.text()).then(t => console.log(`[orders] resend response: ${t.slice(0, 200)}`)).catch(e => console.error("[orders] email error:", e));
-    }).catch(e => console.error("[orders] settings lookup failed:", e));
-
-    // ── Client confirmation SMS + WhatsApp ── if (client_phone) {   const salonRows = await supabase("GET", `salon_settings?salon_id=eq.${salon_id || "default"}&limit=1`);   const salonName = salonRows?.[0]?.salon_name || salon_id;   const confirmMsg = `Hi ${client}! Your ${service} appointment at ${salonName} is booked for ${day} at ${time}. We'll see you then! 💅`;   sendSMS(client_phone, confirmMsg).catch(e => console.error("[booking-sms]", e));   sendWhatsApp(client_phone, confirmMsg).catch(e => console.error("[booking-whatsapp]", e)); }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get("/orders/search", async (req, res) => {
+    app.get("/orders/search", async (req, res) => {
   const { name, salon_id } = req.query;
   if (!name) return res.status(400).json({ error: "Name required" });
   try {
