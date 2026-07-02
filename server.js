@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const app = express();
+app.get("/client/lebaobab", (req, res) => res.sendFile(path.join(__dirname, "lebaobab.html")));
 // Serve PWA files
 app.get('/sw.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'sw.js'));
