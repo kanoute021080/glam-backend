@@ -131,19 +131,19 @@ const LANGS = {
     label: "Le Baobab AI",
     periods: { lunch: "Lunch", dinner: "Dinner" },
     quick: { 
-      lunch: ["📋 See lunch menu", "🥘 Order Thiebou Djeun", "🍗 Order Chicken Yassa", "⏱️ Wait time?"],
-      dinner: ["📋 See dinner menu", "🍖 Order Debe", "🐟 Order Grilled Fish", "⏱️ Wait time?"]
-    }
+  lunch: ["📋 See lunch menu", "🥘 Order Thiebou Djeun", "🍗 Order Chicken Yassa", "📞 Call us"],
+  dinner: ["📋 See dinner menu", "🍖 Order Debe", "🐟 Order Grilled Fish", "📞 Call us"]
+}
   },
   fr: {
     status: "Assistant IA · toujours disponible",
     placeholder: "Tapez votre commande...",
     label: "Le Baobab IA",
     periods: { lunch: "Déjeuner", dinner: "Dîner" },
-    quick: {
-      lunch: ["📋 Voir le menu", "🥘 Commander Thiéboudiène", "🍗 Commander Poulet Yassa", "⏱️ Délai?"],
-      dinner: ["📋 Voir le menu", "🍖 Commander Debe", "🐟 Commander Poisson Grillé", "⏱️ Délai?"]
-    }
+   quick: {
+  lunch: ["📋 Voir le menu", "🥘 Commander Thiéboudiène", "🍗 Commander Poulet Yassa", "📞 Nous appeler"],
+  dinner: ["📋 Voir le menu", "🍖 Commander Debe", "🐟 Commander Poisson Grillé", "📞 Nous appeler"]
+}
   },
   wo: {
     status: "AI ji · def ak yëgël ak jaamu",
@@ -249,6 +249,11 @@ async function send(txt) {
   const t = txt || (inp ? inp.value.trim() : "");
   if (!t || busy) return;
   if (inp) inp.value = "";
+  if (/call us|nous appeler/i.test(t)) {
+  addBubble("bot", "📞 Our phone number will be available here once we go live. For now, place your order through chat!");
+  busy = false;
+  return;
+}
   addBubble("user", t);
   hist.push({ role: "user", content: t });
   busy = true;
